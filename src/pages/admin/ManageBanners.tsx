@@ -1,0 +1,403 @@
+import AdminLayout from "@/components/AdminLayout";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { Plus, Trash2, GripVertical, Image, Eye, EyeOff, Upload, Film, Play } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { getImageUrl } from "@/lib/utils";
+
+interface Banner {
+  id: string;
+  title: string | null;
+  subtitle: string | null;
+  image_url: string;
+  mobile_image_url?: string | null;
+  video_url: string | null;
+  cta_text: string | null;
+  cta_link: string | null;
+  badge_text: string | null;
+  cta2_text: string | null;
+  cta2_link: string | null;
+  sort_order: number;
+  is_active: boolean;
+  page_path: string | null;
+  created_at?: string;
+}
+
+const PAGES = [
+  { label: "Home Page (Slider)", value: "home" },
+  { label: "SME Merchant Bankers", value: "/merchant-bankers/list-of-sme-merchant-bankers" },
+  { label: "Mainboard Merchant Bankers", value: "/merchant-bankers/list-of-mainboard-merchant-bankers" },
+  { label: "Daily Reporter", value: "/daily-ipo-digest" },
+  { label: "News & Updates", value: "/news" },
+  { label: "Market Snaps", value: "/ipo-video-updates" },
+  { label: "IPO Calendar", value: "/all-ipos" },
+  { label: "Mainline IPOs", value: "/mainline-ipos" },
+  { label: "SME IPOs", value: "/sme-ipos" },
+  { label: "SME IPO Sector", value: "/sme-ipo-sector" },
+  { label: "Mainboard IPO Sector", value: "/mainboard-ipo-sector" },
+  { label: "IPO Process", value: "/ipo-process" },
+  { label: "Pre-IPO Process", value: "/pre-ipo-process-guidance" },
+  { label: "Sector Wise IPO", value: "/sector-wise-ipo-list-in-india" },
+  { label: "IPO Registrar List", value: "/ipo-registrar-list" },
+  { label: "Contact Us", value: "/contact" },
+  { label: "----------------", value: "" },
+  { label: "All Reports (Group)", value: "group:reports" },
+  { label: "All IPO Knowledge (Group)", value: "group:knowledge" },
+  { label: "All Notifications/Circulars (Group)", value: "group:notifications" },
+  { label: "All Services (Group)", value: "group:services" },
+  { label: "----------------", value: "" },
+  { label: "Consultant", value: "/consultant" },
+  { label: "Blog", value: "/blog" },
+];
+
+const ManageBanners = () => {
+  const [banners, setBanners] = useState<Banner[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    subtitle: "",
+    image_url: "",
+    mobile_image_url: "",
+    video_url: "",
+    cta_text: "",
+    cta_link: "",
+    badge_text: "",
+    cta2_text: "",
+    cta2_link: "",
+    page_path: "home"
+  });
+
+  const fetchBanners = async () => {
+    try {
+      const res = await fetch("/api/banners");
+      if (res.ok) setBanners(await res.json());
+      setLoading(false);
+    } catch (err) { console.error(err); }
+  };
+
+  useEffect(() => { fetchBanners(); }, []);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'mobile_image' | 'video') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+
+    const limit = type === 'video' ? 15 * 1024 * 1024 : 2 * 1024 * 1024;
+    if (file.size > limit) {
+      toast.error(`File too large! Max ${type === 'video' ? '15MB' : '2MB'} allowed.`);
+      return;
+    }
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("folder", "banners");
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const { url } = await res.json();
+      if (type === 'image') {
+        setForm({ ...form, image_url: url });
+        toast.success("Image uploaded!");
+      } else if (type === 'mobile_image') {
+        setForm({ ...form, mobile_image_url: url });
+        toast.success("Mobile image uploaded!");
+      } else {
+        setForm({ ...form, video_url: url });
+        toast.success("Video uploaded!");
+      }
+      setUploading(false);
+    } catch (error: any) {
+      toast.error("Upload failed: " + error.message);
+      setUploading(false);
+    }
+  };
+
+  const handleSave = async () => {
+
+    const titleChars = form.title?.length || 0;
+    const subtitleChars = form.subtitle?.length || 0;
+
+    if (titleChars > 90) {
+      toast.error(`Banner Title cannot exceed 90 characters (current: ${titleChars})`);
+      return;
+    }
+
+    if (subtitleChars > 90) {
+      toast.error(`Subtitle / Description cannot exceed 90 characters (current: ${subtitleChars})`);
+      return;
+    }
+
+    if (!form.image_url && !form.video_url) { toast.error("Please upload at least an image or a video"); return; }
+    try {
+      const url = editingId ? `/api/banners/${editingId}` : "/api/banners";
+      const method = editingId ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title || null,
+          subtitle: form.subtitle || null,
+          image_url: form.image_url,
+          mobile_image_url: form.mobile_image_url || null,
+          video_url: form.video_url || null,
+          cta_text: form.cta_text || null,
+          cta_link: form.cta_link || null,
+          badge_text: form.badge_text || null,
+          cta2_text: form.cta2_text || null,
+          cta2_link: form.cta2_link || null,
+          page_path: form.page_path === "home" ? null : form.page_path,
+          ...(editingId ? {} : { sort_order: banners.length + 1 })
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save banner");
+      }
+      toast.success(editingId ? "Banner updated!" : "Banner added!");
+      setForm({ title: "", subtitle: "", image_url: "", mobile_image_url: "", video_url: "", cta_text: "", cta_link: "", badge_text: "", cta2_text: "", cta2_link: "", page_path: "home" });
+      setShowForm(false);
+      setEditingId(null);
+      fetchBanners();
+    } catch (err: any) { toast.error(err.message); }
+  };
+
+  const handleEdit = (banner: Banner) => {
+    setForm({
+      title: banner.title || "",
+      subtitle: banner.subtitle || "",
+      image_url: banner.image_url || "",
+      mobile_image_url: banner.mobile_image_url || "",
+      video_url: banner.video_url || "",
+      cta_text: banner.cta_text || "",
+      cta_link: banner.cta_link || "",
+      badge_text: banner.badge_text || "",
+      cta2_text: banner.cta2_text || "",
+      cta2_link: banner.cta2_link || "",
+      page_path: banner.page_path || "home"
+    });
+    setEditingId(banner.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const toggleActive = async (id: string, current: boolean) => {
+    try {
+      await fetch(`/api/banners/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: !current })
+      });
+      fetchBanners();
+    } catch (err) { console.error(err); }
+  };
+
+  const deleteBanner = async (id: string) => {
+    if (!confirm("Delete this banner?")) return;
+    try {
+      await fetch(`/api/banners/${id}`, { method: "DELETE" });
+      toast.success("Banner deleted");
+      fetchBanners();
+    } catch (err) { console.error(err); }
+  };
+
+  return (
+    <AdminLayout>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Manage Hero Banners</h1>
+            <p className="text-sm text-muted-foreground">Add, reorder, and manage banners for various pages</p>
+          </div>
+          <Button className="bg-primary text-primary-foreground" onClick={() => {
+            setForm({ title: "", subtitle: "", image_url: "", mobile_image_url: "", video_url: "", cta_text: "", cta_link: "", badge_text: "", cta2_text: "", cta2_link: "", page_path: "home" });
+            setEditingId(null);
+            setShowForm(!showForm);
+          }}>
+            <Plus className="h-4 w-4 mr-1" />
+            Add Banner
+          </Button>
+        </div>
+
+        {showForm && (
+          <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+            <h3 className="font-semibold text-foreground">{editingId ? "Edit Banner" : "New Banner"}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Target Page</label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={form.page_path}
+                  onChange={(e) => setForm({ ...form, page_path: e.target.value })}
+                >
+                  {PAGES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium">Banner Title (Optional)</label>
+                  <span className={`text-[10px] ${form.title.length > 90 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
+                    {form.title.length}/90 characters
+                  </span>
+                </div>
+                <Input placeholder="E.g. Invest in IPOs" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+              </div>
+
+              <Input placeholder="Badge Text (Optional)" value={form.badge_text} onChange={(e) => setForm({ ...form, badge_text: e.target.value })} />
+              <Input placeholder="Primary CTA Text (Optional)" value={form.cta_text} onChange={(e) => setForm({ ...form, cta_text: e.target.value })} />
+
+              <Input placeholder="Primary CTA Link (Optional)" value={form.cta_link} onChange={(e) => setForm({ ...form, cta_link: e.target.value })} />
+              <Input placeholder="Secondary CTA Text (Optional)" value={form.cta2_text} onChange={(e) => setForm({ ...form, cta2_text: e.target.value })} />
+
+              <Input placeholder="Secondary CTA Link (Optional)" value={form.cta2_link} onChange={(e) => setForm({ ...form, cta2_link: e.target.value })} />
+
+              <div className="md:col-span-1">
+                <label className="flex items-center h-10 gap-2 cursor-pointer border border-dashed border-border rounded-lg px-4 hover:border-primary transition-colors">
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground truncate">{uploading ? "Uploading..." : form.image_url ? "Desktop Image uploaded ✓" : "Upload Desktop Image"}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'image')} disabled={uploading} />
+                </label>
+              </div>
+
+              <div className="md:col-span-1">
+                <label className="flex items-center h-10 gap-2 cursor-pointer border border-dashed border-border rounded-lg px-4 hover:border-primary transition-colors">
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground truncate">{uploading ? "Uploading..." : form.mobile_image_url ? "Mobile Image uploaded ✓" : "Upload Mobile Banner Image (Optional)"}</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, 'mobile_image')} disabled={uploading} />
+                </label>
+              </div>
+
+              <div className="md:col-span-1">
+                <label className="flex items-center h-10 gap-2 cursor-pointer border border-dashed border-border rounded-lg px-4 hover:border-primary transition-colors">
+                  <Upload className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground truncate">{uploading ? "Uploading..." : form.video_url ? "Video uploaded ✓" : "Upload Banner Video (Optional)"}</span>
+                  <input type="file" accept="video/*" className="hidden" onChange={(e) => handleFileUpload(e, 'video')} disabled={uploading} />
+                </label>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-medium">Subtitle / Description (Optional)</label>
+                <span className={`text-[10px] ${form.subtitle.length > 90 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
+                  {form.subtitle.length}/90 characters
+                </span>
+              </div>
+              <Textarea placeholder="Type Description only in 90 characters" value={form.subtitle} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {form.image_url && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground">Desktop Image Preview</p>
+                  <img src={getImageUrl(form.image_url)} alt="Preview" className="h-32 w-full object-cover rounded-lg border border-border" />
+                </div>
+              )}
+              {form.mobile_image_url && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground">Mobile Image Preview</p>
+                  <img src={getImageUrl(form.mobile_image_url)} alt="Mobile Preview" className="h-32 w-full object-cover rounded-lg border border-border" />
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] text-destructive" onClick={() => setForm({ ...form, mobile_image_url: "" })}>Remove Mobile Image</Button>
+                </div>
+              )}
+              {form.video_url && (
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground">Video Preview</p>
+                  <video src={getImageUrl(form.video_url)} autoPlay muted loop className="h-32 w-full object-cover rounded-lg border border-border" />
+                  <Button variant="ghost" size="sm" className="h-6 text-[10px] text-destructive" onClick={() => setForm({ ...form, video_url: "" })}>Remove Video</Button>
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleSave} className="bg-primary text-primary-foreground">{editingId ? "Update Banner" : "Save Banner"}</Button>
+              <Button variant="outline" onClick={() => {
+                setShowForm(false);
+                setEditingId(null);
+                setForm({ title: "", subtitle: "", image_url: "", mobile_image_url: "", video_url: "", cta_text: "", cta_link: "", badge_text: "", cta2_text: "", cta2_link: "", page_path: "home" });
+              }}>Cancel</Button>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {loading ? (
+            <div className="text-center py-12 text-muted-foreground">Loading banners…</div>
+          ) : banners.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">No banners yet. Add your first one above.</div>
+          ) : (
+            banners.map((banner) => (
+              <div key={banner.id} className="bg-card border border-border rounded-xl p-4 flex items-center gap-4">
+                <GripVertical className="h-5 w-5 text-muted-foreground shrink-0 cursor-grab" />
+                <div className="w-32 h-20 rounded-lg overflow-hidden bg-muted shrink-0 relative group">
+                  {banner.image_url ? (
+                    <>
+                      <img src={getImageUrl(banner.image_url)} alt="" className="w-full h-full object-cover" />
+                      {banner.video_url && (
+                        <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                          <div className="bg-white/20 backdrop-blur-sm rounded-full p-1.5 ring-1 ring-white/30">
+                            <Play className="h-4 w-4 text-white fill-white" />
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : banner.video_url ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center bg-blue-500/5 text-blue-500 gap-1 border border-blue-500/10">
+                      <Film className="h-6 w-6" />
+                      <span className="text-[10px] font-bold tracking-wider uppercase">Video</span>
+                    </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Image className="h-6 w-6" /></div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-medium text-foreground truncate">{banner.title || "Untitled Banner"}</h3>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {PAGES.find(p => p.value === (banner.page_path || "home"))?.label}
+                    </Badge>
+                    {banner.mobile_image_url && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                        Mobile Image
+                      </Badge>
+                    )}
+                    {banner.video_url && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-500 border-blue-500/20">
+                        Video
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground truncate">{banner.subtitle || "No description"}</p>
+                  <p className="text-xs text-primary mt-1">{banner.cta_text} → {banner.cta_link}</p>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <Switch checked={banner.is_active} onCheckedChange={() => toggleActive(banner.id, banner.is_active)} />
+                  </div>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(banner)}>
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => deleteBanner(banner.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </AdminLayout>
+  );
+};
+
+export default ManageBanners;

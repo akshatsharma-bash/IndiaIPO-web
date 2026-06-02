@@ -1,0 +1,221 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+
+    TrendingUp,
+
+    Activity,
+    BarChart2,
+
+    BarChart,
+
+} from "lucide-react";
+
+import { getLatestGmpValue } from "@/lib/utils";
+
+const bgs = [
+    "bg-green-100",
+    "bg-blue-100",
+    "bg-amber-100",
+    "bg-slate-100",
+];
+const icons = [
+    <TrendingUp className="h-5 w-5 text-green-700" />,
+    <BarChart2 className="h-5 w-5 text-blue-700" />,
+    <Activity className="h-5 w-5 text-amber-700" />,
+    <BarChart className="h-5 w-5 text-slate-600" />,
+];
+
+
+
+
+const GMPSection = () => {
+    const navigate = useNavigate();
+    const [gmpList, setGmpList] = useState<any[]>([]);
+
+
+    useEffect(() => {
+        const fetchGMP = async () => {
+            try {
+                const res = await fetch("/api/ipo-lists?limit=10");
+                const data = await res.json();
+                if (data && data.data) {
+                    const sortedData = data.data
+                        .map((item: any) => {
+                            let gmpValue = 0;
+                            const latestGmpStr = getLatestGmpValue(item.gmp);
+                            if (latestGmpStr && latestGmpStr !== "—") {
+                                // Try to extract percentage first as it's a better indicator of "performance"
+                                const pctMatch = latestGmpStr.match(/([\d.]+)\s*%/);
+                                if (pctMatch) {
+                                    gmpValue = parseFloat(pctMatch[1]) * 100; // Boost percentage for sorting
+                                } else {
+                                    // Fallback to absolute numeric value
+                                    const numMatch = latestGmpStr.match(/[\d,.]+/);
+                                    if (numMatch)
+                                        gmpValue = parseFloat(numMatch[0].replace(/,/g, ""));
+                                }
+                            }
+                            return { ...item, gmpValue };
+                        })
+                        .sort((a: any, b: any) => b.gmpValue - a.gmpValue)
+                        .slice(0, 4);
+
+                    setGmpList(
+                        sortedData.map((item: any, i: number) => {
+                            let gmpVal = "—";
+                            let pct = "—";
+
+                            const latestGmpStr = getLatestGmpValue(item.gmp);
+                            if (latestGmpStr && latestGmpStr !== "—") {
+                                // Extract currency/value and percentage separately if possible
+                                const gmpMatch = latestGmpStr.match(/([₹]*[\d,.]+)/);
+                                const pctMatch = latestGmpStr.match(/([\d.]+%\s*)/);
+
+                                if (gmpMatch)
+                                    gmpVal = gmpMatch[1].startsWith("₹")
+                                        ? gmpMatch[1]
+                                        : `+₹${gmpMatch[1]}`;
+                                if (pctMatch) pct = pctMatch[1];
+                            }
+
+
+
+                            return {
+                                name: item.issuer_company,
+                                date: item.open_date
+                                    ? new Date(item.open_date).toLocaleDateString("en-IN", {
+                                        day: "2-digit",
+                                        month: "short",
+                                    })
+                                    : "Check Details",
+                                gmp: gmpVal,
+                                pct: pct,
+                                icon: icons[i % 4],
+                                bg: bgs[i % 4],
+                                slug: item.blog_slug,
+                            };
+                        }),
+                    );
+                }
+            } catch (err) {
+                console.error("Error fetching GMP data:", err);
+            }
+        };
+        fetchGMP();
+    }, []);
+
+    const displayItems =
+        gmpList.length > 0
+            ? gmpList
+            : [
+                {
+                    name: "Indegene Limited",
+                    date: "12 May",
+                    gmp: "+₹125",
+                    pct: "28%",
+                    icon: <TrendingUp className="h-5 w-5 text-green-700" />,
+                    bg: "bg-green-100",
+                    slug: "",
+                },
+                {
+                    name: "Aadhar Housing",
+                    date: "15 May",
+                    gmp: "+₹42",
+                    pct: "14%",
+                    icon: <BarChart2 className="h-5 w-5 text-blue-700" />,
+                    bg: "bg-blue-100",
+                    slug: "",
+                },
+                {
+                    name: "Go Digit Insure",
+                    date: "20 May",
+                    gmp: "+₹15",
+                    pct: "5%",
+                    icon: <Activity className="h-5 w-5 text-amber-700" />,
+                    bg: "bg-amber-100",
+                    slug: "",
+                },
+                {
+                    name: "TBO Tek Ltd",
+                    date: "19 May",
+                    gmp: "+₹540",
+                    pct: "60%",
+                    icon: <BarChart className="h-5 w-5 text-slate-600" />,
+                    bg: "bg-slate-100",
+                    slug: "",
+                },
+            ];
+
+    return (
+        <section className="bg-slate-50 py-24 px-6 overflow-hidden border-y border-slate-200">
+            <div className="container mx-auto px-4 flex flex-col lg:flex-row gap-16 items-center">
+                <div
+
+                    className="lg:w-1/3"
+                >
+                    <span className="text-[#f99810] font-bold tracking-widest uppercase text-xs mb-2 block">
+                        Market Trends
+                    </span>
+                    <h2 className="text-4xl font-extrabold tracking-tight mb-6 text-slate-900">
+                        Top <strong style={{ color: "#f99810" }}>GMP</strong> Performers
+                    </h2>
+                    <p className="text-slate-500 mb-8 leading-relaxed">
+                        Grey Market Premium (GMP) reflects demand for IPO shares before
+                        listing and helps indicate market sentiment.{" "}
+                    </p>
+                    <Link
+                        to="/all-ipos"
+                        className="flex items-center gap-3 text-slate-900 font-bold group"
+                    >
+                        View Real-time GMP Dashboard
+                        <span className="w-10 h-10 rounded-full bg-blue-900 text-white flex items-center justify-center transition-colors">
+                            <TrendingUp className="h-4 w-4" />
+                        </span>
+                    </Link>
+                </div>
+                <div className="lg:w-2/3 grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-6 w-full">
+                    {displayItems.map((item, i) => (
+                        <div
+                            key={i}
+
+
+                            onClick={() =>
+                                navigate(item.slug ? `/ipo-blogs/${item.slug}` : "/all-ipos")
+                            }
+                            className="bg-white p-3 md:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm border border-slate-100 transition-colors gap-3 cursor-pointer"
+                        >
+                            <div className="flex items-center gap-3 md:gap-4 w-full overflow-hidden">
+                                <div
+                                    className={`w-10 h-10 md:w-12 md:h-12 rounded-lg ${item.bg} flex-shrink-0 flex items-center justify-center`}
+                                >
+                                    {item.icon}
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <h4 className="font-bold text-slate-900 text-xs md:text-base truncate uppercase">
+                                        {item.name}
+                                    </h4>
+                                    <p className="text-[9px] md:text-[10px] text-slate-500 truncate">
+                                        Date: {item.date}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="text-left sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-slate-50">
+                                <p className="text-green-700 font-black text-xs md:text-base flex items-center gap-1 sm:justify-end">
+                                    <TrendingUp className="h-3 md:h-3.5 w-3 md:w-3.5" />
+                                    {item.gmp}
+                                </p>
+                                <p className="text-[9px] md:text-[10px] font-medium text-slate-500">
+                                    GMP ({item.pct})
+                                </p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default React.memo(GMPSection);

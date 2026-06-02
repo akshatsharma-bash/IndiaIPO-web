@@ -1,0 +1,495 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
+
+    --primary: 220 72% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 220 30% 20%;
+
+    --muted: 210 30% 96%;
+    --muted-foreground: 220 10% 46%;
+
+    --accent: 35 95% 52%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 220 72% 45%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 220 72% 45%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 35 95% 52%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 72% 38%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 220 72% 55%;
+    --sidebar-ring: 35 95% 52%;
+
+
+    --brand-blue: 220 72% 45%;
+    --brand-green: 145 63% 42%;
+    --brand-orange: 35 95% 52%;
+    --brand-red: 4 80% 52%;
+    --brand-yellow: 45 93% 55%;
+
+
+    --success: 145 63% 42%;
+    --warning: 35 95% 52%;
+    --info: 220 72% 45%;
+  }
+
+  .dark {
+    --background: 220 30% 6%;
+    --foreground: 210 20% 92%;
+    --card: 220 30% 10%;
+    --card-foreground: 210 20% 92%;
+    --popover: 220 30% 10%;
+    --popover-foreground: 210 20% 92%;
+    --primary: 220 72% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 30% 16%;
+    --secondary-foreground: 210 20% 90%;
+    --muted: 220 20% 14%;
+    --muted-foreground: 210 15% 55%;
+    --accent: 35 95% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
+    --ring: 220 72% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@layer utilities {
+  .gradient-navy {
+    background: linear-gradient(135deg, hsl(220 72% 40%) 0%, hsl(220 72% 45%) 50%, hsl(220 72% 52%) 100%);
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, hsl(35 95% 52%) 0%, hsl(45 93% 60%) 100%);
+  }
+
+  .gradient-navy-gold {
+    background: linear-gradient(135deg, hsl(220 72% 40%) 0%, hsl(220 72% 45%) 60%, hsl(35 95% 52% / 0.15) 100%);
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(35 95% 52%), hsl(45 93% 60%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-brand {
+    background: linear-gradient(135deg, hsl(220 72% 45%), hsl(145 63% 42%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .glass-card {
+    background: hsl(0 0% 100% / 0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 100% / 0.12);
+  }
+
+  .gold-glow {
+    box-shadow: 0 0 30px hsl(35 95% 52% / 0.2), 0 0 60px hsl(35 95% 52% / 0.1);
+  }
+
+  .brand-shadow {
+    box-shadow: 0 4px 20px -4px hsl(220 72% 45% / 0.25);
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .registrar-description {
+    color: hsl(var(--muted-foreground));
+    line-height: 1.8;
+  }
+
+  .registrar-description p {
+    margin-bottom: 1.5rem;
+  }
+
+  .registrar-description h1,
+  .registrar-description h2,
+  .registrar-description h3 {
+    color: hsl(var(--foreground));
+    font-weight: 800;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+    padding: 0.75rem 1rem;
+    background: hsl(210 100% 98%);
+    border-left: 4px solid hsl(var(--primary));
+    border-radius: 0 0.5rem 0.5rem 0;
+  }
+
+  .registrar-description h3 {
+    background: hsl(210 20% 98%);
+    border-left-color: hsl(var(--muted-foreground));
+    padding: 0.5rem 1rem;
+    font-size: 1.25rem;
+  }
+
+  .registrar-description ul,
+  .registrar-description ol {
+    margin-bottom: 1.5rem;
+    padding-left: 1.5rem;
+  }
+
+  .registrar-description li {
+    margin-bottom: 0.5rem;
+  }
+
+  .registrar-description strong {
+    color: hsl(var(--primary));
+    font-weight: 600;
+  }
+
+  .reporter-content ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .reporter-content li {
+    position: relative;
+    padding-left: 1.75rem;
+    margin-bottom: 1rem;
+    color: hsl(220 30% 25%);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .reporter-content li::before {
+    content: '▶';
+    position: absolute;
+    left: 0;
+    top: 0.25rem;
+    color: hsl(220 72% 45%);
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+}
+
+
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1600px !important;
+  }
+}
+
+/* ============================================================
+   SERVICE CONTENT — Professional Styling for all Service Pages
+   ============================================================ */
+
+.service-content {
+  line-height: 1.85;
+  color: #334155;
+  font-size: 0.97rem;
+}
+
+/* --- Paragraphs --- */
+.service-content p {
+  margin-bottom: 1.1rem;
+  color: #475569;
+  line-height: 1.85;
+  font-size: 0.96rem;
+}
+
+/* --- H2 Headings --- */
+.service-content h2 {
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #001529;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(90deg, #f0f6ff 0%, #f8fafc 100%);
+  border-left: 4px solid #f59e08;
+  border-radius: 0 0.75rem 0.75rem 0;
+  position: relative;
+  overflow: hidden;
+  line-height: 1.35;
+}
+
+.service-content h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #f59e08, #d97706);
+  border-radius: 2px;
+}
+
+/* --- H3 Headings --- */
+.service-content h3 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #001529;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: #f8fafc;
+  border-left: 3px solid #001529;
+  border-radius: 0 0.5rem 0.5rem 0;
+  line-height: 1.35;
+}
+
+/* --- H4 Headings --- */
+.service-content h4 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #001529;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Bold text --- */
+.service-content b,
+.service-content strong {
+  color: #001529;
+  font-weight: 800;
+}
+
+/* --- Unordered Lists --- */
+.service-content ul {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+/* --- List Items --- */
+.service-content ul li {
+  position: relative;
+  padding: 0.6rem 0.9rem 0.6rem 2.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.6rem;
+  color: #475569;
+  font-size: 0.93rem;
+  line-height: 1.65;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.service-content ul li:hover {
+  border-color: #f59e08;
+  background: #fffbf0;
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(245, 158, 8, 0.12);
+}
+
+.service-content ul li::before {
+
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #f59e08;
+  font-size: 0.85rem;
+  font-weight: 900;
+}
+
+/* --- For items that already use CheckCircle component (skip styling) --- */
+.service-content ul li.flex {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.service-content ul li.flex::before {
+  display: none;
+}
+
+.service-content ul li.flex:hover {
+  transform: none;
+  background: transparent;
+  border-color: transparent;
+}
+
+/* --- Ordered Lists --- */
+.service-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.service-content ol li {
+  padding: 0.5rem 0;
+  color: #475569;
+  font-size: 0.93rem;
+  line-height: 1.65;
+}
+
+/* --- Row/Column Bootstrap-like wrappers (reset) --- */
+.service-content .row {
+  display: block;
+  margin-bottom: 0;
+}
+
+.service-content .col-lg-12 {
+  display: block;
+  width: 100%;
+}
+
+/* --- .orhp wrapper styling --- */
+.service-content .orhp {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.service-content .orhp ul {
+  margin-bottom: 0;
+}
+
+.service-content .orhp ul li {
+  background: #ffffff;
+  border: 1px solid #e8edf2;
+}
+
+/* --- Section Dividers (mt-4 spacing) --- */
+.service-content .row.mt-4,
+.service-content .row.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* --- Content section box (for main outer wrapper) --- */
+.service-content-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1.5rem;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 4px 24px rgba(0, 21, 41, 0.06);
+  margin-bottom: 2rem;
+}
+
+/* --- Animated entry for service content sections --- */
+.service-content>div {
+  animation: fadeInUp 0.4s ease both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Mobile responsive tweaks --- */
+@media (max-width: 640px) {
+  .service-content h2 {
+    font-size: 1.2rem;
+    padding: 0.7rem 1rem;
+  }
+
+  .service-content h3 {
+    font-size: 1rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .service-content ul li {
+    padding: 0.55rem 0.75rem 0.55rem 2.2rem;
+    font-size: 0.88rem;
+  }
+}
+
+
+
+.marquee-wrapper {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  animation: marqueeScroll 18s linear infinite;
+  will-change: transform;
+}
+
+.marquee-item {
+  flex-shrink: 0;
+  padding-right: 4rem;
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}

@@ -1,0 +1,718 @@
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import SEOHead from "@/components/SEOHead";
+import { BASE_URL } from "@/hooks/useCanonicalUrl";
+import { Button } from "@/components/ui/button";
+import EditorialTeamInfo from "@/components/EditorialTeamInfo";
+import {
+  Loader2, Calendar, TrendingUp, ArrowLeft, ArrowRight,
+  Info, BookOpen, ChevronRight, Tag, Share2, Facebook, Linkedin,
+  Clock, User, MessageCircle, Flame, Zap, Check, Home, HelpCircle
+} from "lucide-react";
+import { getImgSrc } from "@/utils/image";
+import { motion } from "framer-motion";
+
+interface RelatedBlog {
+  id: string;
+  title: string;
+  slug: string;
+  image: string;
+  category: string;
+  created_at: string;
+  updated_at?: string;
+  description?: string;
+}
+
+interface AdminBlogFull {
+  id: string; title: string; slug: string;
+  image: string; content: string; faqs: string; status: string;
+  category: string; description: string;
+  meta_title: string; keyword: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+const cleanGarbledText = (text: string) => {
+  if (!text) return "";
+  let result = String(text)
+    .replace(/\\u20b9/g, "₹")
+    .replace(/\\u20b5/g, "₹")
+    .replace(/&nbsp;/g, " ")
+    .trim();
+
+  if (result.startsWith('"') && result.endsWith('"') && result.length >= 2) {
+    result = result.substring(1, result.length - 1);
+  }
+  return result;
+};
+
+const hasHtmlTags = (str: string) => /<[a-z][\s\S]*>?/i.test(str);
+
+const getCleanBlogContent = (html: string | null | undefined) => {
+  if (!html) return "";
+
+  // 1. Convert paragraphs acting as headings (having font-size 24px/26px/etc.) into actual <h2> tags for perfect SEO hierarchy
+  let cleaned = html
+    .replace(/<p[^>]*>\s*<span[^>]*font-size\s*:\s*(?:24px|26px|18pt|20px)[^>]*>\s*(?:<strong>|<b>)?\s*(.*?)\s*(?:<\/strong>|<\/b>)?\s*<\/span>\s*<\/p>/gi, '<h2>$1</h2>')
+    .replace(/<p[^>]*>\s*(?:<strong>|<b>)?\s*<span[^>]*font-size\s*:\s*(?:24px|26px|18pt|20px)[^>]*>\s*(.*?)\s*<\/span>\s*(?:<\/strong>|<\/b>)?\s*<\/p>/gi, '<h2>$1</h2>');
+
+  // 2. Replace <h1> tags with <h2> tags to avoid duplicate H1 on the page (primary H1 is the article title)
+  cleaned = cleaned
+    .replace(/<h1([^>]*)>/gi, '<h2>')
+    .replace(/<\/h1>/gi, '</h2>');
+
+  // 3. Clean inline styles (font-family, font-size, color, background) which break responsive design and dark mode
+  cleaned = cleaned.replace(/style="[^"]*"/gi, (match) => {
+    // Keep alignment if present (e.g., text-align: center) but strip typography styles
+    const alignment = match.match(/text-align\s*:\s*[^;"]*/i);
+    return alignment ? `style="${alignment[0]}"` : '';
+  });
+
+  // 4. Remove empty style tags or empty spans that can cause spacing anomalies
+  cleaned = cleaned.replace(/<span\s*>\s*<\/span>/gi, '');
+
+  return cleaned;
+};
+
+const linkifyMerchantBankers = (html: string, bankers: any[]) => {
+  if (!html || !bankers || bankers.length === 0) return html;
+
+  // Filter out invalid entries and map each banker to include its core name length for descending sorting
+  const sortedBankers = [...bankers]
+    .filter((b) => b && b.title && b.slug)
+    .map((b) => {
+      let core = b.title.trim().replace(/\s+/g, " ");
+      const suffixRegex = /\s+(?:Private\s+Limited|Private\s+Ltd|Pvt\.?\s*Ltd\.?|Ltd\.?|Limited)$/i;
+      core = core.replace(suffixRegex, "").trim();
+      return { ...b, coreLength: core.length, coreName: core };
+    })
+    // Filter out core names that are too short to avoid false positives
+    .filter((b) => b.coreName.length >= 3)
+    .sort((a, b) => b.coreLength - a.coreLength);
+
+  let tempHtml = html;
+
+  sortedBankers.forEach((banker) => {
+    // 1. Normalize core name spaces
+    let temp = banker.coreName.trim().replace(/\s+/g, " ");
+
+    // 2. Escape standard regex characters first (excluding &)
+    temp = temp.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+
+    // 3. Replace & and and with simple spaces around the group first
+    temp = temp.replace(/\s+(?:&|and)\s+/gi, " (?:&|and) ");
+
+    // 4. Replace single spaces with standard whitespace matcher \s+
+    temp = temp.replace(/ /g, "\\s+");
+
+    // 5. Make ending 's' optional for plural words
+    temp = temp.replace(/(\w+)s\b/gi, "$1s?");
+
+    // 6. Construct core name base pattern, allowing optional "(India)" at the end
+    const corePattern = `(?:${temp})(?:\\s*\\(India\\))?`;
+
+    // 7. Construct optional corporate suffix pattern (fully double-escaped for RegExp constructor!)
+    const suffixPattern = `(?:\\s+(?:Private\\s+Limited|Private\\s+Ltd|Pvt\\.?\\s*Ltd\\.?|Ltd\\.?|Limited))?`;
+
+    const patternStr = `${corePattern}${suffixPattern}`;
+
+    // Match HTML tags/existing links OR the banker's title.
+    const regex = new RegExp(
+      `(<a[^>]*>[\\s\\S]*?</a>|<[^>]+>)|(${patternStr})`,
+      "gi"
+    );
+
+    tempHtml = tempHtml.replace(regex, (match, tag, text) => {
+      if (tag) {
+        return match;
+      }
+      return `<a href="/merchant-banker/${banker.slug}" class="font-bold hover:underline text-[#1e40af]" style="font-weight: 800; text-decoration: underline; color: #1e40af;"><strong>${match}</strong></a>`;
+    });
+  });
+
+  return tempHtml;
+};
+
+const ArticleRenderer = ({ content, bankers }: { content: string; bankers?: any[] }) => {
+  const navigate = useNavigate();
+
+  const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest("a");
+    if (anchor && anchor.getAttribute("href")?.startsWith("/merchant-banker/")) {
+      e.preventDefault();
+      const href = anchor.getAttribute("href");
+      if (href) {
+        navigate(href);
+      }
+    }
+  };
+
+  if (!content) return <p className="text-slate-400 italic">No content available.</p>;
+
+  const cleanContent = cleanGarbledText(content);
+
+  if (hasHtmlTags(cleanContent)) {
+    let processedContent = getCleanBlogContent(cleanContent);
+    processedContent = linkifyMerchantBankers(processedContent, bankers || []);
+    return (
+      <>
+        <style>{`
+          .article-prose { color: #334155; }
+          .article-prose p { margin-bottom: 2rem; line-height: 2; font-size: 1.125rem; font-weight: 400; color: #475569; }
+          .article-prose h2 {
+            font-size: 1.45rem;
+            font-weight: 900;
+            color: #001529;
+            margin-top: 2.5rem;
+            margin-bottom: 1rem;
+            padding: 0.85rem 1.25rem;
+            background: linear-gradient(90deg, #f0f6ff 0%, #f8fafc 100%);
+            border-left: 4px solid #f59e08;
+            border-radius: 0 0.75rem 0.75rem 0;
+            position: relative;
+            overflow: hidden;
+            line-height: 1.35;
+          }
+          .article-prose h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #f59e08, #d97706);
+            border-radius: 2px;
+          }
+          .article-prose h3 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #001529;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+            padding: 0.6rem 1rem;
+            background: #f8fafc;
+            border-left: 3px solid #001529;
+            border-radius: 0 0.5rem 0.5rem 0;
+            line-height: 1.35;
+          }
+          .article-prose strong { color: #0f172a; font-weight: 700; }
+          .article-prose ul { list-style-type: none !important; padding: 0; margin: 2rem 0; background: #f8fafc; padding: 2rem; border-radius: 1.5rem; border: 1px solid #f1f5f9; }
+          .article-prose ul li { align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem; color: #475569; font-size: 1.05rem; list-style: none !important; }
+          .article-prose ul li:last-child { margin-bottom: 0; }
+          .article-prose ul li::before { content: '→'; color: #3b82f6; font-weight: 900; flex-shrink: 0; margin-top: 0.1rem; }
+          .article-prose ol { padding-left: 1.5rem; margin: 2rem 0; counter-reset: item; list-style-type: none !important; }
+          .article-prose ol li { margin-bottom: 1rem; color: #475569; font-size: 1.05rem; position: relative; list-style: none !important; }
+          .article-prose ol li::before { content: counter(item) "."; counter-increment: item; position: absolute; left: -1.75rem; font-weight: 800; color: #3b82f6; }
+          .article-prose blockquote { margin: 3rem 0; padding: 2.5rem; border-left: 6px solid #f59e0b; background: linear-gradient(to right, #fffbeb, transparent); border-radius: 0 1.5rem 1.5rem 0; font-style: italic; color: #78350f; font-size: 1.25rem; line-height: 1.6; font-weight: 500; }
+          .article-prose img { border-radius: 1.5rem; width: 100%; margin: 3.5rem 0; box-shadow: 0 20px 50px -15px rgba(0,0,0,0.15); border: 1px solid #f1f5f9; }
+          .article-prose table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 3rem 0; font-size: 0.95rem; border-radius: 1rem; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+          .article-prose th { background: #1e293b; color: #ffffff; font-weight: 600; padding: 1.25rem; text-align: left; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.75rem; }
+          .article-prose td { background: #ffffff; border-bottom: 1px solid #f1f5f9; padding: 1.25rem; color: #475569; font-weight: 500; }
+          .article-prose tr:last-child td { border-bottom: none; }
+          .article-prose tr:hover td { background: #f8fafc; }
+          @media (max-width: 768px) {
+            .article-prose h2 { font-size: 1.75rem; margin-top: 3rem; }
+            .article-prose h3 { font-size: 1.4rem; }
+            .article-prose p { font-size: 1rem; }
+          }
+        `}</style>
+        <div className="article-prose" dangerouslySetInnerHTML={{ __html: processedContent }} onClick={handleContentClick} />
+      </>
+    );
+  }
+
+  return (
+    <div 
+      className="text-slate-600 whitespace-pre-wrap leading-relaxed text-lg"
+      dangerouslySetInnerHTML={{ __html: linkifyMerchantBankers(cleanContent, bankers || []) }}
+      onClick={handleContentClick}
+    />
+  );
+};
+
+const FAQAccordionItem = ({
+  faq,
+  index,
+}: {
+  faq: { question: string; answer: string };
+  index: number;
+}) => {
+  const [isOpen, setIsOpen] = useState(index === 0);
+  return (
+    <div className="border-b border-slate-100 last:border-0 overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between py-5 text-left transition-colors hover:bg-slate-50/50 group"
+      >
+        <div className="flex gap-3">
+          <span
+            className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5 shadow-sm"
+            style={{ background: "#3b82f6" }}
+          >
+            Q
+          </span>
+          <span className="font-bold text-slate-800 text-sm leading-tight transition-colors group-hover:text-blue-600">
+            {faq.question}
+          </span>
+        </div>
+        <div
+          className={`shrink-0 w-5 h-5 rounded-full border border-slate-200 flex items-center justify-center transition-transform duration-300 ${isOpen ? "rotate-180 bg-blue-50" : ""}`}
+        >
+          <HelpCircle
+            className={`w-3 h-3 ${isOpen ? "text-blue-600" : "text-slate-300"}`}
+          />
+        </div>
+      </button>
+      <div
+        className={`transition-all duration-300 ease-in-out overflow-hidden ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}
+      >
+        <div className="pb-5 pl-[44px]">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 text-sm text-slate-600 leading-relaxed">
+            {faq.answer}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const IPOArticleDetails = () => {
+  const { slug } = useParams();
+  const navigate = useNavigate();
+  const [blog, setBlog] = useState<AdminBlogFull | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [relatedArticles, setRelatedArticles] = useState<RelatedBlog[]>([]);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const [bankers, setBankers] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAllBankers = async () => {
+      try {
+        const res = await fetch("/api/bankers?all=true");
+        if (res.ok) {
+          const data = await res.json();
+          setBankers(data.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch bankers:", err);
+      }
+    };
+    fetchAllBankers();
+  }, []);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const currentScroll = window.pageYOffset;
+      setScrollProgress((currentScroll / totalScroll) * 100);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const fetchBlog = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/admin-blogs/${slug}`);
+        if (res.ok) {
+          const data = await res.json();
+          const category = data.category;
+
+          if (category === "ipo_updates") {
+            navigate(`/ipo-blogs/${slug}`, { replace: true });
+            return;
+          } else if (category === "daily_reporter") {
+            navigate(`/daily-reporter/${slug}`, { replace: true });
+            return;
+          } else if (category === "city_blogs") {
+            navigate(`/consultant/${slug}`, { replace: true });
+            return;
+          } else if (category !== "ipo_blogs") {
+            navigate("/blogs", { replace: true });
+            return;
+          }
+
+          setBlog(data);
+        }
+      } catch (err) { console.error(err); }
+      finally { setLoading(false); }
+    };
+    if (slug) fetchBlog();
+  }, [slug, navigate]);
+
+  useEffect(() => {
+    if (!loading && !blog) {
+      navigate("/blogs", { replace: true });
+    }
+  }, [loading, blog, navigate]);
+
+  useEffect(() => {
+    if (!blog) return;
+    const fetchRelated = async () => {
+      try {
+        const res = await fetch(`/api/admin-blogs?limit=5&category=ipo_blogs&summary=1`);
+        if (res.ok) {
+          const data = await res.json();
+          setRelatedArticles((data.data || []).filter((b: any) => b.slug !== slug).slice(0, 6));
+        }
+      } catch { }
+    };
+    fetchRelated();
+  }, [blog]);
+
+  if (loading || !blog) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <Header />
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="relative">
+            <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+            <div className="absolute inset-0 bg-blue-600/10 blur-xl rounded-full animate-pulse" />
+          </div>
+          <p className="mt-4 text-slate-400 font-medium tracking-widest text-[10px] uppercase">Preparing Insights</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // --- Article Schema (JSON-LD) for Google Rich Results ---
+  const siteUrl = BASE_URL;
+  const blogImageSrc = getImgSrc(blog.image);
+  const resolvedImage = blogImageSrc
+    ? (blogImageSrc.startsWith('http') ? blogImageSrc : `${siteUrl}${blogImageSrc.startsWith('/') ? '' : '/'}${blogImageSrc}`)
+    : `${siteUrl}/favicon.png`;
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": blog.meta_title || blog.title,
+    "description": blog.description || `Read about ${blog.title} on India IPO.`,
+    "image": [resolvedImage],
+    "datePublished": (blog.created_at && !isNaN(new Date(blog.created_at).getTime()))
+      ? new Date(blog.created_at).toISOString()
+      : (blog.updated_at && !isNaN(new Date(blog.updated_at).getTime()))
+        ? new Date(blog.updated_at).toISOString()
+        : new Date().toISOString(),
+    "dateModified": new Date().toISOString(),
+    "author": {
+      "@type": "Organization",
+      "name": "India IPO",
+      "url": siteUrl
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "India IPO",
+      "url": siteUrl,
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${siteUrl}/favicon.png`
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${siteUrl}/blogs/${blog.slug}`
+    },
+    "keywords": blog.keyword || "IPO article, IPO analysis, India IPO, capital markets",
+    "articleSection": (blog.category || 'IPO').replace(/_/g, ' '),
+    "inLanguage": "en-IN",
+    "wordCount": Math.ceil(blog.content?.length / 5) || 0
+  };
+
+  // --- FAQPage Schema (JSON-LD) for Google FAQ Rich Results ---
+  let faqSchemaItems: { question: string; answer: string }[] = [];
+  if (blog.faqs && typeof blog.faqs === "string") {
+    try {
+      const parsed = JSON.parse(blog.faqs);
+      if (Array.isArray(parsed)) {
+        faqSchemaItems = parsed
+          .filter((f: any) => f && f.question && f.answer)
+          .map((f: any) => ({
+            question: cleanGarbledText(String(f.question)).replace(/<[^>]*>?/gm, "").trim(),
+            answer: cleanGarbledText(String(f.answer)).replace(/<[^>]*>?/gm, "").trim(),
+          }));
+      }
+    } catch (e) {
+      /* ignore parse errors */
+    }
+  }
+  const faqSchema =
+    faqSchemaItems.length > 0
+      ? {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: faqSchemaItems.map((f) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: f.answer,
+          },
+        })),
+      }
+      : null;
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white selection:bg-blue-100 selection:text-blue-900">
+      <SEOHead
+        title={blog.meta_title || `${blog.title} | India IPO`}
+        description={blog.description || `Read about ${blog.title} on India IPO.`}
+        keywords={blog.keyword || "IPO blog, IPO article, India IPO"}
+        jsonLd={faqSchema ? [articleSchema, faqSchema] : articleSchema}
+      />
+
+      <div className="fixed top-0 left-0 w-full h-1 z-[100] bg-slate-100">
+        <div
+          className="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
+      <Header />
+
+
+      <div className="relative overflow-hidden pt-6 md:pt-12 pb-16 bg-slate-50 group">
+
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-blue-50/50 -skew-x-12 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-amber-50/30 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-7xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+            >
+              <div className="flex flex-wrap items-center gap-2 mb-8 text-xs text-slate-500 font-bold">
+                <Link to="/" className="hover:text-blue-600 flex items-center gap-1.5 transition-colors">
+                  <Home className="h-3.5 w-3.5" /> Home
+                </Link>
+                <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+                <Link to="/blogs" className="hover:text-blue-600 transition-colors">Blogs</Link>
+                <ChevronRight className="h-3.5 w-3.5 text-slate-300" />
+                <span className="text-slate-800 truncate max-w-[200px] sm:max-w-[400px]">{blog.title}</span>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl lg:text-4xl font-black text-slate-900 leading-[1.1] tracking-tight mb-10 max-w-4xl">
+                {blog.title}
+              </h1>
+
+
+
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+
+      <div className="container mx-auto px-4 -mt-10 mb-16 relative z-20">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="max-w-7xl mx-auto rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-100 group/hero-img flex items-center justify-center min-h-[300px] md:min-h-[400px]"
+        >
+          <img
+            src={getImgSrc(blog.image) || "/placeholder.jpg"}
+            alt={blog.title}
+            className="w-full h-full max-h-[600px] object-contain transition-transform duration-1000 group-hover/hero-img:scale-105"
+          />
+        </motion.div>
+      </div>
+
+
+      <div className="container mx-auto px-4 max-w-7xl pb-24 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+
+
+        <div className="lg:col-span-8">
+
+
+
+
+          <div className="mb-16">
+            <ArticleRenderer content={blog.content} bankers={bankers} />
+            <style>{`
+              .article-prose {
+                font-family: 'Inter', sans-serif;
+                color: #1e293b;
+                line-height: 1.8;
+              }
+              .article-prose h2 {
+                font-size: 1.875rem;
+                font-weight: 900;
+                color: #0f172a;
+                margin-top: 3rem;
+                margin-bottom: 1.5rem;
+                letter-spacing: -0.025em;
+              }
+              .article-prose p {
+                margin-bottom: 1.5rem;
+                font-size: 1.125rem;
+              }
+              .article-prose img {
+                border-radius: 1rem;
+                margin: 3rem 0;
+                box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+                max-width: 100%;
+                height: auto;
+                display: block;
+                margin-left: 0;
+                max-height: 500px;
+                object-fit: contain;
+              }
+              .article-prose strong {
+                color: #0f172a;
+                font-weight: 700;
+              }
+            `}</style>
+          </div>
+
+          {/* FAQ Accordion Section */}
+          {blog.faqs && (() => {
+            let faqItems: { question: string; answer: string }[] = [];
+            try {
+              const parsed = JSON.parse(blog.faqs);
+              if (Array.isArray(parsed)) {
+                faqItems = parsed
+                  .filter((f: any) => f && f.question && f.answer)
+                  .map((f: any) => ({
+                    question: cleanGarbledText(String(f.question)),
+                    answer: cleanGarbledText(String(f.answer)),
+                  }));
+              }
+            } catch (e) { }
+            if (faqItems.length === 0) return null;
+            return (
+              <div className="mb-16 bg-white rounded-[2rem] p-6 md:p-8 border border-slate-200 shadow-sm overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full blur-3xl pointer-events-none" />
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                    <HelpCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-slate-900 leading-tight">Frequently Asked Questions</h3>
+                    <p className="text-xs text-slate-500 font-medium">Find answers to common questions about this article</p>
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {faqItems.map((faq, idx) => (
+                    <FAQAccordionItem key={idx} faq={faq} index={idx} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          <EditorialTeamInfo />
+
+          <div className="py-10 border-y border-slate-100 space-y-8">
+            <div className="flex flex-wrap items-center gap-6">
+
+            </div>
+
+
+          </div>
+        </div>
+
+
+        <div className="lg:col-span-4">
+          <div className="sticky top-28 space-y-8">
+
+
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative overflow-hidden group/side">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+              <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center justify-between">
+                <span>Next Reading</span>
+                <Flame className="w-4 h-4 text-orange-500 animate-pulse" />
+              </p>
+
+              <div className="space-y-8">
+                {relatedArticles.map((item) => (
+                  <Link key={item.id} to={`/blogs/${item.slug}`} className="group/item block relative">
+                    <div className="flex gap-4">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0 shadow-md border-2 border-white group-hover/item:scale-105 transition-all duration-500">
+                        <img
+                          src={getImgSrc(item.image) || "/placeholder.jpg"}
+                          alt={item.title}
+                          className="w-full h-full object-cover grayscale-[0.5] group-hover/item:grayscale-0 transition-all duration-500"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0 py-1">
+                        <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest mb-1.5 block">
+                          Blogs
+                        </span>
+                        <p className="text-[13px] font-black text-slate-800 line-clamp-2 leading-[1.3] group-hover/item:text-blue-600 transition-colors">
+                          {item.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2 opacity-0 group-hover/item:opacity-100 -translate-x-2 group-hover/item:translate-x-0 transition-all">
+                          <span className="text-[10px] font-black text-slate-400">READ NOW</span>
+                          <ArrowRight className="w-3 h-3 text-blue-600" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-10 pt-8 border-t border-slate-100 text-center">
+                <Link to="/blogs" className="text-[11px] font-black text-blue-600 uppercase tracking-widest hover:tracking-[0.25em] transition-all">
+                  Explore Full Archive
+                </Link>
+              </div>
+            </div>
+
+
+            <div className="bg-[#001529] rounded-[2.5rem] p-10 text-white relative overflow-hidden group/cta shadow-2xl shadow-blue-900/40">
+
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600 rounded-full blur-[80px] opacity-20 group-hover/cta:opacity-40 transition-opacity" />
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500 rounded-full blur-[80px] opacity-10" />
+
+              <div className="relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+                  <Zap className="w-7 h-7 text-amber-400 fill-amber-400" />
+                </div>
+                <p className="text-2xl font-black mb-3 leading-[1.1]">Strategic IPO Planning</p>
+                <p className="text-white/50 text-[11px] font-medium mb-8 leading-relaxed">
+                  Join hundreds of founders who scaled their vision with India's most trusted public listing advisory network.
+                </p>
+                <Link to="/ipo-eligibility-check" className="group/btn relative w-full h-14 flex items-center justify-center bg-white text-[#001529] rounded-2xl font-black text-xs uppercase tracking-widest overflow-hidden transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-white/5">
+                  <span className="relative z-10 flex items-center gap-2">Verify Eligibility <ArrowRight className="w-4 h-4" /></span>
+                  <div className="absolute inset-0 bg-blue-50 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
+                </Link>
+              </div>
+            </div>
+
+
+            <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                <MessageCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Market Bulletins</p>
+                <p className="text-[9px] text-slate-500 font-medium">Get 5-minute IPO summaries every morning.</p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <Footer />
+    </div>
+  );
+};
+
+export default IPOArticleDetails;
