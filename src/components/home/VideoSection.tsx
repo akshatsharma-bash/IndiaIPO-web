@@ -64,6 +64,16 @@ const VideoSection = () => {
         { id: string; title: string; youtube_id: string }[]
     >([]);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+
+    const checkScrollButtons = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setCanScrollLeft(scrollLeft > 5);
+            setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+        }
+    };
 
     useEffect(() => {
         const load = async () => {
@@ -98,6 +108,12 @@ const VideoSection = () => {
     }, []);
 
     useEffect(() => {
+        checkScrollButtons();
+        window.addEventListener("resize", checkScrollButtons);
+        return () => window.removeEventListener("resize", checkScrollButtons);
+    }, [videos]);
+
+    useEffect(() => {
         const interval = setInterval(() => {
             if (scrollRef.current && window.innerWidth < 768) {
                 const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
@@ -117,6 +133,7 @@ const VideoSection = () => {
             const scrollTo =
                 direction === "left" ? scrollLeft - move : scrollLeft + move;
             scrollRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+            setTimeout(checkScrollButtons, 400);
         }
     };
 
@@ -134,14 +151,14 @@ const VideoSection = () => {
                     <div className="flex gap-4">
                         <button
                             onClick={() => scroll("left")}
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all active:scale-95"
+                            className={`w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all active:scale-95 ${!canScrollLeft ? 'opacity-0 pointer-events-none' : ''}`}
                             aria-label="Scroll Left"
                         >
                             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
                         </button>
                         <button
                             onClick={() => scroll("right")}
-                            className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all active:scale-95"
+                            className={`w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 transition-all active:scale-95 ${!canScrollRight ? 'opacity-0 pointer-events-none' : ''}`}
                             aria-label="Scroll Right"
                         >
                             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -151,6 +168,7 @@ const VideoSection = () => {
                 <div
 
                     ref={scrollRef}
+                    onScroll={checkScrollButtons}
                     className="overflow-x-auto pb-8 scrollbar-hide snap-x snap-mandatory"
                     style={
                         {

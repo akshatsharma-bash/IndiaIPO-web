@@ -1,14 +1,37 @@
 import express from 'express';
 import pool from '../db.mjs';
 import { uploadFile } from '../helpers/uploadHelper.mjs';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 
 // Get all blogs (with pagination and basic fields to keep payload small)
 router.get('/', async (req, res) => {
     try {
+        let isAdmin = false;
+        try {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                const token = authHeader.split(' ')[1];
+                const JWT_SECRET = process.env.JWT_SECRET || 'Indiaipo@123';
+                const decoded = jwt.verify(token, JWT_SECRET);
+                const userRole = (decoded.role || '').toLowerCase();
+                if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'super admin') {
+                    isAdmin = true;
+                }
+            }
+        } catch (e) {
+            // Ignore token errors, treat as public
+        }
+
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
+        let limit = parseInt(req.query.limit) || 20;
+        
+        // Capping limit for public users to prevent data scraping
+        if (!isAdmin && limit > 50) {
+            limit = 50;
+        }
+
         const offset = (page - 1) * limit;
 
         // Optional filtering

@@ -70,6 +70,16 @@ const MarketInsights = () => {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [blogs, setBlogs] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+
+    const checkScrollButtons = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setCanScrollLeft(scrollLeft > 5);
+            setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+        }
+    };
 
     useEffect(() => {
         fetch("/api/admin-blogs?limit=10&summary=1&category=ipo_blogs")
@@ -86,6 +96,12 @@ const MarketInsights = () => {
             })
             .finally(() => setLoading(false));
     }, []);
+
+    useEffect(() => {
+        checkScrollButtons();
+        window.addEventListener("resize", checkScrollButtons);
+        return () => window.removeEventListener("resize", checkScrollButtons);
+    }, [blogs, loading]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -109,6 +125,7 @@ const MarketInsights = () => {
             left: dir === "left" ? -move : move,
             behavior: "smooth",
         });
+        setTimeout(checkScrollButtons, 400);
     };
 
     return (
@@ -129,14 +146,14 @@ const MarketInsights = () => {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => scroll("left")}
-                            className="w-10 h-10 rounded-full border border-slate-300 bg-white flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
+                            className={`w-10 h-10 rounded-full border border-slate-300 bg-white flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm ${!canScrollLeft ? 'opacity-0 pointer-events-none' : ''}`}
                             aria-label="Scroll Left"
                         >
                             <ChevronLeft className="h-5 w-5" />
                         </button>
                         <button
                             onClick={() => scroll("right")}
-                            className="w-10 h-10 rounded-full border border-slate-300 bg-white flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm"
+                            className={`w-10 h-10 rounded-full border border-slate-300 bg-white flex items-center justify-center hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all active:scale-95 shadow-sm ${!canScrollRight ? 'opacity-0 pointer-events-none' : ''}`}
                             aria-label="Scroll Right"
                         >
                             <ChevronRight className="h-5 w-5" />
@@ -152,6 +169,7 @@ const MarketInsights = () => {
 
                 <div
                     ref={scrollRef}
+                    onScroll={checkScrollButtons}
                     className="overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory"
                 >
                     <div className="flex gap-6">
