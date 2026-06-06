@@ -8,14 +8,27 @@ router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
+        const search = req.query.search || '';
         const offset = (page - 1) * limit;
 
-        const [rows] = await pool.execute(
-            'SELECT * FROM registrar ORDER BY (CAST(sme_ipo AS UNSIGNED) + CAST(mainboard_ipo AS UNSIGNED)) DESC, created_at DESC LIMIT ? OFFSET ?',
-            [limit.toString(), offset.toString()]
-        );
+        let query = 'SELECT * FROM registrar';
+        let countQuery = 'SELECT COUNT(*) as count FROM registrar';
+        let queryParams = [];
+        let countParams = [];
 
-        const [totalRows] = await pool.execute('SELECT COUNT(*) as count FROM registrar');
+        if (search) {
+            query += ' WHERE name LIKE ? OR location LIKE ?';
+            countQuery += ' WHERE name LIKE ? OR location LIKE ?';
+            const searchPattern = `%${search}%`;
+            queryParams.push(searchPattern, searchPattern);
+            countParams.push(searchPattern, searchPattern);
+        }
+
+        query += ' ORDER BY (CAST(sme_ipo AS UNSIGNED) + CAST(mainboard_ipo AS UNSIGNED)) DESC, created_at DESC LIMIT ? OFFSET ?';
+        queryParams.push(limit.toString(), offset.toString());
+
+        const [rows] = await pool.execute(query, queryParams);
+        const [totalRows] = await pool.execute(countQuery, countParams);
         const total = totalRows[0].count;
 
         res.json({

@@ -74,7 +74,7 @@ const VideoSection = () => {
                     if (ytData.items && ytData.items.length > 0) {
                         setVideos(
                             ytData.items.map((i: any) => ({
-                                id: i.snippet.resourceId.videoId,
+                                id: i.id || i.snippet.resourceId.videoId,
                                 title: i.snippet.title,
                                 youtube_id: i.snippet.resourceId.videoId,
                             })),

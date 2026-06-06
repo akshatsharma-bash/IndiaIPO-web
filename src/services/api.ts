@@ -127,7 +127,10 @@ export const statsApi = {
 
 export const sectorApi = {
   getAll: () => fetch(`${API_BASE_URL}/sectors`, { headers: headers() }).then(handleResponse),
-  getAdminAll: () => fetch(`${API_BASE_URL}/sectors/admin`, { headers: headers() }).then(handleResponse),
+  getAdminAll: (params?: Record<string, string | number>) => {
+    const query = params ? "?" + new URLSearchParams(params as Record<string, string>).toString() : "";
+    return fetch(`${API_BASE_URL}/sectors/admin${query}`, { headers: headers() }).then(handleResponse);
+  },
   create: (data: any) => fetch(`${API_BASE_URL}/sectors`, { method: "POST", headers: headers(), body: JSON.stringify(data) }).then(handleResponse),
   update: (id: string, data: any) => fetch(`${API_BASE_URL}/sectors/${id}`, { method: "PUT", headers: headers(), body: JSON.stringify(data) }).then(handleResponse),
   delete: (id: string) => fetch(`${API_BASE_URL}/sectors/${id}`, { method: "DELETE", headers: headers() }).then(handleResponse),

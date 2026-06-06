@@ -5,9 +5,10 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { BASE_URL } from "@/hooks/useCanonicalUrl";
-import { ArrowRight, ChevronLeft, ChevronRight, Home, Newspaper, TrendingUp, BookOpen, Zap, Search } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Home, Newspaper, TrendingUp, BookOpen, Zap, Search, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImgSrc } from "@/utils/image";
+import { useQuery } from "@tanstack/react-query"
 
 interface IPOBlog {
   id: string; title: string; slug: string;
@@ -23,11 +24,11 @@ const isValid = (val: any) => {
 const N = "#001529", G = "#f59e08", G2 = "#d97706";
 
 const IPOBlogs = () => {
-  const [blogs, setBlogs] = useState<IPOBlog[]>([]);
-  const [loading, setLoading] = useState(true);
+
+
   const [filter, setFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -52,25 +53,43 @@ const IPOBlogs = () => {
     fetchBanners();
   }, [pathname]);
 
-  useEffect(() => {
-    const fetch_ = async () => {
-      setLoading(true);
-      try {
-        let url = `/api/admin-blogs?page=${page}&limit=12&summary=1&category=ipo_updates`;
-        if (filter === "current") url += "&upcoming=0";
-        if (filter === "upcoming") url += "&upcoming=1";
-        if (debouncedSearch.trim()) url += `&search=${encodeURIComponent(debouncedSearch.trim())}`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          setBlogs(data.data || []);
-          setTotalPages(data.totalPages || 1);
-        }
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    };
-    fetch_();
-  }, [filter, page, debouncedSearch]);
+
+
+
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      "ipo-blogs",
+      filter,
+      page,
+      debouncedSearch,
+    ],
+    queryFn: async () => {
+      let url = `/api/admin-blogs?page=${page}&limit=12&summary=1&category=ipo_updates`;
+
+      if (filter === "current") url += "&upcoming=0";
+      if (filter === "upcoming") url += "&upcoming=1";
+
+      if (debouncedSearch.trim()) {
+        url += `&search=${encodeURIComponent(debouncedSearch.trim())}`;
+      }
+
+      const res = await fetch(url);
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch blogs");
+      }
+
+      return res.json();
+    },
+
+    staleTime: 1000 * 60 * 1,
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: true,
+  });
+
+
+  const blogs = data?.data || [];
+  const totalPages = data?.totalPages || 1;
 
   useEffect(() => { setPage(1); }, [debouncedSearch]);
 
@@ -162,8 +181,17 @@ const IPOBlogs = () => {
                 placeholder="Search IPO updates by title…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm font-medium focus:outline-none focus:bg-white/15 focus:border-[#f59e08]/50 transition-all"
+                className="w-full pl-12 pr-12 py-4 rounded-2xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm font-medium focus:outline-none focus:bg-white/15 focus:border-[#f59e08]/50 transition-all"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </motion.div>
         </div>
@@ -186,7 +214,7 @@ const IPOBlogs = () => {
         </div>
 
         <div className="container mx-auto px-4 py-12">
-          {loading ? (
+          {isLoading ? (
             <div className="flex flex-col items-center justify-center py-24">
               <div className="w-12 h-12 border-4 rounded-full animate-spin mb-4"
                 style={{ borderColor: `${N} transparent transparent transparent` }} />
@@ -270,7 +298,7 @@ const IPOBlogs = () => {
           )}
 
 
-          {!loading && totalPages > 1 && (() => {
+          {!isLoading && totalPages > 1 && (() => {
             const delta = 2;
             const range: (number | "...")[] = [];
             const rangeSet = new Set<number>();

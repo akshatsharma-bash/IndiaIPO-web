@@ -23,7 +23,10 @@ router.get('/', async (req, res) => {
 // POST submit an enquiry
 router.post('/', verifyRecaptcha('consultant_enquiry_form'), async (req, res) => {
     try {
-        const { consultant_id, name, email, phone, organisation = '', designation = '', turnover = '', message } = req.body;
+        let { consultant_id, name, email, phone, organisation, designation, turnover, message } = req.body;
+        organisation = organisation || '';
+        designation = designation || '';
+        turnover = turnover || '';
 
         // ✅ Required fields check
         if (!consultant_id || !name || !email || !message || !phone) {

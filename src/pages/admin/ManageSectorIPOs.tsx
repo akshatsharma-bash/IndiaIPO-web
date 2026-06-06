@@ -116,7 +116,6 @@ const ManageSectorIPOs = () => {
   const handleIpoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!ipoFormData.name) return toast.error("Company name is required");
-    if (!ipoFormData.sector_id) return toast.error("Sector is required");
     
     setIpoSubmitting(true);
     try {
@@ -459,9 +458,8 @@ const ManageSectorIPOs = () => {
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     value={ipoFormData.sector_id}
                     onChange={(e) => setIpoFormData({...ipoFormData, sector_id: e.target.value})}
-                    required
                   >
-                    <option value="" disabled>Select Sector</option>
+                    <option value="">Select Sector</option>
                     {sectors.map((s) => (
                       <option key={s.id} value={s.id}>{s.name}</option>
                     ))}

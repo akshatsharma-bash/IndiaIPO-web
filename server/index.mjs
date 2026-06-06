@@ -54,6 +54,7 @@ import uploadDailyReporterRoutes
 
 // Workers
 import { processJobs } from './worker/sendDailyDigestWorker.mjs';
+import { authenticateAdmin } from './middleware/auth.mjs';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1090,6 +1091,78 @@ app.get("/api/run-daily-digest-cron", async (req, res) => {
 // Import Merchant Enquiries Route
 import merchantEnquiryRoutes from './routes/merchant_contact_enquiries.mjs';
 
+// Centralized Admin Authentication Middleware
+app.use('/api', (req, res, next) => {
+    const path = req.originalUrl.split('?')[0];
+    const method = req.method;
+
+    if (method === 'OPTIONS') {
+        return next();
+    }
+
+    // 1. Identify public POST endpoints
+    const publicPostEndpoints = [
+        /^\/api\/auth\/(login|register|forgot-password|reset-password)\/?$/i,
+        /^\/api\/leads\/?$/i,
+        /^\/api\/subscriptions\/?$/i,
+        /^\/api\/consultant-enquiries\/?$/i,
+        /^\/api\/merchant-contact-enquiries\/?$/i,
+        /^\/api\/annual-report-requests\/?$/i,
+        /^\/api\/ipo_feasibility\/?$/i,
+        /^\/api\/career\/apply\/?$/i,
+        /^\/api\/career\/?$/i,
+        /^\/api\/investor\/?$/i
+    ];
+
+    const isAdminOnlyGetEndpoint = (path) => {
+        // Paths for GET that require admin authentication
+        const adminGetPatterns = [
+            /^\/api\/dashboard\/stats\/?$/i,
+            /^\/api\/users/i,
+            /^\/api\/leads(\/unread|\/|$)/i,
+            /^\/api\/consultant-enquiries(\/unread|\/|$)/i,
+            /^\/api\/merchant-contact-enquiries(\/unread|\/|$)/i,
+            /^\/api\/annual-report-requests(\/unread|\/|$)/i,
+            /^\/api\/ipo_feasibility(\/unread|\/|$)/i,
+            /^\/api\/career\/admin/i,
+            /^\/api\/career(\/unread|\/|$)/i,
+            /^\/api\/investor(\/unread|\/|$)/i,
+            /^\/api\/subscriptions(\/unread|\/|$)/i,
+            /^\/api\/admin-blogs\/id\//i,
+            /^\/api\/consultants\/id\//i,
+            /^\/api\/sectors\/admin\/?$/i,
+            /^\/api\/sectors\/ipos\/list\/?$/i,
+            /^\/api\/magazines/i,
+        ];
+
+        return adminGetPatterns.some(pattern => pattern.test(path));
+    };
+
+    // Check GET requests
+    if (method === 'GET') {
+        if (isAdminOnlyGetEndpoint(path)) {
+            return authenticateAdmin(req, res, next);
+        }
+        return next();
+    }
+
+    // Check POST requests
+    if (method === 'POST') {
+        const isPublic = publicPostEndpoints.some(pattern => pattern.test(path));
+        if (isPublic) {
+            return next();
+        }
+        return authenticateAdmin(req, res, next);
+    }
+
+    // Enforce authentication for all other mutating requests (PUT, DELETE, PATCH)
+    if (['PUT', 'DELETE', 'PATCH'].includes(method)) {
+        return authenticateAdmin(req, res, next);
+    }
+
+    next();
+});
+
 // API Routes
 app.use('/api/videos', videoRoutes);
 app.use('/api/notifications', notificationRoutes);
@@ -1316,7 +1389,7 @@ app.get('/sitemap.xml', async (req, res) => {
 app.get('/robots.txt', (req, res) => {
     const siteUrl = process.env.SITE_URL || 'https://www.indiaipo.in';
     res.type('text/plain');
-    res.send(`User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml`);
+    res.send(`User-agent: *\nAllow: /\nDisallow: /uploads/drhp/\nDisallow: /ipo-blogs/hero-fincorp-limited-ipo\n\nSitemap: ${siteUrl}/sitemap.xml`);
 });
 
 // ============================================================
@@ -1330,24 +1403,24 @@ app.get('/robots.txt', (req, res) => {
 const stripHtml = (s) => String(s || '').replace(/<[^>]*>/g, '').trim();
 
 const getServerImgSrc = (src) => {
-  if (!src || src === "0" || src === 0 || src === "" || src === "null" || src === "undefined") return null;
-  const s = String(src).trim();
-  if (s.toLowerCase() === 'null') return null;
-  if (s.startsWith('http') || s.startsWith('https') || s.startsWith('data:')) {
-    return s;
-  }
-  if (s.startsWith('/static') || s.startsWith('/src/assets')) {
-    return s;
-  }
-  let cleanPath = s;
-  if (cleanPath.startsWith('/uploads')) {
-    // leave as is
-  } else if (cleanPath.startsWith('uploads/')) {
-    cleanPath = `/${cleanPath}`;
-  } else {
-    cleanPath = `/uploads/${cleanPath}`;
-  }
-  return cleanPath;
+    if (!src || src === "0" || src === 0 || src === "" || src === "null" || src === "undefined") return null;
+    const s = String(src).trim();
+    if (s.toLowerCase() === 'null') return null;
+    if (s.startsWith('http') || s.startsWith('https') || s.startsWith('data:')) {
+        return s;
+    }
+    if (s.startsWith('/static') || s.startsWith('/src/assets')) {
+        return s;
+    }
+    let cleanPath = s;
+    if (cleanPath.startsWith('/uploads')) {
+        // leave as is
+    } else if (cleanPath.startsWith('uploads/')) {
+        cleanPath = `/${cleanPath}`;
+    } else {
+        cleanPath = `/uploads/${cleanPath}`;
+    }
+    return cleanPath;
 };
 
 const fetchHomeBanners = async () => {

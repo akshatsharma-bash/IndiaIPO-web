@@ -22,8 +22,12 @@ router.get('/', async (req, res) => {
             countParams.push(req.query.category);
         }
 
-
-
+        if (req.query.search) {
+            const searchTerm = `%${req.query.search}%`;
+            conditions.push('(title LIKE ? OR description LIKE ? OR content LIKE ?)');
+            params.push(searchTerm, searchTerm, searchTerm);
+            countParams.push(searchTerm, searchTerm, searchTerm);
+        }
 
         if (conditions.length > 0) {
             const conditionStr = ' WHERE ' + conditions.join(' AND ');

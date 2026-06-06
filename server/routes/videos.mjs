@@ -17,6 +17,87 @@ router.get('/', async (req, res) => {
     }
 });
 
+const fallbackToDatabase = async (maxResults, pageToken) => {
+    console.log(`[YouTube API] YouTube quota exceeded or failed. Falling back to local database 'social_media'...`);
+    
+    let page = 1;
+    if (pageToken && pageToken.startsWith('page_')) {
+        page = parseInt(pageToken.replace('page_', '')) || 1;
+    }
+    const limit = parseInt(maxResults) || 12;
+    const offset = (page - 1) * limit;
+
+    try {
+        const [rows] = await pool.query(
+            "SELECT * FROM social_media ORDER BY created_at DESC LIMIT ? OFFSET ?",
+            [limit, offset]
+        );
+
+        const [[{ total }]] = await pool.query(
+            "SELECT COUNT(*) as total FROM social_media"
+        );
+
+        const items = rows.map(row => {
+            let videoId = row.img_url || '';
+            if (row.url) {
+                if (row.url.includes('v=')) {
+                    videoId = row.url.split('v=')[1].split('&')[0];
+                } else if (row.url.includes('youtu.be/')) {
+                    videoId = row.url.split('youtu.be/')[1].split('?')[0];
+                } else if (row.url.includes('?')) {
+                    videoId = row.url.split('?')[0];
+                } else {
+                    videoId = row.url;
+                }
+            }
+
+            const highThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+            const defaultThumbnail = videoId ? `https://img.youtube.com/vi/${videoId}/default.jpg` : '';
+
+            return {
+                id: `db_${row.id}`,
+                snippet: {
+                    title: row.title,
+                    publishedAt: row.created_at || new Date().toISOString(),
+                    resourceId: {
+                        kind: 'youtube#video',
+                        videoId: videoId
+                    },
+                    thumbnails: {
+                        high: { url: highThumbnail },
+                        default: { url: defaultThumbnail }
+                    }
+                }
+            };
+        });
+
+        const totalPages = Math.ceil(total / limit);
+        const nextPageToken = page < totalPages ? `page_${page + 1}` : null;
+        const prevPageToken = page > 1 ? `page_${page - 1}` : null;
+
+        const mockResponse = {
+            kind: 'youtube#playlistItemListResponse',
+            items: items,
+            pageInfo: {
+                totalResults: total,
+                resultsPerPage: limit
+            }
+        };
+
+        if (nextPageToken) {
+            mockResponse.nextPageToken = nextPageToken;
+        }
+        if (prevPageToken) {
+            mockResponse.prevPageToken = prevPageToken;
+        }
+
+        return mockResponse;
+    } catch (dbErr) {
+        console.error('[YouTube API Fallback] Database query failed:', dbErr);
+        throw dbErr;
+    }
+};
+
 router.get('/youtube/playlistItems', async (req, res) => {
     try {
         const { maxResults = 6, pageToken = '' } = req.query;
@@ -31,11 +112,17 @@ router.get('/youtube/playlistItems', async (req, res) => {
         const playlistId = process.env.VITE_YOUTUBE_PLAYLIST_ID || process.env.YOUTUBE_PLAYLIST_ID;
 
         if (!apiKey || !playlistId) {
-            return res.status(500).json({ error: 'YouTube API credentials are not configured on the server.' });
+            console.warn('[YouTube API] Credentials not configured. Trying database fallback...');
+            try {
+                const dbData = await fallbackToDatabase(maxResults, pageToken);
+                return res.status(200).json(dbData);
+            } catch (fallbackErr) {
+                return res.status(500).json({ error: 'YouTube API credentials are not configured and database fallback failed.' });
+            }
         }
 
         let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=${maxResults}&playlistId=${playlistId}&key=${apiKey}`;
-        if (pageToken) url += `&pageToken=${pageToken}`;
+        if (pageToken && !pageToken.startsWith('page_')) url += `&pageToken=${pageToken}`;
 
         console.log(`[YouTube API] Fetching fresh data for key: ${cacheKey}`);
         const response = await fetch(url);
@@ -46,11 +133,21 @@ router.get('/youtube/playlistItems', async (req, res) => {
             res.status(200).json(data);
         } else {
             console.error('[YouTube API] Error fetching from YouTube:', data);
-            res.status(response.status).json(data);
+            try {
+                const dbData = await fallbackToDatabase(maxResults, pageToken);
+                return res.status(200).json(dbData);
+            } catch (fallbackErr) {
+                res.status(response.status).json(data);
+            }
         }
     } catch (err) {
         console.error('[YouTube API] Server error:', err);
-        res.status(500).json({ error: err.message });
+        try {
+            const dbData = await fallbackToDatabase(req.query.maxResults, req.query.pageToken);
+            return res.status(200).json(dbData);
+        } catch (fallbackErr) {
+            res.status(500).json({ error: err.message });
+        }
     }
 });
 

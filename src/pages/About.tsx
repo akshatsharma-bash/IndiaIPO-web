@@ -11,10 +11,10 @@ import {
   ArrowRight, Star, Globe, BookOpen, Scale, Briefcase, Heart,
   Eye, Lightbulb, Handshake, BarChart3, Clock, MapPin, Phone, Mail
 } from "lucide-react";
-import aboutTeam from "@/assets/about-team.jpg";
+import aboutTeam from "@/assets/aboutVision2.webp";
 import aboutOffice from "@/assets/about-office.jpg";
-import aboutLeadership from "@/assets/about-leadership.jpg";
-import aboutVision from "@/assets/about-vision.jpg";
+import aboutLeadership from "@/assets/leader.jpg";
+import aboutVision from "@/assets/vision.jpg";
 import logo from "@/assets/logo.png";
 
 
@@ -306,7 +306,7 @@ const About = () => {
                 </div>
               </motion.div>
               <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="relative">
-                <img src={aboutTeam} alt="IndiaIPO Team" className="rounded-2xl shadow-2xl w-full" />
+                <img src={aboutTeam} alt="IndiaIPO Team" className="rounded-2xl shadow-2xl w-full h-auto" />
                 <div className="absolute -bottom-6 -left-6 bg-primary text-primary-foreground rounded-xl p-5 shadow-xl hidden md:block">
                   <div className="text-3xl font-bold flex items-center">
                     <CountingNumber target={9} suffix="+" />
@@ -323,7 +323,7 @@ const About = () => {
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="order-2 lg:order-1">
-                <img src={aboutVision} alt="Our Vision" className="rounded-2xl shadow-2xl w-full" />
+                <img src={aboutVision} alt="Our Vision" className="rounded-2xl shadow-2xl w-full h-auto" />
               </motion.div>
               <motion.div {...fadeUp} className="order-1 lg:order-2">
                 <div className="mb-10">
@@ -449,7 +449,7 @@ const About = () => {
             </motion.div>
             <div className="grid lg:grid-cols-2 gap-8 mb-12">
               <motion.div {...fadeUp} transition={{ delay: 0.1 }}>
-                <img src={aboutLeadership} alt="Leadership Team" className="rounded-2xl shadow-xl w-full h-64 object-cover" />
+                <img src={aboutLeadership} alt="Leadership Team" className="rounded-2xl shadow-xl w-full h-auto md:h-72 lg:h-80 md:object-cover" />
               </motion.div>
               <motion.div {...fadeUp} transition={{ delay: 0.2 }} className="flex flex-col justify-center">
                 <p className="text-muted-foreground leading-relaxed mb-4">

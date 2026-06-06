@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AdminLayout from "@/components/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -78,17 +79,47 @@ const emptyIPO: Omit<IPO, "id"> = {
 };
 
 const ManageIPOs = () => {
-  const [ipos, setIpos] = useState<IPO[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [sectors, setSectors] = useState<{ id: number, sector_name: string }[]>([]);
   const [form, setForm] = useState<Omit<IPO, "id">>(emptyIPO);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [pagination, setPagination] = useState({ page: 1, limit: 10 });
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin-ipos", pagination.page, debouncedSearch],
+    queryFn: async () => {
+      return await ipoListApi.getAll({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+        search: debouncedSearch,
+        admin: "true"
+      });
+    },
+    gcTime: 60 * 1000, // 1 minute garbage collection time
+    staleTime: 5000,
+    refetchOnWindowFocus: false,
+  });
+
+  const ipos = data?.data || [];
+  const loading = isLoading;
+  const total = data?.pagination?.total || 0;
+  const totalPages = data?.pagination?.totalPages || 0;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPagination(p => ({ ...p, page: 1 }));
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [bankers, setBankers] = useState<{ id: any, title: string }[]>([]);
   const [adminBlogs, setAdminBlogs] = useState<{ id: any, title: string }[]>([]);
+  const [bankerFilter, setBankerFilter] = useState<"all" | "sme" | "mainboard">("all");
 
   // GMP History States
   const [gmpDialogOpen, setGmpDialogOpen] = useState(false);
@@ -163,11 +194,30 @@ const ManageIPOs = () => {
         return dateMatch ? dateMatch[0] : "";
       };
 
+      // 1. Filter out completely empty rows (where user just clicked "Add New GMP Record" and typed nothing)
+      const nonBoringRows = gmpRows.filter(r => {
+        const hasDate = !!r.date?.trim();
+        const hasPrice = !!r.price?.trim();
+        const hasGmp = !!r.gmp?.trim();
+        const hasUpdated = !!r.updated?.trim();
+        return hasDate || hasPrice || hasGmp || hasUpdated;
+      });
+
+      // 2. Validate that if there are partially filled values, the date must be selected
+      const missingDateRow = nonBoringRows.find(r => !r.date?.trim());
+      if (missingDateRow) {
+        toast.error("Please select a date for all entered GMP records.");
+        setSavingGmp(false);
+        return;
+      }
+
+      const validRows = nonBoringRows;
+
       const gmpData = {
-        gmp: JSON.stringify(gmpRows.map(r => cleanNumeric(r.gmp))),
-        gmp_ipo_price: JSON.stringify(gmpRows.map(r => cleanNumeric(r.price))),
-        gmp_date: JSON.stringify(gmpRows.map(r => cleanDateOnly(r.date))),
-        gmp_last_updated: JSON.stringify(gmpRows.map(r => cleanDateOnly(r.updated)))
+        gmp: JSON.stringify(validRows.map(r => cleanNumeric(r.gmp))),
+        gmp_ipo_price: JSON.stringify(validRows.map(r => cleanNumeric(r.price))),
+        gmp_date: JSON.stringify(validRows.map(r => cleanDateOnly(r.date))),
+        gmp_last_updated: JSON.stringify(validRows.map(r => cleanDateOnly(r.updated)))
       };
 
       // 1. Update Linked Blog
@@ -184,7 +234,7 @@ const ManageIPOs = () => {
 
       // 2. Update IPO entry (Latest GMP value)
       // Extract the first non-empty GMP value (since we are sorted DESC)
-      const latestGmpRow = gmpRows.find(r => r.gmp);
+      const latestGmpRow = validRows.find(r => r.gmp);
       const finalGmpValue = latestGmpRow ? latestGmpRow.gmp : "0";
 
       await ipoListApi.update(selectedIpoForGmp.id.toString(), {
@@ -194,7 +244,7 @@ const ManageIPOs = () => {
 
       toast.success("GMP History Updated!");
       setGmpDialogOpen(false);
-      fetchIPOs();
+      queryClient.invalidateQueries({ queryKey: ["admin-ipos"] });
     } catch (err: any) {
       toast.error("Save failed: " + err.message);
     } finally {
@@ -203,15 +253,16 @@ const ManageIPOs = () => {
   };
 
   useEffect(() => {
-    fetchIPOs();
-    fetchSectors();
-    fetchBankers();
-    fetchAdminBlogs();
-  }, [pagination.page, searchTerm]);
+    if (dialogOpen) {
+      fetchSectors();
+      fetchBankers();
+      fetchAdminBlogs();
+    }
+  }, [dialogOpen]);
 
   const fetchBankers = async () => {
     try {
-      const res = await fetch("/api/mainboard-bankers?limit=1000");
+      const res = await fetch("/api/bankers?all=true");
       if (res.ok) {
         const body = await res.json();
         setBankers(body.data || []);
@@ -234,24 +285,6 @@ const ManageIPOs = () => {
       const data = await ipoListApi.getSectors();
       setSectors(data);
     } catch (e) { }
-  };
-
-  const fetchIPOs = async () => {
-    try {
-      setLoading(true);
-      const res = await ipoListApi.getAll({
-        page: pagination.page.toString(),
-        limit: pagination.limit.toString(),
-        search: searchTerm,
-        admin: "true"
-      });
-      setIpos(res.data);
-      setPagination(prev => ({ ...prev, total: res.pagination.total, totalPages: res.pagination.totalPages }));
-    } catch (error) {
-      toast.error("Failed to fetch IPOs");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -308,6 +341,11 @@ const ManageIPOs = () => {
 
     if (!form.issue_category) {
       toast.error("Issue category is required");
+      return;
+    }
+
+    if (!form.sector_id || Number(form.sector_id) === 0) {
+      toast.error("Sector is required");
       return;
     }
 
@@ -407,11 +445,25 @@ const ManageIPOs = () => {
 
 
     try {
+      const selectedBankersIds = (form as any).merchant_banker_arr || [];
+      const selectedBankersNames = selectedBankersIds
+        .map((id: any) => bankers.find(b => String(b.id) === String(id))?.title)
+        .filter(Boolean)
+        .join(', ');
+
+      const cleanSectorId = form.sector_id && Number(form.sector_id) !== 0 ? Number(form.sector_id) : null;
       const payload = {
         ...form,
-        sector_ids: form.sector_id ? [Number(form.sector_id)] : [],
-        merchant_banker: ((form as any).merchant_banker_arr || []).join(',')
+        sector_id: cleanSectorId,
+        merchant_banker: selectedBankersIds.join(','),
+        merchant_bankers: selectedBankersNames
       };
+
+      delete (payload as any).sector_ids;
+      delete (payload as any).sector_names;
+      delete (payload as any).blog_image;
+      delete (payload as any).blog_slug;
+      delete (payload as any).gmp_history;
 
       if (editingId) {
         await ipoListApi.update(editingId.toString(), payload);
@@ -424,7 +476,7 @@ const ManageIPOs = () => {
       setForm(emptyIPO);
       setEditingId(null);
       setDialogOpen(false);
-      fetchIPOs();
+      queryClient.invalidateQueries({ queryKey: ["admin-ipos"] });
 
     } catch (error: any) {
       toast.error(error?.response?.data?.error || "Failed to save IPO");
@@ -446,6 +498,8 @@ const ManageIPOs = () => {
     }
 
     setForm({ ...rest, date_declared: mappedDateDeclared, merchant_banker_arr } as any);
+    const cat = ipo.issue_category === "sme" ? "sme" : (ipo.issue_category === "mainboard" || ipo.issue_category === "mainline" ? "mainboard" : "all");
+    setBankerFilter(cat);
     setEditingId(id);
     setDialogOpen(true);
   };
@@ -455,11 +509,61 @@ const ManageIPOs = () => {
     try {
       await ipoListApi.delete(id.toString());
       toast.success("IPO deleted!");
-      fetchIPOs();
+      queryClient.invalidateQueries({ queryKey: ["admin-ipos"] });
     } catch (error) {
       toast.error("Failed to delete IPO");
     }
   };
+
+  // Deduplicate bankers by title for the dropdown, collecting all category IDs
+  const uniqueBankersMap = new Map<string, { id: any, title: string, categories: Set<string> }>();
+  bankers.forEach(b => {
+    if (b && b.title) {
+      const normalizedTitle = b.title.trim().toLowerCase();
+      if (!uniqueBankersMap.has(normalizedTitle)) {
+        uniqueBankersMap.set(normalizedTitle, {
+          id: b.id,
+          title: b.title,
+          categories: new Set([b.mcat_id])
+        });
+      } else {
+        uniqueBankersMap.get(normalizedTitle)!.categories.add(b.mcat_id);
+      }
+    }
+  });
+
+  const bankerIdToCanonicalIdMap = new Map<string, string>();
+  bankers.forEach(b => {
+    if (b && b.title) {
+      const normalizedTitle = b.title.trim().toLowerCase();
+      const canonicalBanker = uniqueBankersMap.get(normalizedTitle);
+      if (canonicalBanker) {
+        bankerIdToCanonicalIdMap.set(String(b.id), String(canonicalBanker.id));
+      }
+    }
+  });
+
+  const selectedBankerIds = ((form as any).merchant_banker_arr || []).map(String);
+
+  const uniqueBankersOptions = Array.from(uniqueBankersMap.values())
+    .filter(b => {
+      // Always include already selected bankers to prevent empty badges
+      const canonicalId = bankerIdToCanonicalIdMap.get(String(b.id)) || String(b.id);
+      if (selectedBankerIds.includes(canonicalId)) {
+        return true;
+      }
+
+      if (bankerFilter === "sme") {
+        return b.categories.has("list-of-sme-merchant-bankers");
+      } else if (bankerFilter === "mainboard") {
+        return b.categories.has("list-of-mainboard-merchant-bankers");
+      }
+      return true; // "all"
+    })
+    .map(b => ({
+      label: b.title,
+      value: String(b.id)
+    }));
 
   return (
     <AdminLayout>
@@ -467,7 +571,7 @@ const ManageIPOs = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Manage IPO Calendar</h1>
-            <p className="text-sm text-muted-foreground">{pagination.total} IPOs total in database</p>
+            <p className="text-sm text-muted-foreground">{total} IPOs total in database</p>
           </div>
           <div className="flex items-center gap-2">
             <div className="relative w-64">
@@ -476,10 +580,10 @@ const ManageIPOs = () => {
                 placeholder="Search company..."
                 className="pl-9"
                 value={searchTerm}
-                onChange={(e) => { setSearchTerm(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm(emptyIPO); setEditingId(null); } }}>
+            <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setForm(emptyIPO); setEditingId(null); setBankerFilter("all"); } }}>
               <DialogTrigger asChild>
                 <Button className="bg-accent text-accent-foreground hover:bg-gold-light font-semibold">
                   <Plus className="h-4 w-4 mr-2" /> Add IPO
@@ -487,6 +591,7 @@ const ManageIPOs = () => {
               </DialogTrigger>
               <DialogContent
                 className="max-w-4xl max-h-[90vh] overflow-y-auto"
+                aria-describedby={undefined}
                 onInteractOutside={(e) => {
                   e.preventDefault();
                 }}
@@ -544,7 +649,11 @@ const ManageIPOs = () => {
 
                   <div>
                     <label className="text-sm font-medium text-foreground mb-1.5 block">Issue Category</label>
-                    <Select value={String(form.issue_category)} onValueChange={(v) => setForm({ ...form, issue_category: v })}>
+                    <Select value={String(form.issue_category)} onValueChange={(v) => {
+                      setForm({ ...form, issue_category: v });
+                      const cat = v === "sme" ? "sme" : (v === "mainboard" || v === "mainline" ? "mainboard" : "all");
+                      setBankerFilter(cat);
+                    }}>
                       <SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="mainline">Mainline</SelectItem>
@@ -597,7 +706,7 @@ const ManageIPOs = () => {
                   )}
 
                   <div className="col-span-full">
-                    <label className="text-sm font-medium text-foreground mb-1.5 block">Sectors</label>
+                    <label className="text-sm font-medium text-foreground mb-1.5 block">Sectors *</label>
                     <SearchableSelect
                       placeholder="Select Sector"
                       options={sectors.map(s => ({ label: s.sector_name, value: String(s.id) }))}
@@ -706,11 +815,23 @@ const ManageIPOs = () => {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Merchant Bankers</label>
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-foreground">Merchant Bankers</label>
+                      <select 
+                        value={bankerFilter} 
+                        onChange={(e) => setBankerFilter(e.target.value as any)}
+                        className="text-[11px] font-semibold bg-muted border border-border text-foreground rounded-md px-2 py-0.5 focus:ring-1 focus:ring-accent focus:outline-none cursor-pointer"
+                      >
+                        <option value="all">Show All</option>
+                        <option value="sme">SME Only</option>
+                        <option value="mainboard">Mainboard Only</option>
+                      </select>
+                    </div>
                     <MultiSelect
                       placeholder="Select Bankers"
-                      options={bankers.map(b => ({ label: b.title, value: String(b.id) }))}
-                      selected={((form as any).merchant_banker_arr || []).map(String)}
+                      options={uniqueBankersOptions}
+                      selected={((form as any).merchant_banker_arr || [])
+                        .map((id: any) => bankerIdToCanonicalIdMap.get(String(id)) || String(id))}
                       onChange={(values) => {
                         setForm({ ...form, merchant_banker_arr: values } as any);
                       }}
@@ -802,7 +923,7 @@ const ManageIPOs = () => {
 
           <div className="flex items-center justify-between px-4 py-3 border-t border-border">
             <div className="text-xs text-muted-foreground">
-              Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} entries
+              Showing {(pagination.page - 1) * pagination.limit + 1} to {Math.min(pagination.page * pagination.limit, total)} of {total} entries
             </div>
             <div className="flex items-center gap-1">
               <Button
@@ -813,12 +934,12 @@ const ManageIPOs = () => {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <div className="text-xs font-medium px-2">Page {pagination.page} of {pagination.totalPages}</div>
+              <div className="text-xs font-medium px-2">Page {pagination.page} of {totalPages}</div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
-                disabled={pagination.page >= pagination.totalPages}
+                disabled={pagination.page >= totalPages}
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -827,7 +948,7 @@ const ManageIPOs = () => {
         </div>
         {/* GMP Management Modal */}
         <Dialog open={gmpDialogOpen} onOpenChange={setGmpDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-xl">
                 <History className="w-5 h-5 text-amber-500" />

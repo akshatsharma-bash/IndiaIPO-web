@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import cssInjectedByJsPlugin from "vite-plugin-css-injected-by-js";
-
+import { visualizer } from "rollup-plugin-visualizer";
 export default defineConfig(({ mode }) => {
 
   const isDev = mode === "development";
@@ -36,7 +36,12 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === "development" && componentTagger(),
-      cssInjectedByJsPlugin()
+      // cssInjectedByJsPlugin(),
+      visualizer({
+        open: true,
+        gzipSize: true,
+        brotliSize: true,
+      })
     ].filter(Boolean),
 
     resolve: {

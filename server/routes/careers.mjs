@@ -20,11 +20,11 @@ router.post('/apply', verifyRecaptcha('career_form'), async (req, res) => {
     try {
         const { name, last_name, email, phone, position_applied, experience, resume, coverletter } = req.body;
 
-        if (!name || !email) {
-            return res.status(400).json({ error: 'Name and Email are required' });
+        if (!name || !email || !phone) {
+            return res.status(400).json({ error: 'Name, Email and Phone number are required' });
         }
         // ✅ Phone validation (exact 10 digits)
-        if (!phone || !/^\d{10}$/.test(phone)) {
+        if (!/^\d{10}$/.test(phone)) {
             return res.status(400).json({ error: 'Mobile number must be exactly 10 digits' });
         }
 

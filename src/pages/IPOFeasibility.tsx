@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { CheckCircle, ArrowRight, Building2, TrendingUp, Shield, BarChart3, PieChart, FileText, ArrowUpRight, Calendar } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImgSrc } from "@/utils/image";
+import eligibilityBanner from "@/assets/eligibilty-check banners.webp";
 import {
   Dialog,
   DialogContent,
@@ -166,7 +167,12 @@ const IPOFeasibility = () => {
 
         <section className="relative pt-24 pb-20 md:pt-32 md:pb-28 overflow-hidden bg-foreground text-background">
           <div className="absolute inset-0 z-0">
-            <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
+            <img 
+              src={eligibilityBanner} 
+              alt="Eligibility Banner" 
+              className="w-full h-full object-cover opacity-20 object-center mix-blend-overlay" 
+            />
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background to-transparent" />
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[500px] h-[500px] bg-accent/10 blur-[100px] rounded-full" />
             <div className="absolute bottom-0 left-0 -ml-20 mb-20 w-[400px] h-[400px] bg-primary/20 blur-[100px] rounded-full" />
           </div>
@@ -186,7 +192,7 @@ const IPOFeasibility = () => {
                   Evaluate Your Potential For An <br className="hidden md:block" />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-gold-light">Initial Public Offering</span>
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed mb-10">
+                <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto leading-relaxed mb-10">
                   Take the first step towards massive capital scaling. Our expert Eligibility check accurately gauges your readiness for the Mainboard or SME exchanges.
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -466,75 +472,73 @@ const ResultModal = ({ isOpen, onClose, status, companyName }: { isOpen: boolean
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent
-        className="sm:max-w-[550px] p-0 overflow-hidden border-none shadow-2xl rounded-3xl"
+        className="max-w-[90%] sm:max-w-[460px] p-0 overflow-hidden border-none shadow-2xl rounded-3xl max-h-[90vh] overflow-y-auto"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className={`h-2 w-full ${status === "Eligible" ? "bg-emerald-500" : "bg-amber-500"}`} />
 
-        <div className="p-8 md:p-10">
-          <div className="flex justify-center mb-8">
+        <div className="p-5 md:p-7">
+          <div className="flex justify-center mb-4 md:mb-6">
             <motion.div
               initial={{ scale: 0, rotate: -20 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", damping: 12, stiffness: 200 }}
-              className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg ${status === "Eligible"
-                ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
+              className={`w-14 h-14 md:w-16 md:h-16 rounded-2xl flex items-center justify-center shadow-lg ${status === "Eligible"
+                ? "bg-emerald-55 text-emerald-600 border border-emerald-100"
                 : "bg-amber-50 text-amber-600 border border-amber-100"
                 }`}
             >
-              {status === "Eligible" ? <Sparkles className="w-10 h-10" /> : <AlertCircle className="w-10 h-10" />}
+              {status === "Eligible" ? <Sparkles className="w-8 h-8 md:w-9 md:h-9" /> : <AlertCircle className="w-8 h-8 md:w-9 md:h-9" />}
             </motion.div>
           </div>
 
-          <div className="text-center space-y-4 mb-10">
-            <DialogTitle className="text-3xl md:text-4xl font-black font-heading tracking-tight text-foreground">
+          <div className="text-center space-y-2 mb-6">
+            <DialogTitle className="text-xl md:text-2xl font-black font-heading tracking-tight text-foreground">
               {status === "Eligible" ? "Strong Potential!" : "Assessment Complete"}
             </DialogTitle>
-            <DialogDescription className="text-lg text-muted-foreground leading-relaxed px-4">
+            <DialogDescription className="text-xs md:text-sm text-muted-foreground leading-relaxed px-2 md:px-4">
               {status === "Eligible"
                 ? "Excellent news! Your company meets the primary indicators for a successful IPO listing. You are ready to explore the next phase of growth."
                 : "Based on the initial metrics, your company might need additional structuring to meet the elite standards for an immediate IPO listing."}
             </DialogDescription>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <div className={`p-5 rounded-2xl border transition-all ${status === "Eligible" ? "bg-emerald-50/50 border-emerald-100" : "bg-slate-50 border-slate-100"
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className={`p-3 md:p-4 rounded-xl border transition-all ${status === "Eligible" ? "bg-emerald-50/50 border-emerald-100" : "bg-slate-50 border-slate-100"
               }`}>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Status</span>
-              <span className={`text-lg font-black uppercase ${status === "Eligible" ? "text-emerald-700" : "text-slate-700"}`}>
+              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5 md:mb-1">Status</span>
+              <span className={`text-sm md:text-base font-black uppercase ${status === "Eligible" ? "text-emerald-700" : "text-slate-700"}`}>
                 {status}
               </span>
             </div>
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1">Exchange</span>
-              <span className="text-lg font-black text-slate-700">
+            <div className="p-3 md:p-4 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-[9px] md:text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-0.5 md:mb-1">Exchange</span>
+              <span className="text-sm md:text-base font-black text-slate-700">
                 {status === "Eligible" ? "SME / Mainboard" : "Consultancy Req."}
               </span>
             </div>
           </div>
 
-          <div className="bg-foreground text-background p-6 rounded-2xl relative overflow-hidden group">
+          <div className="bg-foreground text-background p-4 md:p-5 rounded-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-32 h-32 bg-accent/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-accent/20 transition-all" />
-            <h4 className="text-sm font-bold mb-4 flex items-center gap-2">
-              <PhoneCall className="w-4 h-4 text-accent" /> Next Strategic Steps:
+            <h4 className="text-xs md:text-sm font-bold mb-2 flex items-center gap-2">
+              <PhoneCall className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent" /> Next Strategic Steps:
             </h4>
-            <ul className="space-y-3 text-xs text-muted-foreground">
+            <ul className="space-y-2 text-[10px] md:text-xs text-muted-foreground">
               <li className="flex items-center gap-2">
                 <div className="w-1 h-1 rounded-full bg-accent" /> Our elite advisor will call you within 24 hours.
               </li>
               <li className="flex items-center gap-2">
                 <div className="w-1 h-1 rounded-full bg-accent" /> Prepare your last 3 years of audited financials.
               </li>
-
             </ul>
           </div>
 
-          <div className="mt-10 flex flex-col sm:flex-row gap-3">
-            <Button className="flex-1 h-14 rounded-2xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-md" onClick={onClose}>
+          <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
+            <Button className="flex-1 h-11 md:h-12 rounded-xl bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-sm md:text-base" onClick={onClose}>
               Back to Dashboard
             </Button>
-
           </div>
         </div>
       </DialogContent>

@@ -325,7 +325,7 @@ const ConsultantDetail = () => {
 
             {/* Right Column (Consultation Form - Made Sticky) */}
             <div className="lg:col-span-1 lg:sticky lg:top-8">
-              <div className="bg-card border-2 border-primary/20 rounded-[3.5rem] p-10 md:p-12 shadow-2xl shadow-primary/10 relative overflow-hidden">
+              <div className="bg-card border-2 border-primary/20 rounded-[2.5rem] sm:rounded-[3.5rem] p-6 sm:p-10 md:p-12 shadow-2xl shadow-primary/10 relative overflow-hidden">
                 <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/5 rounded-full blur-2xl" />
                 <div className="absolute -bottom-16 -left-16 w-32 h-32 bg-accent/5 rounded-full blur-xl" />
 
@@ -358,7 +358,7 @@ const ConsultantDetail = () => {
                     <div className="space-y-6">
                       <div className="space-y-2.5">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                          <Users className="h-3.5 w-3.5" /> Full Name
+                          <Users className="h-3.5 w-3.5" /> Full Name <span className="text-red-500 ml-0.5">*</span>
                         </label>
                         <Input
                           placeholder="Rajesh Kumar"
@@ -376,7 +376,7 @@ const ConsultantDetail = () => {
 
                       <div className="space-y-2.5">
                         <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                          <Mail className="h-3.5 w-3.5" /> Work Email
+                          <Mail className="h-3.5 w-3.5" /> Work Email <span className="text-red-500 ml-0.5">*</span>
                         </label>
                         <Input
                           type="email"
@@ -391,11 +391,11 @@ const ConsultantDetail = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2.5">
                           <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                            <Phone className="h-3.5 w-3.5" /> Mobile
+                            <Phone className="h-3.5 w-3.5" /> Mobile <span className="text-red-500 ml-0.5">*</span>
                           </label>
                           <Input
                             type="tel"
-                            placeholder="+91..."
+                            placeholder="Enter 10 digit Number"
                             required
                             className="bg-muted/30 border-border/50 rounded-2xl h-14 focus:ring-primary/20 text-base font-medium transition-all hover:bg-muted/50"
                             value={formData.phone}
@@ -405,7 +405,7 @@ const ConsultantDetail = () => {
 
                         <div className="space-y-2.5">
                           <label className="text-xs font-black uppercase tracking-widest text-muted-foreground ml-1 flex items-center gap-2">
-                            <Building2 className="h-3.5 w-3.5" /> Organisation
+                            <Building2 className="h-3.5 w-3.5" /> Organisation <span className="text-red-500 ml-0.5">*</span>
                           </label>
                           <Input
                             placeholder="Org Name"
@@ -420,14 +420,13 @@ const ConsultantDetail = () => {
                       <div className="space-y-2.5">
                         <div className="flex justify-between items-center ml-1">
                           <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                            <MessageSquare className="h-3.5 w-3.5" /> Why Listing Now?
+                            <MessageSquare className="h-3.5 w-3.5" /> Why Listing Now? <span className="text-red-500 ml-0.5">*</span>
                           </label>
                           <span
-                            className={`text-[10px] font-bold ${
-                              formData.message.length > 350
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                            }`}
+                            className={`text-[10px] font-bold ${formData.message.length > 350
+                              ? "text-destructive"
+                              : "text-muted-foreground"
+                              }`}
                           >
                             {formData.message.length}/400
                           </span>
@@ -454,12 +453,12 @@ const ConsultantDetail = () => {
                     </div>
 
                     <div className="space-y-4">
-                      <Button type="submit" className="w-full h-16 text-xl font-black rounded-2xl shadow-2xl shadow-primary/30 group relative overflow-hidden transition-all active:scale-[0.98]" disabled={submitting}>
+                      <Button type="submit" className="w-full h-auto min-h-16 py-4 px-6 text-base sm:text-lg lg:text-xl font-black rounded-2xl shadow-2xl shadow-primary/30 group relative overflow-hidden transition-all active:scale-[0.98] whitespace-normal" disabled={submitting}>
                         <div className="absolute inset-0 bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%] animate-shimmer" />
-                        <span className="relative z-10 flex items-center justify-center">
+                        <span className="relative z-10 flex items-center justify-center flex-wrap gap-x-2 gap-y-1 text-center">
                           {submitting ? "Processing..." : (
                             <>
-                              Initialize Consultation <Send className="h-6 w-6 ml-3 transition-transform group-hover:translate-x-1.5 group-hover:-translate-y-0.5" />
+                              <span>Initialize Consultation</span> <Send className="h-5 w-5 sm:h-6 sm:w-6 transition-transform group-hover:translate-x-1.5 group-hover:-translate-y-0.5 shrink-0" />
                             </>
                           )}
                         </span>

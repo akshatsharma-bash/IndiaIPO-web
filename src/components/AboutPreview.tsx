@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, Award, Users, Target } from "lucide-react";
-import { motion } from "framer-motion";
-import aboutPreview from "@/assets/about-preview.jpg";
+
+import aboutPreview from "@/assets/about-preview2.webp";
 
 const AboutPreview = () => {
   return (
@@ -15,27 +15,26 @@ const AboutPreview = () => {
             className="relative"
           >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <img src={aboutPreview} alt="IndiaIPO Team discussing IPO strategy" className="w-full h-[480px] object-cover" width="1024"
+              <img src={aboutPreview} alt="IndiaIPO Team discussing IPO strategy" className="w-full h-auto aspect-video sm:aspect-[4/3] lg:aspect-auto lg:h-[480px] object-cover" width="1024"
                 height="768" loading="eager"
-                fetchPriority="high"
+                fetchpriority="high"
                 decoding="async" />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent" />
             </div>
 
             <div
-
-              className="absolute -bottom-8 -right-4 lg:-right-8 bg-card border border-border rounded-2xl p-6 shadow-xl"
+              className="absolute -bottom-2 -right-1 sm:-bottom-8 sm:-right-4 lg:-right-8 bg-card border border-border rounded-lg sm:rounded-2xl p-2 sm:p-5 lg:p-6 shadow-xl"
             >
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-1 sm:gap-4">
                 {[
                   { value: "8+", label: "Years" },
                   { value: "140+", label: "IPOs" },
                   { value: "9.2K+", label: "Consultancies" },
                   { value: "98%", label: "Success" },
                 ].map((stat) => (
-                  <div key={stat.label} className="text-center">
-                    <div className="text-xl font-bold font-heading text-accent">{stat.value}</div>
-                    <div className="text-[10px] text-muted-foreground font-medium  tracking-wide">{stat.label}</div>
+                  <div key={stat.label} className="text-center p-0">
+                    <div className="text-xs sm:text-lg lg:text-xl font-bold font-heading text-accent leading-none mb-0.5">{stat.value}</div>
+                    <div className="text-[8px] sm:text-[10px] text-muted-foreground font-medium tracking-wide">{stat.label}</div>
                   </div>
                 ))}
               </div>

@@ -345,6 +345,19 @@ router.post("/", async (req, res) => {
       upcoming_ipo_status, admin_blog_id, sector_ids
     } = req.body;
 
+    // Resolve merchant_bankers names from merchant_banker IDs
+    if (merchant_banker) {
+      const idArray = String(merchant_banker).split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      if (idArray.length > 0) {
+        const [bankersRows] = await pool.query(`SELECT title FROM marchantbankers WHERE id IN (${idArray.join(',')})`);
+        merchant_bankers = bankersRows.map(r => r.title).join(', ');
+      } else {
+        merchant_bankers = null;
+      }
+    } else {
+      merchant_bankers = null;
+    }
+
     // =========================
     // ✅ REQUIRED VALIDATION
     // =========================
@@ -440,8 +453,21 @@ router.post("/", async (req, res) => {
     listing_day_close_nse = Number(listing_day_close_nse);
     if (isNaN(listing_day_close_nse)) listing_day_close_nse = 0;
 
-    // Use first sector_id from sector_ids as primary if provided
-    const primary_sector_id = (sector_ids && sector_ids.length > 0) ? sector_ids[0] : (sector_id || null);
+    // Sanitize sector_ids and sector_id
+    const clean_sector_id = (sector_id && Number(sector_id) !== 0) ? Number(sector_id) : null;
+    let clean_sector_ids = [];
+    if (sector_ids && Array.isArray(sector_ids)) {
+      clean_sector_ids = sector_ids
+        .map(id => Number(id))
+        .filter(id => !isNaN(id) && id !== 0);
+    } else if (clean_sector_id) {
+      clean_sector_ids = [clean_sector_id];
+    }
+    const primary_sector_id = (clean_sector_ids.length > 0) ? clean_sector_ids[0] : clean_sector_id;
+
+    if (!primary_sector_id) {
+      return res.status(400).json({ error: "Sector is required" });
+    }
 
     const fields = [
       'logo', 'issuer_company', 'date_declared', 'open_date', 'close_date',
@@ -487,8 +513,8 @@ router.post("/", async (req, res) => {
     const ipo_id = result.insertId;
 
     // Save multiple sectors
-    if (sector_ids && Array.isArray(sector_ids)) {
-      const linkValues = sector_ids.map(sid => [ipo_id, sid]);
+    if (clean_sector_ids && Array.isArray(clean_sector_ids)) {
+      const linkValues = clean_sector_ids.map(sid => [ipo_id, sid]);
       if (linkValues.length > 0) {
         await pool.query("INSERT INTO ipo_sector_links (ipo_id, sector_id) VALUES ?", [linkValues]);
       }
@@ -520,10 +546,36 @@ router.put("/:id", async (req, res) => {
       upcoming_ipo_status, admin_blog_id, sector_ids
     } = req.body;
 
+    // Resolve merchant_bankers names from merchant_banker IDs
+    if (merchant_banker) {
+      const idArray = String(merchant_banker).split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+      if (idArray.length > 0) {
+        const [bankersRows] = await pool.query(`SELECT title FROM marchantbankers WHERE id IN (${idArray.join(',')})`);
+        merchant_bankers = bankersRows.map(r => r.title).join(', ');
+      } else {
+        merchant_bankers = null;
+      }
+    } else {
+      merchant_bankers = null;
+    }
+
     const ipo_id = req.params.id;
 
-    // Use first sector_id from sector_ids as primary if provided
-    const primary_sector_id = (sector_ids && sector_ids.length > 0) ? sector_ids[0] : (sector_id || null);
+    // Sanitize sector_ids and sector_id
+    const clean_sector_id = (sector_id && Number(sector_id) !== 0) ? Number(sector_id) : null;
+    let clean_sector_ids = [];
+    if (sector_ids && Array.isArray(sector_ids)) {
+      clean_sector_ids = sector_ids
+        .map(id => Number(id))
+        .filter(id => !isNaN(id) && id !== 0);
+    } else if (clean_sector_id) {
+      clean_sector_ids = [clean_sector_id];
+    }
+    const primary_sector_id = (clean_sector_ids.length > 0) ? clean_sector_ids[0] : clean_sector_id;
+
+    if (!primary_sector_id) {
+      return res.status(400).json({ error: "Sector is required" });
+    }
 
     // =========================
     // ✅ REQUIRED VALIDATION
@@ -709,9 +761,9 @@ router.put("/:id", async (req, res) => {
     }
 
     // Update multiple sectors
-    if (sector_ids && Array.isArray(sector_ids)) {
+    if (clean_sector_ids && Array.isArray(clean_sector_ids)) {
       await pool.query("DELETE FROM ipo_sector_links WHERE ipo_id = ?", [ipo_id]);
-      const linkValues = sector_ids.map(sid => [ipo_id, sid]);
+      const linkValues = clean_sector_ids.map(sid => [ipo_id, sid]);
       if (linkValues.length > 0) {
         await pool.query("INSERT INTO ipo_sector_links (ipo_id, sector_id) VALUES ?", [linkValues]);
       }

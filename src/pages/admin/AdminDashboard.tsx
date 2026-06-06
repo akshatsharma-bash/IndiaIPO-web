@@ -91,7 +91,7 @@ function StatCard({
       to={href}
       className="group relative shadow-xl overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 to-white/[0.02] p-5 backdrop-blur-sm hover:border-white/20 hover:from-white/10 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/20 block"
     >
-      
+
       <div
         className={`absolute -top-6 -right-6 h-24 w-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity ${color}`}
       />
@@ -285,7 +285,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout>
       <div className="space-y-8 px-1">
-        
+
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -305,7 +305,7 @@ const AdminDashboard = () => {
           </button>
         </div>
 
-        
+
         {loading && !stats && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {Array.from({ length: 10 }).map((_, i) => (
@@ -317,7 +317,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        
+
         {stats && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
             {statCards.map((card) => (
@@ -326,7 +326,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        
+
         {stats && stats.recentActivity.length > 0 && (
           <div className="rounded-2xl border border-border bg-card p-6 shadow-sm overflow-hidden animate-in fade-in slide-in-from-top-4 duration-700">
             <div className="flex items-center justify-between mb-6">
@@ -355,7 +355,7 @@ const AdminDashboard = () => {
                   "text-amber-400": "bg-amber-50 border-amber-100 text-amber-600",
                 };
                 const iconCls = bgColors[meta.color] || "bg-gray-50 border-gray-100 text-gray-500";
-                
+
                 const hrefs: Record<string, string> = {
                   'lead': '/admin/leads',
                   'consultant_enquiry': '/admin/consultant-enquiries',
@@ -365,8 +365,8 @@ const AdminDashboard = () => {
                 };
 
                 return (
-                  <Link 
-                    key={i} 
+                  <Link
+                    key={i}
                     to={hrefs[item.type] || '#'}
                     className="flex flex-col gap-3 rounded-xl bg-muted/30 border border-border/50 p-4 hover:bg-muted/50 hover:border-primary/20 transition-all group shadow-sm hover:shadow-md"
                   >
@@ -398,10 +398,10 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        
+
         {stats && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
+
             <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -450,7 +450,7 @@ const AdminDashboard = () => {
               })()}
             </div>
 
-            
+
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -507,10 +507,10 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        
+
         {stats && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
+
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -550,7 +550,7 @@ const AdminDashboard = () => {
               })()}
             </div>
 
-            
+
             <div className="lg:col-span-2 rounded-2xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -600,40 +600,8 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        
-        {stats && (
-          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-            <h3 className="font-bold text-foreground text-base mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-              {[
-                { label: "Add IPO", href: "/admin/ipos", icon: TrendingUp, color: "bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100" },
-                { label: "View Leads", href: "/admin/leads", icon: MessageSquare, color: "bg-emerald-50 border-emerald-200 text-emerald-600 hover:bg-emerald-100" },
-                { label: "Consultant Enquiries", href: "/admin/consultant-enquiries", icon: UserCheck, color: "bg-violet-50 border-violet-200 text-violet-600 hover:bg-violet-100" },
-                { label: "Merchant Enquiries", href: "/admin/merchant-enquiries", icon: Building2, color: "bg-cyan-50 border-cyan-200 text-cyan-600 hover:bg-cyan-100" },
-                { label: "Investor Enquiries", href: "/admin/investors", icon: Star, color: "bg-amber-50 border-amber-200 text-amber-600 hover:bg-amber-100" },
-                { label: "Subscriptions", href: "/admin/subscriptions", icon: Bell, color: "bg-pink-50 border-pink-200 text-pink-600 hover:bg-pink-100" },
-                { label: "Career Apps", href: "/admin/career-applications", icon: Briefcase, color: "bg-lime-50 border-lime-200 text-lime-600 hover:bg-lime-100" },
-                { label: "Manage Blogs", href: "/admin/blogs", icon: BookOpen, color: "bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100" },
-                { label: "Manage Reports", href: "/admin/reports", icon: FileText, color: "bg-teal-50 border-teal-200 text-teal-600 hover:bg-teal-100" },
-                { label: "Users", href: "/admin/users", icon: Users, color: "bg-fuchsia-50 border-fuchsia-200 text-fuchsia-600 hover:bg-fuchsia-100" },
-                { label: "Market Snaps", href: "/admin/market-snaps", icon: BarChart3, color: "bg-orange-50 border-orange-200 text-orange-600 hover:bg-orange-100" },
-                { label: "Notifications", href: "/admin/notifications", icon: Bell, color: "bg-yellow-50 border-yellow-200 text-yellow-600 hover:bg-yellow-100" },
-              ].map((action) => {
-                const Icon = action.icon;
-                return (
-                  <Link
-                    key={action.label}
-                    to={action.href}
-                    className={`flex flex-col items-center gap-2 rounded-xl border px-3 py-4 text-center text-xs font-semibold transition-all hover:-translate-y-0.5 hover:shadow-md ${action.color}`}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {action.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
+
+
       </div>
     </AdminLayout>
   );

@@ -888,7 +888,6 @@ const FAQItem = ({ faq, index }: { faq: (typeof faqs)[0]; index: number }) => {
 
 const IPOServices = () => {
   const [activeTab, setActiveTab] = useState(services[0].id);
-  const [platformStats, setPlatformStats] = useState<any>(null);
   const [comparisonData, setComparisonData] =
     useState<any[]>(defaultComparison);
   const [loading, setLoading] = useState(true);
@@ -915,12 +914,6 @@ const IPOServices = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        const statsRes = await fetch("/api/dashboard/stats");
-        if (statsRes.ok) {
-          const statsData = (await statsRes.ok) ? await statsRes.json() : null;
-          setPlatformStats(statsData);
-        }
 
         const catRes = await fetch("/api/knowledge/categories");
         if (catRes.ok) {
@@ -975,12 +968,7 @@ const IPOServices = () => {
     fetchData();
   }, [pathname]);
 
-  const displayStats = defaultStats.map((s) => {
-    if (s.dbKey === "totalIPOs" && platformStats?.totalIPOs) {
-      return { ...s, target: platformStats.totalIPOs };
-    }
-    return s;
-  });
+  const displayStats = defaultStats;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">

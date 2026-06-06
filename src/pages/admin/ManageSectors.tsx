@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AdminLayout from "@/components/AdminLayout";
-import { sectorApi, sectorIpoApi, adminBlogApi } from "@/services/api";
+import { sectorApi } from "@/services/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -8,7 +9,6 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  LayoutGrid,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -56,8 +56,7 @@ interface Sector {
 }
 
 const ManageSectors = () => {
-  const [sectors, setSectors] = useState<Sector[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -82,17 +81,22 @@ const ManageSectors = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchSectors = () => {
-    setLoading(true);
-    sectorApi.getAdminAll()
-      .then(setSectors)
-      .catch((e) => toast.error("Failed to fetch sectors"))
-      .finally(() => setLoading(false));
-  };
+  // TanStack Query to fetch paginated/filtered sectors
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["adminSectors", currentPage, search],
+    queryFn: () => sectorApi.getAdminAll({
+      page: currentPage,
+      limit: itemsPerPage,
+      search: search
+    }),
+    staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,    // Cache data in memory for 10 minutes
+  });
 
-  useEffect(() => {
-    fetchSectors();
-  }, []);
+  const sectors = data?.sectors || [];
+  const totalSectors = data?.total || 0;
+  const totalPages = data?.totalPages || 1;
+  const activePage = Math.min(currentPage, totalPages);
 
   const cleanNumberString = (val: any) => {
     if (val === undefined || val === null) return "";
@@ -156,7 +160,7 @@ const ManageSectors = () => {
         toast.success("Sector created successfully");
       }
       setIsModalOpen(false);
-      fetchSectors();
+      queryClient.invalidateQueries({ queryKey: ["adminSectors"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to save sector");
     } finally {
@@ -170,22 +174,11 @@ const ManageSectors = () => {
     try {
       await sectorApi.delete(id);
       toast.success("Sector deleted successfully");
-      fetchSectors();
+      queryClient.invalidateQueries({ queryKey: ["adminSectors"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to delete sector");
     }
   };
-
-  const filteredSectors = sectors.filter(s => 
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredSectors.length / itemsPerPage) || 1;
-  const activePage = Math.min(currentPage, totalPages);
-  const displayedSectors = filteredSectors.slice(
-    (activePage - 1) * itemsPerPage,
-    activePage * itemsPerPage
-  );
 
   return (
     <AdminLayout>
@@ -229,20 +222,26 @@ const ManageSectors = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-48 text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary opacity-20" />
                   </TableCell>
                 </TableRow>
-              ) : filteredSectors.length === 0 ? (
+              ) : isError ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-48 text-center text-destructive font-semibold">
+                    Failed to load sectors. Please try again.
+                  </TableCell>
+                </TableRow>
+              ) : sectors.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
                     No sectors found
                   </TableCell>
                 </TableRow>
               ) : (
-                displayedSectors.map((sector) => (
+                sectors.map((sector) => (
                   <TableRow key={sector.id} className="hover:bg-muted/30">
                     <TableCell className="font-semibold">{sector.name}</TableCell>
                     <TableCell>
@@ -314,7 +313,7 @@ const ManageSectors = () => {
             return (
               <div className="px-4 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between bg-muted/20 gap-4">
                 <p className="text-xs text-muted-foreground font-semibold">
-                  Showing {(activePage - 1) * itemsPerPage + 1} to {Math.min(activePage * itemsPerPage, filteredSectors.length)} of {filteredSectors.length} Sectors
+                  Showing {(activePage - 1) * itemsPerPage + 1} to {Math.min(activePage * itemsPerPage, totalSectors)} of {totalSectors} Sectors
                 </p>
                 <div className="flex items-center gap-2">
                   <button 
@@ -380,7 +379,7 @@ const ManageSectors = () => {
                   <h3 className="text-sm font-semibold text-blue-600 border-b pb-1">Basic Information</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sector Name</label>
+                      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Sector Name <span className="text-red-500 ml-0.5">*</span></label>
                       <Input 
                         placeholder="e.g. Technology, Infrastructure" 
                         value={formData.name}
@@ -409,15 +408,15 @@ const ManageSectors = () => {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">P/E Highest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter P/E Highest" value={formData.pe_heigest} onChange={(e) => setFormData({...formData, pe_heigest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter P/E Highest" value={formData.pe_heigest} onChange={(e) => setFormData({...formData, pe_heigest: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">P/E Median</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter P/E Median" value={formData.pe_median} onChange={(e) => setFormData({...formData, pe_median: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter P/E Median" value={formData.pe_median} onChange={(e) => setFormData({...formData, pe_median: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">P/E Lowest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter P/E Lowest" value={formData.pe_lowest} onChange={(e) => setFormData({...formData, pe_lowest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter P/E Lowest" value={formData.pe_lowest} onChange={(e) => setFormData({...formData, pe_lowest: e.target.value})} />
                     </div>
                   </div>
                 </div>
@@ -427,15 +426,15 @@ const ManageSectors = () => {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">IPO Size Highest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter IPO Size Highest" value={formData.ipo_size_heigest} onChange={(e) => setFormData({...formData, ipo_size_heigest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter IPO Size Highest" value={formData.ipo_size_heigest} onChange={(e) => setFormData({...formData, ipo_size_heigest: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">IPO Size Median</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter IPO Size Median" value={formData.ipo_size_median} onChange={(e) => setFormData({...formData, ipo_size_median: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter IPO Size Median" value={formData.ipo_size_median} onChange={(e) => setFormData({...formData, ipo_size_median: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">IPO Size Lowest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter IPO Size Lowest" value={formData.ipo_size_lowest} onChange={(e) => setFormData({...formData, ipo_size_lowest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter IPO Size Lowest" value={formData.ipo_size_lowest} onChange={(e) => setFormData({...formData, ipo_size_lowest: e.target.value})} />
                     </div>
                   </div>
                 </div>
@@ -446,15 +445,15 @@ const ManageSectors = () => {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">Mainboard P/E Highest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard P/E Highest" value={formData.mainline_pe_heigest} onChange={(e) => setFormData({...formData, mainline_pe_heigest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard P/E Highest" value={formData.mainline_pe_heigest} onChange={(e) => setFormData({...formData, mainline_pe_heigest: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">Mainboard P/E Median</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard P/E Median" value={formData.mainline_pe_median} onChange={(e) => setFormData({...formData, mainline_pe_median: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard P/E Median" value={formData.mainline_pe_median} onChange={(e) => setFormData({...formData, mainline_pe_median: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">Mainboard P/E Lowest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard P/E Lowest" value={formData.mainline_pe_lowest} onChange={(e) => setFormData({...formData, mainline_pe_lowest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard P/E Lowest" value={formData.mainline_pe_lowest} onChange={(e) => setFormData({...formData, mainline_pe_lowest: e.target.value})} />
                     </div>
                   </div>
                 </div>
@@ -464,15 +463,15 @@ const ManageSectors = () => {
                   <div className="space-y-3">
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">Mainboard IPO Size Highest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard IPO Size Highest" value={formData.mainline_ipo_size_heigest} onChange={(e) => setFormData({...formData, mainline_ipo_size_heigest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard IPO Size Highest" value={formData.mainline_ipo_size_heigest} onChange={(e) => setFormData({...formData, mainline_ipo_size_heigest: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">Mainboard IPO Size Median</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard IPO Size Median" value={formData.mainline_ipo_size_median} onChange={(e) => setFormData({...formData, mainline_ipo_size_median: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard IPO Size Median" value={formData.mainline_ipo_size_median} onChange={(e) => setFormData({...formData, mainline_ipo_size_median: e.target.value})} />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-semibold text-muted-foreground uppercase">Mainboard IPO Size Lowest</label>
-                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard IPO Size Lowest" value={formData.mainline_ipo_size_lowest} onChange={(e) => setFormData({...formData, mainline_ipo_size_lowest: e.target.value})} required />
+                      <Input type="number" step="any" min="0" placeholder="Enter Mainboard IPO Size Lowest" value={formData.mainline_ipo_size_lowest} onChange={(e) => setFormData({...formData, mainline_ipo_size_lowest: e.target.value})} />
                     </div>
                   </div>
                 </div>
@@ -485,7 +484,6 @@ const ManageSectors = () => {
                     placeholder="Enter sector details and industry overview..."
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    required
                   />
                 </div>
               </div>

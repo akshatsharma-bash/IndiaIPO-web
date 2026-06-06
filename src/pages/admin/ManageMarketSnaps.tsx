@@ -37,7 +37,7 @@ const ManageMarketSnaps = () => {
       if (res.ok) {
         const data = await res.json();
         const mappedVideos: SocialMedia[] = data.items.map((item: any) => ({
-          id: item.snippet.resourceId.videoId,
+          id: item.id || item.snippet.resourceId.videoId,
           title: item.snippet.title,
           url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
           img_url: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,

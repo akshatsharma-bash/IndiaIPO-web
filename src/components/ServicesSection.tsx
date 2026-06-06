@@ -2,7 +2,7 @@ import { Building2, TrendingUp, BarChart3, Wallet, ArrowRight } from "lucide-rea
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import servicesImg from "@/assets/services-ipo.jpg";
+import servicesImg from "@/assets/service.webp";
 
 const serviceCards = [
   {
@@ -39,63 +39,63 @@ const ServicesSection = () => {
   return (
     <section className="py-24 bg-background">
       <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mb-12 max-w-2xl"
+        >
+          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-primary border border-primary mb-6">
+            What We Offer
+          </span>
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-foreground mb-4 leading-tight">
+            Comprehensive <span className="text-primary">IPO Services</span>
+          </h2>
+          <p className="text-muted-foreground text-base">
+            From planning to listing day, we offer complete IPO advisory services aligned to your business objectives.
+          </p>
+        </motion.div>
 
-          <div>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold  text-primary border border-primary mb-6">
-                What We Offer
-              </span>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-foreground mb-4 leading-tight">
-                Comprehensive <span className="text-primary">IPO Services</span>
-              </h2>
-              <p className="text-muted-foreground mb-10 text-base max-w-lg">
-                From planning to listing day, we offer complete IPO advisory services aligned to your business objectives.
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-2 gap-3 md:gap-5">
-              {serviceCards.map((service, idx) => (
-                <motion.div
-                  key={service.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  whileHover={{ y: -5, scale: 1.02 }}
+        {/* Grid for Cards and Image */}
+        <div className="grid lg:grid-cols-2 gap-16 items-stretch">
+          <div className="grid grid-cols-2 gap-3 md:gap-5">
+            {serviceCards.map((service, idx) => (
+              <motion.div
+                key={service.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                className="h-full"
+              >
+                <Link
+                  to={service.link}
+                  className="group block bg-card border border-border rounded-2xl p-4 md:p-6 shadow-2xl hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 h-full"
                 >
-                  <Link
-                    to={service.link}
-                    className="group block bg-card border border-border rounded-2xl p-4 md:p-6 shadow-2xl hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 h-full"
-                  >
-                    <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl  flex items-center justify-center mb-4 transition-colors duration-300 ${service.color}`}>
-                      <service.icon className="h-5 w-5 md:h-7 md:h-7" />
-                    </div>
-                    <h3 className="text-lg font-bold font-heading text-foreground mb-2">{service.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">{service.description}</p>
-                    <span className="inline-flex items-center text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform">
-                      Learn More <ArrowRight className="ml-1 h-4 w-4" />
-                    </span>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
+                  <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl flex items-center justify-center mb-4 transition-colors duration-300 ${service.color}`}>
+                    <service.icon className="h-5 w-5 md:h-7 md:h-7" />
+                  </div>
+                  <h3 className="text-lg font-bold font-heading text-foreground mb-2">{service.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-3">{service.description}</p>
+                  <span className="inline-flex items-center text-sm font-semibold text-primary group-hover:translate-x-1 transition-transform">
+                    Learn More <ArrowRight className="ml-1 h-4 w-4" />
+                  </span>
+                </Link>
+              </motion.div>
+            ))}
           </div>
-
 
           <motion.div
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
-            className="relative hidden lg:block"
+            className="relative hidden lg:flex flex-col h-full"
           >
-            <div className="rounded-2xl overflow-hidden shadow-2xl">
-              <img src={servicesImg} alt="IPO Trading Floor" className="w-full h-[560px] object-cover" />
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl h-full flex-grow">
+              <img src={servicesImg} alt="IPO Trading Floor" className="w-full h-full object-cover min-h-[400px]" />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-foreground/20 to-transparent rounded-2xl" />
             </div>
             <div className="absolute bottom-8 left-8 right-8">

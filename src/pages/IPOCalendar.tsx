@@ -30,6 +30,10 @@ import { getImgSrc } from "@/utils/image";
 import { getImageUrl, cn, getLatestGmpValue } from "@/lib/utils";
 import { format } from "date-fns";
 import { enIN } from "date-fns/locale";
+import { useQuery } from "@tanstack/react-query";
+
+
+
 
 const statusColor: Record<string, string> = {
   Active:
@@ -114,13 +118,12 @@ const formatDate = (dateStr: any, options: Intl.DateTimeFormatOptions = { day: '
 
 const IPOCalendar = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
   const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 0 });
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
   const { pathname } = useLocation();
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -136,27 +139,50 @@ const IPOCalendar = () => {
     fetchBanners();
   }, [pathname]);
 
-  useEffect(() => {
-    fetchData();
-  }, [pagination.page, search, statusFilter]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const res = await ipoListApi.getAll({
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
+
+
+
+
+
+
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      "ipo-calendar",
+      pagination.page,
+      statusFilter,
+      debouncedSearch
+    ],
+    queryFn: async () => {
+      return await ipoListApi.getAll({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
-        search: search,
+        search: debouncedSearch,
         status: statusFilter === "all" ? "" : statusFilter
       });
-      setItems(res.data);
-      setPagination(prev => ({ ...prev, total: res.pagination.total, totalPages: res.pagination.totalPages }));
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+
+  const items = data?.data || [];
+
+  const totalPages =
+    data?.pagination?.totalPages || 0;
+
+  const total =
+    data?.pagination?.total || 0;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -213,7 +239,7 @@ const IPOCalendar = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-black text-slate-900 leading-none">Live <strong style={{ color: "#f58e09" }}>IPO Calendar</strong></h2>
-                  <p className="text-slate-500 mt-2 font-medium">{pagination.total} Upcoming & Active Issues</p>
+                  <p className="text-slate-500 mt-2 font-medium">{total} Upcoming & Active Issues</p>
                 </div>
               </div>
 
@@ -224,7 +250,14 @@ const IPOCalendar = () => {
                     placeholder="Search company..."
                     className="pl-12 h-14 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all text-base"
                     value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPagination(p => ({ ...p, page: 1 })); }}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+
+                      setPagination(prev => {
+                        if (prev.page === 1) return prev;
+                        return { ...prev, page: 1 };
+                      });
+                    }}
                   />
                 </div>
                 <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPagination(p => ({ ...p, page: 1 })); }}>
@@ -304,7 +337,7 @@ const IPOCalendar = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {loading ? (
+                  {isLoading ? (
                     <tr>
                       <td colSpan={7} className="py-32 text-center">
                         <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto mb-4" />
@@ -442,7 +475,7 @@ const IPOCalendar = () => {
 
 
             <div className="bg-[#f8fafc]/50 p-4 border-t border-slate-100 lg:hidden">
-              {loading ? (
+              {isLoading ? (
                 <div className="py-20 flex flex-col items-center justify-center">
                   <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
                   <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">Syncing with Exchange...</span>
@@ -600,10 +633,10 @@ const IPOCalendar = () => {
             </div>
 
 
-            {pagination.totalPages > 1 && (
+            {totalPages > 1 && (
               <div className="px-4 md:px-10 py-6 md:py-8 border-t border-slate-50 flex flex-col md:flex-row items-center justify-between bg-slate-50/30 gap-4">
                 <p className="text-xs font-black text-slate-400 uppercase tracking-widest hidden md:block">
-                  Showing Page {pagination.page} of {pagination.totalPages}
+                  Showing Page {pagination.page} of {totalPages}
                 </p>
                 <div className="flex items-center justify-between md:justify-end gap-1.5 md:gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                   <Button
@@ -617,7 +650,7 @@ const IPOCalendar = () => {
                   <div className="flex items-center gap-1 md:gap-2 px-1">
                     {(() => {
                       const pages = [];
-                      const { page, totalPages } = pagination;
+                      const page = pagination.page;
                       const delta = 1;
 
                       for (let i = 1; i <= totalPages; i++) {
@@ -652,7 +685,7 @@ const IPOCalendar = () => {
                   <Button
                     variant="outline"
                     onClick={() => setPagination(p => ({ ...p, page: p.page + 1 }))}
-                    disabled={pagination.page >= pagination.totalPages}
+                    disabled={pagination.page >= totalPages}
                     className="rounded-xl h-10 px-3 md:h-12 md:px-6 border-slate-200 font-bold shrink-0"
                   >
                     <span className="hidden md:inline">Next</span> <ChevronRight className="h-4 w-4 md:ml-2" />

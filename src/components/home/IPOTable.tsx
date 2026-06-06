@@ -82,10 +82,13 @@ const formatPrice = (low: any, high: any) => {
     return `₹${low} to ₹${high}`;
 };
 
-const IPOTable = () => {
+interface IPOTableProps {
+    ipos?: any[];
+    isLoading?: boolean;
+}
+
+const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: loading = true }) => {
     const navigate = useNavigate();
-    const [ipoList, setIpoList] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
@@ -102,24 +105,6 @@ const IPOTable = () => {
                 "resize",
                 checkMobile
             );
-    }, []);
-
-
-    useEffect(() => {
-        const fetchIPOs = async () => {
-            try {
-                const res = await fetch("/api/ipo-lists?limit=10");
-                const data = await res.json();
-                if (data && data.data) {
-                    setIpoList(data.data);
-                }
-            } catch (err) {
-                console.error("Error fetching IPO list:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchIPOs();
     }, []);
 
 

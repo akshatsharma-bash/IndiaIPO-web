@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { cn, getLatestGmpValue } from "@/lib/utils";
 
-import { ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 
 
@@ -105,73 +105,85 @@ const actionBtn: Record<string, { label: string; cls: string }> = {
     },
 };
 
+interface LiveIPOsProps {
+    ipos?: any[];
+    isLoading?: boolean;
+}
 
-const LiveIPOs = () => {
+const LiveIPOs: React.FC<LiveIPOsProps> = ({ ipos: initialIpos = [], isLoading = true }) => {
     const navigate = useNavigate();
-    const [ipos, setIpos] = useState<any[]>([]);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(false);
+
+    const checkScrollButtons = () => {
+        if (scrollRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+            setCanScrollLeft(scrollLeft > 5);
+            setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5);
+        }
+    };
+
+    const handleScroll = (direction: "left" | "right") => {
+        if (scrollRef.current) {
+            const { scrollLeft, clientWidth } = scrollRef.current;
+            const scrollAmount = clientWidth * 0.85;
+            const targetScroll = direction === "left"
+                ? scrollLeft - scrollAmount
+                : scrollLeft + scrollAmount;
+
+            scrollRef.current.scrollTo({
+                left: targetScroll,
+                behavior: "smooth",
+            });
+            setTimeout(checkScrollButtons, 400);
+        }
+    };
+
+    const ipos = useMemo(() => {
+        if (!initialIpos || initialIpos.length === 0) return [];
+        return initialIpos.slice(0, 3).map((item: any) => {
+            const calculatedStatus = getCalculatedStatus(item);
+
+            return {
+                id: item.id,
+                companyName: item.issuer_company,
+                status: calculatedStatus,
+                priceRange: (() => {
+                    const low = item.issue_lowest_price;
+                    const high = item.issue_highest_price;
+                    if ((!low || low === '0' || low === 0) && (!high || high === '0' || high === 0)) return "TBA";
+                    if (!low || low === '0' || low === 0) return `₹${high}`;
+                    if (!high || high === '0' || high === 0 || low === high) return `₹${low}`;
+                    return `₹${low} - ₹${high}`;
+                })(),
+                gmp: getLatestGmpValue(item.gmp),
+                subscription: item.subscription || "Check Details",
+                lotSize: item.lot_size || "—",
+                issue_highest_price: item.issue_highest_price || 100,
+                slug: item.blog_slug,
+            };
+        });
+    }, [initialIpos]);
+
+    const isMobile =
+        typeof window !== "undefined"
+            ? window.matchMedia("(max-width: 767px)").matches
+            : false;
+
 
     useEffect(() => {
-        const fetchLiveIPOs = async () => {
-            try {
-                const res = await fetch("/api/ipo-lists?limit=3");
-                const data = await res.json();
-                if (data && data.data) {
-                    const mapped = data.data.map((item: any) => {
-                        const calculatedStatus = getCalculatedStatus(item);
-
-                        return {
-                            id: item.id,
-                            companyName: item.issuer_company,
-                            status: calculatedStatus,
-                            priceRange: (() => {
-                                const low = item.issue_lowest_price;
-                                const high = item.issue_highest_price;
-                                if ((!low || low === '0' || low === 0) && (!high || high === '0' || high === 0)) return "TBA";
-                                if (!low || low === '0' || low === 0) return `₹${high}`;
-                                if (!high || high === '0' || high === 0 || low === high) return `₹${low}`;
-                                return `₹${low} - ₹${high}`;
-                            })(),
-                            gmp: getLatestGmpValue(item.gmp),
-                            subscription: item.subscription || "Check Details",
-                            lotSize: item.lot_size || "—",
-                            issue_highest_price: item.issue_highest_price || 100,
-                            slug: item.blog_slug,
-                        };
-                    });
-                    setIpos(mapped);
-                }
-            } catch (err) {
-                console.error("Error fetching live IPOs:", err);
-            }
+        const timer = setTimeout(checkScrollButtons, 100);
+        window.addEventListener("resize", checkScrollButtons);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener("resize", checkScrollButtons);
         };
-        fetchLiveIPOs();
-    }, []);
-
-    const isMobile = useRef(
-        typeof window !== "undefined" &&
-        window.innerWidth < 768
-    ).current;
-
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (scrollRef.current && isMobile && ipos.length > 0) {
-                const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-                const maxScroll = scrollWidth - clientWidth;
-                let nextScroll = scrollLeft + clientWidth;
-                if (scrollLeft >= maxScroll - 10) nextScroll = 0;
-                scrollRef.current.scrollTo({ left: nextScroll, behavior: "smooth" });
-            }
-        }, 5000);
-        return () => clearInterval(interval);
-    }, [ipos, isMobile]);
+    }, [ipos, isLoading]);
 
     return (
         <section className="py-20 px-4 container mx-auto">
             <div
-
-
                 className="flex justify-between items-end mb-12"
             >
                 <div>
@@ -198,70 +210,102 @@ const LiveIPOs = () => {
                 className="overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory"
             >
                 <div className="flex gap-6 md:grid md:grid-cols-3 md:gap-8">
-                    {ipos.map((ipo, idx) => {
-                        const btn = actionBtn[ipo.status] || actionBtn.Upcoming;
-
-                        return (
+                    {isLoading
+                        ? Array.from({ length: 3 }).map((_, idx) => (
                             <div
-                                key={ipo.id}
-
-                                onClick={() =>
-                                    navigate(ipo.slug ? `/ipo-blogs/${ipo.slug}` : "/all-ipos")
-                                }
-                                className="flex-shrink-0 w-[85vw] md:w-auto snap-center bg-white p-6 rounded-2xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] transition-all group border border-slate-100 flex flex-col cursor-pointer"
+                                key={idx}
+                                className="flex-shrink-0 w-[85vw] md:w-auto snap-center bg-white p-6 rounded-2xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] border border-slate-100 flex flex-col animate-pulse"
                             >
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-blue-900 text-lg group-hover:bg-blue-900 group-hover:text-white transition-colors duration-200 text-center p-2">
-                                        {ipo.companyName.slice(0, 2).toUpperCase()}
-                                    </div>
-                                    <span
-                                        className={cn(
-                                            "px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-full border transition-all",
-                                            statusColor[ipo.status] ||
-                                            "bg-slate-50 text-slate-500 border-slate-200",
-                                        )}
-                                    >
-                                        {ipo.status === "Active" ? "Open" : ipo.status}
-                                    </span>
+                                    <div className="w-16 h-16 rounded-xl bg-slate-100" />
+                                    <div className="w-20 h-6 rounded-full bg-slate-100" />
                                 </div>
-                                <h3 className="text-xl font-bold mb-4 group-hover:text-blue-900 transition-colors text-slate-900 line-clamp-1">
-                                    {ipo.companyName}
-                                </h3>
+                                <div className="h-7 bg-slate-100 rounded w-3/4 mb-4" />
                                 <div className="grid grid-cols-2 gap-y-4 mb-6 flex-1">
                                     <div>
-                                        <p className="text-xs text-slate-500">Price Band</p>
-                                        <p className="text-sm font-bold text-slate-900">
-                                            {ipo.priceRange}
-                                        </p>
+                                        <div className="h-3 bg-slate-100 rounded w-16 mb-1" />
+                                        <div className="h-4 bg-slate-100 rounded w-24" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">GMP</p>
-                                        <p className="text-sm font-bold text-green-700">
-                                            {ipo.gmp !== "—" ? ipo.gmp : ""}
-                                        </p>
+                                        <div className="h-3 bg-slate-100 rounded w-10 mb-1" />
+                                        <div className="h-4 bg-slate-100 rounded w-16" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">Subscription</p>
-                                        <p className="text-sm font-bold text-slate-900">
-                                            {ipo.subscription}
-                                        </p>
+                                        <div className="h-3 bg-slate-100 rounded w-20 mb-1" />
+                                        <div className="h-4 bg-slate-100 rounded w-20" />
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500">Lot Size</p>
-                                        <p className="text-sm font-bold text-slate-900">
-                                            {ipo.lotSize} shares
-                                        </p>
+                                        <div className="h-3 bg-slate-100 rounded w-12 mb-1" />
+                                        <div className="h-4 bg-slate-100 rounded w-12" />
                                     </div>
                                 </div>
-                                <Link
-                                    to={ipo.slug ? `/ipo-blogs/${ipo.slug}` : "/all-ipos"}
-                                    className={`w-full py-3 rounded-xl font-bold transition-all active:scale-95 mt-auto flex items-center justify-center ${btn.cls}`}
-                                >
-                                    {btn.label}
-                                </Link>
+                                <div className="w-full h-12 bg-slate-100 rounded-xl mt-auto" />
                             </div>
-                        );
-                    })}
+                        ))
+                        : ipos.map((ipo, idx) => {
+                            const btn = actionBtn[ipo.status] || actionBtn.Upcoming;
+
+                            return (
+                                <div
+                                    key={ipo.id}
+
+                                    onClick={() =>
+                                        navigate(ipo.slug ? `/ipo-blogs/${ipo.slug}` : "/all-ipos")
+                                    }
+                                    className="flex-shrink-0 w-[85vw] md:w-auto snap-center bg-white p-6 rounded-2xl shadow-[0_12px_40px_rgba(25,28,30,0.06)] transition-all group border border-slate-100 flex flex-col cursor-pointer"
+                                >
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-blue-900 text-lg group-hover:bg-blue-900 group-hover:text-white transition-colors duration-200 text-center p-2">
+                                            {ipo.companyName.slice(0, 2).toUpperCase()}
+                                        </div>
+                                        <span
+                                            className={cn(
+                                                "px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-full border transition-all",
+                                                statusColor[ipo.status] ||
+                                                "bg-slate-50 text-slate-500 border-slate-200",
+                                            )}
+                                        >
+                                            {ipo.status === "Active" ? "Open" : ipo.status}
+                                        </span>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-4 group-hover:text-blue-900 transition-colors text-slate-900 line-clamp-1">
+                                        {ipo.companyName}
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-y-4 mb-6 flex-1">
+                                        <div>
+                                            <p className="text-xs text-slate-500">Price Band</p>
+                                            <p className="text-sm font-bold text-slate-900">
+                                                {ipo.priceRange}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">GMP</p>
+                                            <p className="text-sm font-bold text-green-700">
+                                                {ipo.gmp !== "—" ? ipo.gmp : ""}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Subscription</p>
+                                            <p className="text-sm font-bold text-slate-900">
+                                                {ipo.subscription}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Lot Size</p>
+                                            <p className="text-sm font-bold text-slate-900">
+                                                {ipo.lotSize} shares
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Link
+                                        to={ipo.slug ? `/ipo-blogs/${ipo.slug}` : "/all-ipos"}
+                                        className={`w-full py-3 rounded-xl font-bold transition-all active:scale-95 mt-auto flex items-center justify-center ${btn.cls}`}
+                                    >
+                                        {btn.label}
+                                    </Link>
+                                </div>
+                            );
+                        })}
                 </div>
             </div>
         </section>

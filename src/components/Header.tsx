@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation } from "react-router-dom";
 import {
   Menu,
@@ -426,142 +427,151 @@ const Header = () => {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
 
-  const [notifItems, setNotifItems] = useState<SubItem[]>(
-    FALLBACK_NOTIFICATIONS,
-  );
-  const [knowledgeItems, setKnowledgeItems] =
-    useState<SubItem[]>(FALLBACK_KNOWLEDGE);
-  const [smeBankerItems, setSmeBankerItems] = useState<SubItem[]>([
-    {
-      label: "List of SME Merchant Bankers",
-      href: "/merchant-bankers/list-of-sme-merchant-bankers",
-    },
-  ]);
-  const [mainboardBankerItems, setMainboardBankerItems] = useState<SubItem[]>([
-    {
-      label: "List of Mainboard Merchant Bankers",
-      href: "/merchant-bankers/list-of-mainboard-merchant-bankers",
-    },
-  ]);
+  const { data: notificationsData } = useQuery({
+    queryKey: ["header-notifications"],
+    queryFn: () => fetch("/api/notifications").then((r) => r.ok ? r.json() : null),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const notifItems = useMemo(() => {
+    if (notificationsData && notificationsData.length > 0) {
+      const active = notificationsData.filter(
+        (n: APINotif) => n.is_active == 1 || n.is_active === true,
+      );
+      if (active.length > 0) {
+        const apiItems = active.map((n: APINotif) => ({
+          label: n.title,
+          href: n.link
+            ? n.link.startsWith("http")
+              ? n.link
+              : `https://${n.link}`
+            : `/notifications/${n.slug}`,
+          external: !!n.link,
+        }));
+        const mandatory = [
+          {
+            label: "BSE SME Eligibility Criteria",
+            href: "/bse-sme-ipo-eligibility",
+          },
+          {
+            label: "NSE Emerge Eligibility Criteria",
+            href: "/nse-emerge-eligibility-criteria",
+          },
+        ];
+        return [
+          ...apiItems,
+          ...mandatory.filter(
+            (m) => !apiItems.some((a) => a.href === m.href),
+          ),
+        ];
+      }
+    }
+    return FALLBACK_NOTIFICATIONS;
+  }, [notificationsData]);
+
+  const { data: categoriesData } = useQuery({
+    queryKey: ["header-categories"],
+    queryFn: () => fetch("/api/knowledge/categories").then((r) => r.ok ? r.json() : null),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const knowledgeItems = useMemo(() => {
+    if (categoriesData && categoriesData.length > 0) {
+      const active = categoriesData.filter(
+        (c: APICategory) =>
+          (c.is_active == 1 || c.is_active === true) &&
+          ![
+            "SEBI ICDR Amendment Regulations",
+            "SEBI SME IPO ICDR Amendments",
+            "ICDR",
+            "BSE SME Eligibility Criteria",
+            "NSE Emerge Eligibility Criteria",
+            "Sector Wise IPO List In India",
+            "Sector Wise IPO List"
+          ].includes(c.name),
+      );
+      if (active.length > 0) {
+        return [
+          { label: "IPO Blogs", href: "/ipo-blogs" },
+          ...active.map((c: APICategory) => {
+            const nameLower = c.name.toLowerCase();
+            if (nameLower === "ipo world magazine") {
+              return {
+                label: "IPO World Magazine",
+                href: "/ipo-world-magazine",
+                badge: "IPO World Magazine",
+                badgeColor: "bg-blue-600 text-white",
+              };
+            }
+            return {
+              label: c.name,
+              href:
+                nameLower === "list of ipo registrar" ||
+                  nameLower === "registrar"
+                  ? "/list-of-ipo-registrar"
+                  : nameLower === "sector wise ipo list in india" ||
+                    c.slug === "sector-wise-ipo-list"
+                    ? "/sector-wise-ipo"
+                    : `/ipo-knowledge/${c.slug}`,
+            };
+          }),
+        ];
+      }
+    }
+    return FALLBACK_KNOWLEDGE;
+  }, [categoriesData]);
+
+  const { data: subcatsData } = useQuery({
+    queryKey: ["header-subcats"],
+    queryFn: () => fetch("/api/banker-subcategories?status=active").then((r) => r.ok ? r.json() : null),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { smeBankerItems, mainboardBankerItems } = useMemo(() => {
+    let sme = [
+      {
+        label: "List of SME Merchant Bankers",
+        href: "/merchant-bankers/list-of-sme-merchant-bankers",
+      },
+    ];
+    let mainboard = [
+      {
+        label: "List of Mainboard Merchant Bankers",
+        href: "/merchant-bankers/list-of-mainboard-merchant-bankers",
+      },
+    ];
+
+    if (subcatsData && subcatsData.data && subcatsData.data.length > 0) {
+      const apiSme = subcatsData.data
+        .filter((s: APIBankerSubcat) => s.type === "sme")
+        .map((s: APIBankerSubcat) => ({
+          label: s.name,
+          href: `/merchant-bankers/${s.slug}`,
+        }));
+      const apiMainboard = subcatsData.data
+        .filter((s: APIBankerSubcat) => s.type === "mainboard")
+        .map((s: APIBankerSubcat) => ({
+          label: s.name,
+          href: `/merchant-bankers/${s.slug}`,
+        }));
+
+      if (apiSme.length > 0) sme = apiSme;
+      if (apiMainboard.length > 0) mainboard = apiMainboard;
+    }
+
+    return { smeBankerItems: sme, mainboardBankerItems: mainboard };
+  }, [subcatsData]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/notifications")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: APINotif[] | null) => {
-        if (data && data.length > 0) {
-          const active = data.filter(
-            (n) => n.is_active == 1 || n.is_active === true,
-          );
-          if (active.length > 0) {
-            const apiItems = active.map((n) => ({
-              label: n.title,
-              href: n.link
-                ? n.link.startsWith("http")
-                  ? n.link
-                  : `https://${n.link}`
-                : `/notifications/${n.slug}`,
-              external: !!n.link,
-            }));
-            const mandatory = [
-              {
-                label: "BSE SME Eligibility Criteria",
-                href: "/bse-sme-ipo-eligibility",
-              },
-              {
-                label: "NSE Emerge Eligibility Criteria",
-                href: "/nse-emerge-eligibility-criteria",
-              },
-            ];
-            setNotifItems([
-              ...apiItems,
-              ...mandatory.filter(
-                (m) => !apiItems.some((a) => a.href === m.href),
-              ),
-            ]);
-          }
-        }
-      })
-      .catch(() => { });
-
-    fetch("/api/knowledge/categories")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: APICategory[] | null) => {
-        if (data && data.length > 0) {
-          const active = data.filter(
-            (c) =>
-              (c.is_active == 1 || c.is_active === true) &&
-              ![
-                "SEBI ICDR Amendment Regulations",
-                "SEBI SME IPO ICDR Amendments",
-                "ICDR",
-                "BSE SME Eligibility Criteria",
-                "NSE Emerge Eligibility Criteria",
-                "Sector Wise IPO List In India",
-                "Sector Wise IPO List"
-              ].includes(c.name),
-          );
-          if (active.length > 0) {
-            setKnowledgeItems([
-              { label: "IPO Blogs", href: "/ipo-blogs" },
-              ...active.map((c) => {
-                const nameLower = c.name.toLowerCase();
-                if (nameLower === "ipo world magazine") {
-                  return {
-                    label: "IPO World Magazine",
-                    href: "/ipo-world-magazine",
-                    badge: "IPO World Magazine",
-                    badgeColor: "bg-blue-600 text-white",
-                  };
-                }
-                return {
-                  label: c.name,
-                  href:
-                    nameLower === "list of ipo registrar" ||
-                      nameLower === "registrar"
-                      ? "/list-of-ipo-registrar"
-                      : nameLower === "sector wise ipo list in india" ||
-                        c.slug === "sector-wise-ipo-list"
-                        ? "/sector-wise-ipo"
-                        : `/ipo-knowledge/${c.slug}`,
-                };
-              }),
-            ]);
-          }
-        }
-      })
-      .catch(() => { });
-
-    // Fetch dynamic Banker subcategories
-    fetch("/api/banker-subcategories?status=active")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data: { data: APIBankerSubcat[] } | null) => {
-        if (data && data.data && data.data.length > 0) {
-          const sme = data.data
-            .filter((s) => s.type === "sme")
-            .map((s) => ({
-              label: s.name,
-              href: `/merchant-bankers/${s.slug}`,
-            }));
-          const mainboard = data.data
-            .filter((s) => s.type === "mainboard")
-            .map((s) => ({
-              label: s.name,
-              href: `/merchant-bankers/${s.slug}`,
-            }));
-
-          if (sme.length > 0) setSmeBankerItems(sme);
-          if (mainboard.length > 0) setMainboardBankerItems(mainboard);
-        }
-      })
-      .catch((err) =>
-        console.error("Error fetching banker subcategories:", err),
-      );
   }, []);
 
   useEffect(() => {

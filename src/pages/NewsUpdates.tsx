@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { getImgSrc } from "@/utils/image";
 
 interface SocialVideo {
-  id: number;
+  id: string | number;
   title: string;
   url: string;
   img_url: string;
@@ -20,7 +20,7 @@ import {
   Newspaper, Youtube, Loader2, ChevronLeft, ChevronRight,
   Calendar, Tag, ArrowRight, TrendingUp, Bell, PlayCircle,
   Search, Home, Clock, Eye, Bookmark, Share2, Mail, Phone,
-  BarChart3, Zap, Globe,
+  BarChart3, Zap, Globe, X,
 } from "lucide-react";
 
 const fallbackImage =
@@ -62,6 +62,15 @@ const NewsUpdates = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
   const { pathname } = useLocation();
 
@@ -94,8 +103,8 @@ const NewsUpdates = () => {
           queryParams.append("category", activeCategory);
         }
 
-        if (searchQuery.trim()) {
-          queryParams.append("search", searchQuery);
+        if (debouncedSearchQuery.trim()) {
+          queryParams.append("search", debouncedSearchQuery.trim());
         }
 
 
@@ -117,7 +126,7 @@ const NewsUpdates = () => {
       }
     };
     fetchNews();
-  }, [activeCategory, currentPage]);
+  }, [activeCategory, currentPage, debouncedSearchQuery]);
 
   const [totalItems, setTotalItems] = useState(0);
 
@@ -130,7 +139,7 @@ const NewsUpdates = () => {
         if (res.ok) {
           const data = await res.json();
           const mapped: SocialVideo[] = data.items.map((item: any) => ({
-            id: item.snippet.resourceId.videoId,
+            id: item.id || item.snippet.resourceId.videoId,
             title: item.snippet.title,
             url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
             img_url: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
@@ -170,19 +179,7 @@ const NewsUpdates = () => {
 
 
 
-  const filteredNews = newsItems.filter((item) => {
-    const q = searchQuery.toLowerCase();
-
-    return (
-      item.title?.toLowerCase().includes(q) ||
-      item.description?.toLowerCase().includes(q)
-    );
-  });
-
-
-
-
-  const paginatedNews = filteredNews;
+  const paginatedNews = newsItems;
   const totalPages = Math.ceil(totalItems / NEWS_PER_PAGE);
 
   const goToPage = (p: number) => {
@@ -279,8 +276,17 @@ const NewsUpdates = () => {
                   placeholder="Search news articles…"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                  className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001529]/20 focus:border-[#001529]/40 font-medium"
+                  className="w-full pl-10 pr-10 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#001529]/20 focus:border-[#001529]/40 font-medium"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchQuery(""); setCurrentPage(1); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               <div className="flex overflow-x-auto pb-0  scrollbar-hide flex-1">

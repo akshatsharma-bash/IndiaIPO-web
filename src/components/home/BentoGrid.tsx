@@ -22,11 +22,11 @@ const BentoGrid = () => {
             >
                 Built for India’s Next Public Companies
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div
 
                     onClick={() => navigate("/ipo-advisory-services")}
-                    className="md:col-span-2 relative overflow-hidden group bg-blue-900 text-white p-10 rounded-3xl flex flex-col justify-between h-80 transition-colors duration-500 hover:shadow-2xl cursor-pointer"
+                    className="md:col-span-2 lg:col-span-2 relative overflow-hidden group bg-blue-900 text-white p-6 sm:p-10 rounded-3xl flex flex-col justify-between min-h-[320px] h-full transition-colors duration-500 hover:shadow-2xl cursor-pointer"
                 >
                     <img
                         src={gmpAlertsBg}
@@ -53,7 +53,7 @@ const BentoGrid = () => {
                 <div
 
                     onClick={() => navigate("/pre-ipo-consultant")}
-                    className="bg-white relative overflow-hidden group p-8 rounded-3xl flex flex-col justify-between h-80 shadow-sm border border-slate-100 transition-colors duration-500 hover:shadow-md cursor-pointer"
+                    className="bg-white relative overflow-hidden group p-6 sm:p-8 rounded-3xl flex flex-col justify-between min-h-[320px] h-full shadow-sm border border-slate-100 transition-colors duration-500 hover:shadow-md cursor-pointer"
                 >
                     <img
                         src={verifiedDataBg}
@@ -83,7 +83,7 @@ const BentoGrid = () => {
                 <div
 
                     onClick={() => navigate("/invit-rights-issue-advisory-services")}
-                    className="bg-amber-100 relative overflow-hidden group text-amber-950 p-8 rounded-3xl flex flex-col justify-between h-80 transition-colors duration-500 hover:shadow-md cursor-pointer"
+                    className="bg-amber-100 relative overflow-hidden group text-amber-950 p-6 sm:p-8 rounded-3xl flex flex-col justify-between min-h-[320px] h-full transition-colors duration-500 hover:shadow-md cursor-pointer"
                 >
                     <img
                         src={expertAnalysisBg}
@@ -112,7 +112,7 @@ const BentoGrid = () => {
 
                 <div
 
-                    className="md:col-span-2 bg-slate-200 relative overflow-hidden group p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 h-auto md:h-80 transition-colors duration-500 hover:shadow-md"
+                    className="md:col-span-2 lg:col-span-2 bg-slate-200 relative overflow-hidden group p-6 sm:p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 min-h-[320px] h-full transition-colors duration-500 hover:shadow-md"
                 >
                     <img
                         src={seamlessInterfaceBg}
@@ -132,7 +132,7 @@ const BentoGrid = () => {
                             ensure a smooth transaction process.
                         </p>
                     </div>
-                    <a
+                    {/* <a
                         href="https://play.google.com/store/apps/details?id=com.indiaipo"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -149,17 +149,17 @@ const BentoGrid = () => {
                             <Download className="h-8 w-8 text-white mb-2" />
                             <span className="text-[10px] font-bold text-white leading-tight">
                                 GET IT ON
-                                <br />
+                                  <br />
                                 <span className="text-sm">Google Play</span>
                             </span>
                         </div>
-                    </a>
+                    </a> */}
                 </div>
 
                 <div
 
                     onClick={() => navigate("/financial-modelling-services")}
-                    className="md:col-span-2 relative overflow-hidden group bg-green-800 text-white p-10 rounded-3xl flex flex-col justify-between h-80 transition-colors duration-500 hover:shadow-lg cursor-pointer"
+                    className="md:col-span-2 lg:col-span-2 relative overflow-hidden group bg-green-800 text-white p-6 sm:p-10 rounded-3xl flex flex-col justify-between min-h-[320px] h-full transition-colors duration-500 hover:shadow-lg cursor-pointer"
                 >
                     <img
                         src={sebiAnalystBg}

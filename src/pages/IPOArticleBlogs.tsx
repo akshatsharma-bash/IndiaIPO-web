@@ -8,7 +8,7 @@ import { BASE_URL } from "@/hooks/useCanonicalUrl";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight, ChevronLeft, ChevronRight,
-  Home, BookOpen, Search, Zap, Calendar, Clock
+  Home, BookOpen, Search, Zap, Calendar, Clock, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getImgSrc } from "@/utils/image";
@@ -193,11 +193,17 @@ const IPOArticleBlogs = () => {
                   placeholder="Search articles, sectors, or trends..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full h-14 pl-4 pr-6 bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
+                  className="w-full h-14 pl-4 pr-12 bg-transparent outline-none text-slate-900 font-medium placeholder:text-slate-400"
                 />
-                <Button className="h-14 px-8 rounded-2xl bg-[#001529] hover:bg-blue-900 text-white font-black text-xs uppercase tracking-widest hidden sm:flex">
-                  Search
-                </Button>
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch("")}
+                    className="absolute right-4 p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </motion.div>
           </div>

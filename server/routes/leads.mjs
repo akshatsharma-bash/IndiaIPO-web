@@ -4,6 +4,20 @@ import { verifyRecaptcha } from '../middleware/recaptcha.mjs';
 
 const router = express.Router();
 
+// GET unread leads
+router.get('/unread', async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            "SELECT * FROM visitors WHERE form_type = 'contact_us' AND is_read = 0 ORDER BY created_at DESC"
+        );
+        res.json({
+            data: rows
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // GET all leads with pagination
 router.get('/', async (req, res) => {
     try {
@@ -33,7 +47,9 @@ router.get('/', async (req, res) => {
 // POST create a new lead
 router.post('/', verifyRecaptcha('contact_form'), async (req, res) => {
     try {
-        const { name, email, phone, company = '', subject = '', message } = req.body;
+        let { name, email, phone, company, subject, message } = req.body;
+        company = company || '';
+        subject = subject || '';
 
         // ✅ Required fields
         if (!name || !email || !phone || !message) {

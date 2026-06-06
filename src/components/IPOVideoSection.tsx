@@ -86,7 +86,7 @@ const IPOVideoSection = () => {
           if (res.ok) {
             const data = await res.json();
             const mappedVideos: VideoItem[] = data.items.map((item: any) => ({
-              id: item.snippet.resourceId.videoId,
+              id: item.id || item.snippet.resourceId.videoId,
               title: item.snippet.title,
               youtube_id: item.snippet.resourceId.videoId
             }));

@@ -29,7 +29,12 @@ router.get("/", async (req, res) => {
 // GET all sectors for admin (includes inactive)
 router.get("/admin", async (req, res) => {
   try {
-    const query = `
+    const page = req.query.page ? parseInt(req.query.page) : null;
+    const limit = req.query.limit ? parseInt(req.query.limit) : null;
+    const search = req.query.search ? req.query.search.trim() : "";
+
+    let countQuery = "SELECT COUNT(*) as total FROM sectors s";
+    let query = `
       SELECT 
         s.*,
         COUNT(CASE WHEN LOWER(i.type) = 'mainline' THEN 1 END) as mainline_count,
@@ -37,11 +42,44 @@ router.get("/admin", async (req, res) => {
         COUNT(i.id) as total_count
       FROM sectors s
       LEFT JOIN sector_by_ipo i ON s.id = i.sector_id
-      GROUP BY s.id
-      ORDER BY s.name ASC
     `;
-    const [rows] = await pool.query(query);
-    res.json(rows);
+
+    const whereClause = [];
+    const params = [];
+
+    if (search) {
+      whereClause.push("s.name LIKE ?");
+      params.push(`%${search}%`);
+    }
+
+    if (whereClause.length > 0) {
+      const clause = " WHERE " + whereClause.join(" AND ");
+      countQuery += clause;
+      query += clause;
+    }
+
+    query += " GROUP BY s.id ORDER BY s.name ASC";
+
+    if (page !== null && limit !== null) {
+      const [countResult] = await pool.query(countQuery, params);
+      const total = countResult[0].total;
+
+      const offset = (page - 1) * limit;
+      query += " LIMIT ? OFFSET ?";
+      
+      const [rows] = await pool.query(query, [...params, limit, offset]);
+      
+      res.json({
+        sectors: rows,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      });
+    } else {
+      const [rows] = await pool.query(query, params);
+      res.json(rows);
+    }
   } catch (error) {
     console.error("Error fetching sectors for admin:", error);
     res.status(500).json({ error: "Failed to fetch sectors" });
@@ -51,7 +89,7 @@ router.get("/admin", async (req, res) => {
 // Helper to validate numeric strings
 const validateNumeric = (val, fieldName) => {
   if (val === undefined || val === null || val === "" || String(val).trim() === "") {
-    throw new Error(`${fieldName} is required and must be a valid number`);
+    return 0; // Optional fields default to 0
   }
   const cleanVal = String(val).replace(/,/g, "").trim();
   const num = parseFloat(cleanVal);
@@ -171,14 +209,23 @@ router.put("/:id", async (req, res) => {
 // DELETE sector
 router.delete("/:id", async (req, res) => {
   try {
-    // Check if sector is in use
-    const [inUse] = await pool.query("SELECT id FROM ipo_lists WHERE sector_id = ? LIMIT 1", [req.params.id]);
+    // Check if sector is in use in sector-wise IPO records
+    const [inUse] = await pool.query("SELECT id FROM sector_by_ipo WHERE sector_id = ? LIMIT 1", [req.params.id]);
     if (inUse.length > 0) {
       return res.status(400).json({ error: "Cannot delete sector as it is currently linked to one or more IPOs" });
     }
+    
+    // Disassociate this sector from any primary IPOs in the main ipo_lists table
+    await pool.query("UPDATE ipo_lists SET sector_id = NULL WHERE sector_id = ?", [req.params.id]);
+    
+    // Clear links in ipo_sector_links mapping table
+    await pool.query("DELETE FROM ipo_sector_links WHERE sector_id = ?", [req.params.id]);
+
+    // Delete the sector
     await pool.query("DELETE FROM sectors WHERE id = ?", [req.params.id]);
     res.json({ message: "Sector deleted successfully" });
   } catch (error) {
+    console.error("Error deleting sector:", error);
     res.status(500).json({ error: "Failed to delete sector" });
   }
 });

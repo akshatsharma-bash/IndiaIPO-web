@@ -32,18 +32,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const initAuth = async () => {
       const savedToken = localStorage.getItem("token");
+      const savedUser = localStorage.getItem("user");
+
       if (savedToken) {
+        // Optimistically set the user and token first to prevent layout flashing
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            setToken(savedToken);
+          } catch (e) {
+            console.error("Failed to parse saved user:", e);
+          }
+        }
+
         try {
           const response = await authApi.getProfile();
           if (response.user) {
             setUser(response.user);
             setToken(savedToken);
+            localStorage.setItem("user", JSON.stringify(response.user));
           } else {
             logout();
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error("Auth init error:", error);
-          logout();
+          
+          // Do not log the user out on network errors, request aborts (browser refresh), or fetch type errors.
+          // Only log out if it is an actual authentication failure (e.g. 401/403 status).
+          const isNetworkError = 
+            error.message?.includes("Failed to fetch") || 
+            error.message?.includes("Load failed") ||
+            error.name === "AbortError" ||
+            error.name === "TypeError";
+
+          if (!isNetworkError) {
+            logout();
+          }
         }
       }
       setLoading(false);

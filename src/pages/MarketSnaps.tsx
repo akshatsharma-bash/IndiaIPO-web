@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { motion, AnimatePresence } from "framer-motion";
-import { PlayCircle, Loader2, Calendar, LayoutGrid, List } from "lucide-react";
+import { PlayCircle, Loader2, Calendar, LayoutGrid, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { getImageUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -59,7 +59,7 @@ const MarketSnaps = () => {
       if (res.ok) {
         const data = await res.json();
         const mappedVideos: SocialMedia[] = data.items.map((item: any) => ({
-          id: item.snippet.resourceId.videoId,
+          id: item.id || item.snippet.resourceId.videoId,
           title: item.snippet.title,
           url: `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}`,
           img_url: item.snippet.thumbnails.high?.url || item.snippet.thumbnails.default?.url,
@@ -278,46 +278,60 @@ const MarketSnaps = () => {
             )}
 
 
-            {!loading && totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-16">
-                <Button
-                  variant="outline"
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="rounded-full w-12 h-12 p-0 flex items-center justify-center"
-                >
-                  ←
-                </Button>
+            {!loading && totalPages > 1 && (() => {
+              const delta = 2;
+              const range: (number | "…")[] = [];
+              const rangeSet = new Set<number>();
+              [1, totalPages, ...Array.from({ length: delta * 2 + 1 }, (_, i) => page - delta + i)]
+                .filter((p) => p >= 1 && p <= totalPages)
+                .sort((a, b) => a - b)
+                .forEach((p) => rangeSet.add(p));
+              const sorted = Array.from(rangeSet).sort((a, b) => a - b);
+              sorted.forEach((p, i) => {
+                if (i > 0 && p - sorted[i - 1] > 1) range.push("…");
+                range.push(p);
+              });
 
-                <div className="flex gap-1 overflow-x-auto max-w-[200px] px-2 hide-scrollbar">
-                  {Array.from({ length: totalPages }).map((_, i) => {
-                    const pageNumber = i + 1;
-                    const isAvailable = pageTokens[pageNumber] !== undefined || pageNumber === 1;
+              return (
+                <div className="flex justify-center items-center gap-2 mt-16">
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </Button>
 
-                    return (
-                      <Button
-                        key={pageNumber}
-                        variant={page === pageNumber ? "default" : "ghost"}
-                        onClick={() => setPage(pageNumber)}
-                        disabled={!isAvailable}
-                        className={`min-w-[40px] h-10 rounded-full font-bold ${page === pageNumber ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground'} ${!isAvailable ? 'opacity-30 cursor-not-allowed' : ''}`}
-                      >
-                        {pageNumber}
-                      </Button>
-                    );
-                  })}
+                  <div className="flex gap-1.5 items-center justify-center px-2">
+                    {range.map((p, i) =>
+                      p === "…" ? (
+                        <span key={`ellipse-${i}`} className="w-8 h-10 flex items-center justify-center text-muted-foreground font-bold">...</span>
+                      ) : (
+                        <Button
+                          key={p}
+                          variant={page === p ? "default" : "ghost"}
+                          onClick={() => setPage(p as number)}
+                          disabled={pageTokens[p as number] === undefined && (p as number) !== 1}
+                          className={`min-w-[40px] h-10 rounded-full font-bold ${page === p ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground'} ${(pageTokens[p as number] === undefined && (p as number) !== 1) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                        >
+                          {p}
+                        </Button>
+                      )
+                    )}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </Button>
                 </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="rounded-full w-12 h-12 p-0 flex items-center justify-center"
-                >
-                  →
-                </Button>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </section>
       </main>

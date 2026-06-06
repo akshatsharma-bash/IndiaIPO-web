@@ -141,8 +141,9 @@ const AdminProfile = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="pl-9"
+                  className="pl-9 bg-muted text-muted-foreground cursor-not-allowed"
                   placeholder="admin@indiaipo.in"
+                  readOnly
                   required
                 />
               </div>

@@ -1,4 +1,4 @@
-
+import LazySection from "@/components/LazySection";
 import SEOHead from "@/components/SEOHead";
 import { BASE_URL } from "@/hooks/useCanonicalUrl";
 import SitePopup from "@/components/SitePopup";
@@ -8,6 +8,9 @@ import Footer3 from "@/components/Footer";
 import AboutPreview from "@/components/AboutPreview";
 import ServicesSection from "@/components/ServicesSection";
 import Hero from "@/components/home/Hero";
+import { useQuery } from "@tanstack/react-query";
+import { ipoListApi } from "@/services/api";
+
 const LiveIPOs = lazy(() => import("@/components/home/LiveIPOs"));
 const GMPSection = lazy(() => import("@/components/home/GMPSection"));
 
@@ -21,6 +24,12 @@ const Newsletter = lazy(() => import("@/components/home/Newsletter"));
 import { academyItems, faqItems } from "@/data/academyFaqData";
 
 const Index2 = () => {
+  const { data: ipoData, isLoading } = useQuery({
+    queryKey: ["homeIpos"],
+    queryFn: () => ipoListApi.getAll({ limit: "10" }),
+  });
+  const ipos = ipoData?.data || [];
+
   return (
     <div
       className="min-h-screen bg-[#f8f9fb] text-slate-900 font-sans"
@@ -84,13 +93,13 @@ const Index2 = () => {
         <AboutPreview />
         <ServicesSection />
         <Suspense fallback={null}>
-          <LiveIPOs />
+          <LiveIPOs ipos={ipos} isLoading={isLoading} />
         </Suspense>
         <Suspense fallback={null}>
-          <GMPSection />
+          <GMPSection ipos={ipos} isLoading={isLoading} />
         </Suspense>
         <Suspense fallback={null}>
-          <IPOTable />
+          <IPOTable ipos={ipos} isLoading={isLoading} />
         </Suspense>
         <Suspense fallback={null}>
           <BentoGrid />
@@ -98,24 +107,31 @@ const Index2 = () => {
         <Suspense fallback={null}>
           <VideoSection />
         </Suspense>
+        <LazySection>
+          <Suspense fallback={null}>
+            <MarketInsights />
+          </Suspense>
+        </LazySection>
 
-        <Suspense fallback={null}>
-          <MarketInsights />
-        </Suspense>
-
-        <Suspense fallback={null}>
-          <AcademyFAQ />
-        </Suspense>
+        <LazySection>
+          <Suspense fallback={null}>
+            <AcademyFAQ />
+          </Suspense>
+        </LazySection>
         {/* <SuccessStories /> */}
 
+        <LazySection>
+          <Suspense fallback={null}>
+            <AnnualReport />
+          </Suspense>
+        </LazySection>
 
-        <Suspense fallback={null}>
-          <AnnualReport />
-        </Suspense>
 
-        <Suspense fallback={null}>
-          <Newsletter />
-        </Suspense>
+        <LazySection>
+          <Suspense fallback={null}>
+            <Newsletter />
+          </Suspense>
+        </LazySection>
 
 
         <Footer3 />

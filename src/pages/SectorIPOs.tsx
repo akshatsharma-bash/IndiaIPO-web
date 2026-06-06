@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useLocation, Link, useNavigate, useSearchParams, useParams } from "react-router-dom";
 import { ipoListApi, sectorApi } from "@/services/api";
 import Header from "@/components/Header";
@@ -13,15 +14,34 @@ const SectorIPOs = () => {
   const [searchParams] = useSearchParams();
   const { id } = useParams<{ id?: string }>();
 
-  const [items, setItems] = useState<any[]>([]);
-  const [sectors, setSectors] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 0 });
-  const [sectorSearch, setSectorSearch] = useState("");
-
   const isMainboard = pathname.includes("mainboard") || pathname.includes("/ipos/sector");
   const category = isMainboard ? "mainline" : "sme";
   const title = isMainboard ? "Mainboard IPOs" : "SME IPOs";
+
+  const [page, setPage] = useState(1);
+  const [sectorSearch, setSectorSearch] = useState("");
+
+  const { data: sectorsData, isLoading: sectorsLoading } = useQuery({
+    queryKey: ["sectors"],
+    queryFn: () => sectorApi.getAll(),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const sectors = useMemo(() => {
+    if (!sectorsData) return [];
+    return [...sectorsData]
+      .filter((s: any) => s.name && s.name.trim().toLowerCase() !== "all")
+      .sort((a: any, b: any) => {
+        const countA = category === "sme" ? (Number(a.sme_count) || 0) : (Number(a.mainline_count) || 0);
+        const countB = category === "sme" ? (Number(b.sme_count) || 0) : (Number(b.mainline_count) || 0);
+        if (countB !== countA) {
+          return countB - countA;
+        }
+        return a.name.localeCompare(b.name);
+      });
+  }, [sectorsData, category]);
 
   const slugify = (text: string) => {
     return text
@@ -76,71 +96,42 @@ const SectorIPOs = () => {
     return [...selected, ...unselected];
   }, [sectors, sectorSearch, category, selectedSectors]);
 
-  useEffect(() => {
-    const fetchSectors = async () => {
-      try {
-        const data = await sectorApi.getAll();
-        const processed = data
-          .filter((s: any) => s.name && s.name.trim().toLowerCase() !== "all")
-          .sort((a: any, b: any) => {
-            const countA = category === "sme" ? (Number(a.sme_count) || 0) : (Number(a.mainline_count) || 0);
-            const countB = category === "sme" ? (Number(b.sme_count) || 0) : (Number(b.mainline_count) || 0);
-            if (countB !== countA) {
-              return countB - countA;
-            }
-            return a.name.localeCompare(b.name);
-          });
-        setSectors(processed);
-      } catch (err) {
-        console.error("Failed to fetch sectors", err);
-      }
-    };
-    fetchSectors();
-  }, [category]);
-
   // Reset pagination page to 1 when URL params or category changes
   useEffect(() => {
-    setPagination(prev => ({ ...prev, page: 1 }));
+    setPage(1);
   }, [id, category]);
 
-  useEffect(() => {
-    // If a sector id is in the URL but sectors are not loaded yet, wait to prevent fetching incorrect list
-    if (id && sectors.length === 0) return;
-
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        let params: any = {
-          page: pagination.page.toString(),
-          limit: pagination.limit.toString(),
-          category: category,
-          sort: "sector_name",
-          by_sector: "true"
-        };
-        
-        if (selectedSectors.length > 0) {
-          params.sector_name = selectedSectors.join(",");
-        }
-
-        const res = await ipoListApi.getAll(params);
-        setItems(res.data);
-        setPagination(prev => ({
-          ...prev,
-          total: res.pagination.total,
-          totalPages: res.pagination.totalPages
-        }));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+  const { data: ipoData, isLoading: iposLoading } = useQuery({
+    queryKey: ["sector-ipos", category, selectedSectors, page],
+    queryFn: async () => {
+      let params: any = {
+        page: page.toString(),
+        limit: "15",
+        category: category,
+        sort: "sector_name",
+        by_sector: "true"
+      };
+      
+      if (selectedSectors.length > 0) {
+        params.sector_name = selectedSectors.join(",");
       }
-    };
-    
-    fetchData();
-  }, [category, selectedSectors, pagination.page, id, sectors.length]);
+
+      return await ipoListApi.getAll(params);
+    },
+    enabled: !id || sectors.length > 0,
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const items = ipoData?.data || [];
+  const total = ipoData?.pagination?.total || 0;
+  const totalPages = ipoData?.pagination?.totalPages || 0;
+
+  const loading = iposLoading || (!!id && sectorsLoading);
 
   const handleSectorToggle = (sectorName: string) => {
-    setPagination(p => ({ ...p, page: 1 }));
+    setPage(1);
 
     if (sectorName === "All") {
       navigate(isMainboard ? "/mainboard-ipo-sector" : "/sme-ipo-sector");
@@ -225,12 +216,12 @@ const SectorIPOs = () => {
           <div className="flex flex-col lg:flex-row gap-8">
             
             {/* Left Column - Main Content */}
-            <div className="flex-1 order-2 lg:order-1">
+            <div className="flex-1 min-w-0 order-2 lg:order-1">
               
               {/* Header Bar */}
               <div className="bg-[#E2F1F8] border border-[#B3E5FC] rounded-xl py-3 px-4 mb-6 flex items-center justify-center text-[#01579B] text-sm font-semibold shadow-sm">
                 <FileText className="w-4 h-4 mr-2" />
-                Showing {items.length} of {pagination.total} {title}
+                Showing {items.length} of {total} {title}
               </div>
 
               {/* Table */}
@@ -296,11 +287,10 @@ const SectorIPOs = () => {
                 </div>
 
                 {/* Pagination */}
-                {pagination.totalPages > 1 && (() => {
+                {totalPages > 1 && (() => {
                   const delta = 1;
                   const range: (number | "...")[] = [];
                   const rangeSet = new Set<number>();
-                  const { page, totalPages } = pagination;
 
                   [1, totalPages, ...Array.from({ length: delta * 2 + 1 }, (_, i) => page - delta + i)]
                     .filter(p => p >= 1 && p <= totalPages)
@@ -319,7 +309,7 @@ const SectorIPOs = () => {
                         Page {page} of {totalPages}
                       </p>
                       <div className="flex items-center gap-1.5 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                        <button onClick={() => setPagination(p => ({ ...p, page: Math.max(1, p.page - 1) }))}
+                        <button onClick={() => setPage(Math.max(1, page - 1))}
                           disabled={page === 1}
                           className="flex items-center justify-center w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0">
                           <ChevronLeft className="w-4 h-4" />
@@ -329,7 +319,7 @@ const SectorIPOs = () => {
                           p === "..." ? (
                             <span key={`e-${idx}`} className="px-2 text-slate-400 text-sm">...</span>
                           ) : (
-                            <button key={p} onClick={() => setPagination(prev => ({ ...prev, page: p as number }))}
+                            <button key={p} onClick={() => setPage(p as number)}
                               className={cn(
                                 "w-8 h-8 shrink-0 rounded text-sm font-semibold transition-colors",
                                 page === p ? "bg-[#3B71CA] text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -339,7 +329,7 @@ const SectorIPOs = () => {
                           )
                         )}
 
-                        <button onClick={() => setPagination(p => ({ ...p, page: Math.min(totalPages, p.page + 1) }))}
+                        <button onClick={() => setPage(Math.min(totalPages, page + 1))}
                           disabled={page >= totalPages}
                           className="flex items-center justify-center w-8 h-8 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0">
                           <ChevronRight className="w-4 h-4" />
@@ -352,7 +342,7 @@ const SectorIPOs = () => {
             </div>
 
             {/* Right Column - Sidebar */}
-            <div className="lg:w-[320px] shrink-0 order-1 lg:order-2 space-y-6 sticky top-24 self-start">
+            <div className="lg:w-[320px] shrink-0 order-1 lg:order-2 space-y-6 lg:sticky lg:top-[120px] lg:self-start lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pb-6 scrollbar-hide">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
                   <div className="flex items-center gap-2 text-slate-700 font-bold">

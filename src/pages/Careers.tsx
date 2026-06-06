@@ -77,7 +77,15 @@ const Careers = () => {
       toast.error("Error uploading file");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
+  };
+
+  const handleRemoveResume = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFormData((prev) => ({ ...prev, resume: "" }));
+    toast.info("Uploaded resume removed");
   };
 
   const getWordCount = (text: string) => {
@@ -89,13 +97,18 @@ const Careers = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.resume) {
-      toast.error("Please upload your resume");
+    if (!formData.phone) {
+      toast.error("Please enter your phone number");
       return;
     }
 
     if (!/^\d{10}$/.test(formData.phone)) {
       return toast.error("Mobile number must be exactly 10 digits");
+    }
+
+    if (!formData.resume) {
+      toast.error("Please upload your resume");
+      return;
     }
 
     if (getWordCount(formData.coverletter) > 200) {
@@ -487,9 +500,10 @@ const Careers = () => {
                       </div>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
-                          <Phone className="h-3 w-3" /> Phone Number
+                          <Phone className="h-3 w-3" /> Phone Number *
                         </label>
                         <input
+                          required
                           type="tel"
                           placeholder="Enter 10 digit mobile number"
                           maxLength={10}
@@ -577,17 +591,32 @@ const Careers = () => {
                             </span>
                           </div>
                         ) : formData.resume ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <CheckCircle2
-                              className="h-8 w-8"
-                              style={{ color: "#16a34a" }}
-                            />
-                            <span
-                              className="text-xs font-black"
-                              style={{ color: "#16a34a" }}
-                            >
-                              Resume Uploaded Successfully
-                            </span>
+                          <div className="flex flex-col items-center gap-3 p-4 w-full">
+                            <div className="flex items-center gap-2 bg-green-50 px-4 py-2.5 rounded-xl border border-green-200">
+                              <CheckCircle2
+                                className="h-5 w-5 shrink-0"
+                                style={{ color: "#16a34a" }}
+                              />
+                              <span
+                                className="text-xs font-black truncate max-w-[250px]"
+                                style={{ color: "#16a34a" }}
+                              >
+                                {formData.resume.split('/').pop() || "Resume Uploaded"}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest hover:text-[#001529] transition-colors">
+                                Click to change
+                              </span>
+                              <div className="h-3 w-[1px] bg-slate-200" />
+                              <button
+                                type="button"
+                                onClick={handleRemoveResume}
+                                className="text-[10px] text-red-500 font-black uppercase tracking-widest hover:text-red-700 transition-colors"
+                              >
+                                Remove
+                              </button>
+                            </div>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center gap-2">

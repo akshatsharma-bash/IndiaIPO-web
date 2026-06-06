@@ -174,10 +174,10 @@ const ManageMagazines = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-muted/30 p-4 rounded-xl border border-border/50">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground">IPO World Magazine</h1>
-            <p className="text-sm text-muted-foreground flex items-center gap-2">
+            <div className="text-sm text-muted-foreground flex items-center gap-2">
               <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
               Manage your digital publication archives
-            </p>
+            </div>
           </div>
           <Button
             className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-95"

@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Users, TrendingUp, Shield, CheckCircle, ArrowRight, BarChart3, Briefcase, ChevronRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import investor from "@/assets/investor.webp"
 
 
 
@@ -159,41 +160,38 @@ const Investors = () => {
 
       <main className="flex-1 bg-background">
 
-        <section className="relative h-[600px] flex items-center justify-center overflow-hidden">
+        <section className="relative h-[340px] sm:h-[450px] md:h-[600px] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 z-0 bg-black">
             <img
-              src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=2000"
+              src={investor}
               alt="Investors"
               className="w-full h-full object-cover opacity-50"
             />
           </div>
-          <div className="absolute inset-0 z-0 bg-gradient-to-t from-background via-background/80 to-transparent bottom-0 h-32 mt-auto" />
+          <div className="absolute inset-0 z-0 bg-gradient-to-t  md:h-32 mt-auto" />
 
-          <div className="container relative z-10 px-4 pt-20">
+          <div className="container relative z-10 px-4 pt-4 md:pt-8 -mt-6 md:-mt-12">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               className="max-w-3xl"
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary-foreground backdrop-blur-sm mb-6">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                <span className="text-sm font-semibold tracking-wide uppercase">Premium Investor Services</span>
-
-
-
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full bg-primary/20 border border-primary/30 text-primary-foreground backdrop-blur-sm mb-3 md:mb-6">
+                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent animate-pulse" />
+                <span className="text-xs md:text-sm font-semibold tracking-wide uppercase">Premium Investor Services</span>
               </div>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-heading text-white mb-6 leading-tight drop-shadow-lg">
-                Maximize Your <br /><span className="text-accent text-transparent bg-clip-text bg-gradient-to-r from-accent to-gold-light">Investment Potential</span>
+              <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold font-heading text-white mb-3 md:mb-6 leading-tight drop-shadow-lg">
+                Maximize Your <br className="hidden sm:inline" /><span className="text-accent text-transparent bg-clip-text bg-gradient-to-r from-accent to-gold-light">Investment Potential</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl leading-relaxed drop-shadow-md">
+              <p className="text-xs sm:text-base md:text-lg lg:text-xl text-white/90 mb-6 md:mb-8 max-w-2xl leading-relaxed drop-shadow-md">
                 Join India's leading platform for data-driven IPO analysis, unlisted shares, and exclusive wealth creation opportunities tailored for discerning investors.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="bg-accent text-accent-foreground hover:bg-gold-light font-bold h-12 px-8 rounded-full shadow-lg" onClick={() => document.getElementById('enquiry-form')?.scrollIntoView({ behavior: 'smooth' })}>
+              <div className="flex flex-wrap gap-2.5 md:gap-4 ">
+                <Button className="bg-accent text-accent-foreground hover:bg-gold-light font-bold h-9 md:h-12 px-5 md:px-8 rounded-full shadow-lg text-xs md:text-base" onClick={() => document.getElementById('enquiry-form')?.scrollIntoView({ behavior: 'smooth' })}>
                   Partner With Us
                 </Button>
-                <Button size="lg" variant="outlineWhite" className="h-12 px-8 rounded-full shadow-md backdrop-blur-sm transition-all" onClick={() => document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Button variant="outlineWhite" className="h-9 md:h-12 px-5 md:px-8 rounded-full shadow-md backdrop-blur-sm transition-all text-xs md:text-base" onClick={() => document.getElementById('benefits')?.scrollIntoView({ behavior: 'smooth' })}>
                   Explore Benefits
                 </Button>
               </div>
@@ -202,7 +200,7 @@ const Investors = () => {
         </section>
 
 
-        <section className="relative -mt-16 z-20 container mx-auto px-4 mb-20">
+        {/* <section className="relative -mt-16 z-20 container mx-auto px-4 mb-20">
           <div className="bg-card border border-border shadow-2xl rounded-2xl p-8 backdrop-blur-xl">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-border/50">
               {stats.map((stat, idx) => (
@@ -220,7 +218,7 @@ const Investors = () => {
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
 
         <section className="py-16 md:py-24 bg-muted/30">
@@ -287,7 +285,7 @@ const Investors = () => {
         </section>
 
 
-        <section id="benefits" className="py-24">
+        <section id="benefits" className="py-24 scroll-mt-28">
           <div className="container mx-auto px-4">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-3xl md:text-4xl font-bold font-heading text-foreground mb-4">Our Core Competencies</h2>
@@ -326,7 +324,7 @@ const Investors = () => {
         </section>
 
 
-        <section id="enquiry-form" className="py-24 bg-foreground text-background">
+        <section id="enquiry-form" className="py-24 bg-foreground text-background scroll-mt-28">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-16">
 

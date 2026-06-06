@@ -153,8 +153,8 @@ const CSR = () => {
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                    <div className="absolute bottom-6 left-6 right-6">
-                      <h3 className="text-2xl font-bold bg-background text-foreground px-4 py-2 inline-block rounded-lg shadow-lg">
+                    <div className="absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+                      <h3 className="text-base md:text-2xl font-bold bg-background text-foreground px-3 py-1.5 md:px-4 md:py-2 inline-block rounded-lg shadow-lg">
                         {entry.title}
                       </h3>
                     </div>
@@ -174,14 +174,14 @@ const CSR = () => {
 
 
         <section className="container mx-auto px-4 mb-24">
-          <div className="bg-[#001529] rounded-[40px] p-12 md:p-20 text-center relative overflow-hidden">
+          <div className="bg-[#001529] rounded-[30px] md:rounded-[40px] p-6 py-12 md:p-20 text-center relative overflow-hidden">
             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=2013')] opacity-10 bg-cover bg-center grayscale" />
             <div className="relative z-10 max-w-3xl mx-auto">
-              <h2 className="text-3xl md:text-5xl font-black font-heading text-white mb-8">Partner With Us for Change</h2>
-              <p className="text-white/70 text-lg mb-12">
+              <h2 className="text-2xl md:text-5xl font-black font-heading text-white mb-6 md:mb-8">Partner With Us for Change</h2>
+              <p className="text-white/70 text-sm md:text-lg mb-8 md:mb-12 max-w-xl mx-auto leading-relaxed">
                 Are you an NGO or a social startup looking for strategic support? We are always looking for impactful projects to support.
               </p>
-              <button onClick={() => navigate("/contact")} className="bg-[#f59e08] text-[#001529] px-10 py-5 rounded-full font-black text-xl hover:scale-105 active:scale-95 transition-all shadow-2xl shadow-[#f59e08]/40">
+              <button onClick={() => navigate("/contact")} className="bg-[#f59e08] text-[#001529] px-6 py-3 md:px-10 md:py-5 rounded-full font-bold md:font-black text-sm md:text-xl hover:scale-105 active:scale-95 transition-all shadow-xl shadow-[#f59e08]/30">
                 Contact CSR Division
               </button>
             </div>

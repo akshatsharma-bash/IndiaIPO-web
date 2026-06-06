@@ -1,11 +1,4 @@
-/**
- * useRecaptcha - Google reCAPTCHA v3 Custom Hook
- *
- * Usage:
- *   const { getToken, isReady } = useRecaptcha();
- *   const token = await getToken('contact_form');  // 'contact_form', 'investor_form', etc.
- *   // Include token in your fetch body: { ...formData, recaptchaToken: token }
- */
+
 
 import { useEffect, useState, useCallback } from "react";
 

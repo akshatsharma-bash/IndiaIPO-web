@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, Navigate } from "react-router-dom";
 import { BookOpen, Calendar, Lock, Unlock, ArrowRight, ChevronLeft, ChevronRight, Download, Eye, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -90,11 +91,8 @@ const translations = {
 };
 
 const IpoWorldMagazine = () => {
-  const [magazines, setMagazines] = useState<Magazine[]>([]);
-  const [loading, setLoading] = useState(true);
   const [language, setLanguage] = useState<"english" | "hindi">("english");
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState<PaginationData | null>(null);
 
   const t = translations[language];
   const [showLockModal, setShowLockModal] = useState(false);
@@ -138,29 +136,29 @@ const IpoWorldMagazine = () => {
     }
   };
 
-  const fetchMagazines = async () => {
-    setLoading(true);
-    try {
+  const { data, isLoading } = useQuery({
+    queryKey: ["magazines", language, page],
+    queryFn: async () => {
       const res = await fetch(`/api/magazines?page=${page}&limit=8&language=${language}`);
-      if (res.ok) {
-        const result = await res.json();
-        setMagazines(result.data);
-        setPagination(result.pagination);
+      if (!res.ok) {
+        throw new Error("Failed to fetch magazines");
       }
-    } catch (err) {
-      console.error("Error fetching magazines:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return res.json();
+    },
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const magazines = data?.data || [];
+  const pagination = data?.pagination || null;
 
   useEffect(() => {
-    fetchMagazines();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page, language]);
 
   const handleLanguageChange = (lang: string) => {
-    setLanguage(lang);
+    setLanguage(lang as "english" | "hindi");
     setPage(1);
   };
 
@@ -248,7 +246,7 @@ const IpoWorldMagazine = () => {
 
         {/* Magazine Grid */}
         <div className="container mx-auto px-4 py-16">
-          {loading ? (
+          {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} className="animate-pulse">

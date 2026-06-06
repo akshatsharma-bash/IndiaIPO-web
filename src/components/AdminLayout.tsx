@@ -47,7 +47,7 @@ const sidebarLinks = [
 ];
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,17 +55,29 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [unreadConsultantEnquiries, setUnreadConsultantEnquiries] = useState(0);
   const [unreadMerchantEnquiries, setUnreadMerchantEnquiries] = useState(0);
 
+  const scrollRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const savedScrollPos = sessionStorage.getItem("adminSidebarScroll");
+    if (savedScrollPos && scrollRef.current) {
+      scrollRef.current.scrollTop = parseInt(savedScrollPos);
+    }
+  }, []);
+
+  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
+    sessionStorage.setItem("adminSidebarScroll", e.currentTarget.scrollTop.toString());
+  };
+
 
   useEffect(() => {
 
     const fetchUnread = async () => {
       try {
-        const res = await fetch("/api/leads?limit=1000");
+        const res = await fetch("/api/leads/unread");
         if (res.ok) {
           const result = await res.json();
           const leads = result.data || [];
-          const unread = leads.filter((l: any) => !l.is_read).length;
-          setUnreadLeads(unread);
+          setUnreadLeads(leads.length);
         }
 
         const resConsultant = await fetch("/api/consultant-enquiries");
@@ -90,6 +102,17 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     return () => clearInterval(interval);
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Verifying access...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -104,18 +127,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  const scrollRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
-    const savedScrollPos = sessionStorage.getItem("adminSidebarScroll");
-    if (savedScrollPos && scrollRef.current) {
-      scrollRef.current.scrollTop = parseInt(savedScrollPos);
-    }
-  }, []);
-
-  const handleScroll = (e: React.UIEvent<HTMLElement>) => {
-    sessionStorage.setItem("adminSidebarScroll", e.currentTarget.scrollTop.toString());
-  };
 
   return (
     <div className="min-h-screen bg-background flex">

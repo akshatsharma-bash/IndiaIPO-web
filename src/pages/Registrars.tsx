@@ -28,8 +28,16 @@ const Registrars = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -49,7 +57,7 @@ const Registrars = () => {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/registrars?page=${page}&limit=9`);
+        const res = await fetch(`/api/registrars?page=${page}&limit=9&search=${encodeURIComponent(debouncedSearch)}`);
         if (res.ok) {
           const body = await res.json();
           setRegistrars(body.data || []);
@@ -59,12 +67,9 @@ const Registrars = () => {
       finally { setLoading(false); }
     })();
     window.scrollTo(0, 0);
-  }, [page]);
+  }, [page, debouncedSearch]);
 
-  const filtered = registrars.filter(r =>
-    (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (r.location || "").toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = registrars;
 
   return (
     <div className="min-h-screen" style={{ background: "#F8FAFC" }}>
@@ -126,7 +131,10 @@ const Registrars = () => {
                 <input
                   placeholder="Search by Registrar Name or Location…"
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="w-full pl-12 pr-4 py-4 rounded-2xl bg-white/10 border border-white/20 text-white placeholder:text-white/40 text-sm font-medium focus:outline-none focus:bg-white/15 focus:border-[#f59e08]/50 transition-all"
                 />
               </div>
@@ -218,7 +226,7 @@ const Registrars = () => {
                 <Building2 className="h-14 w-14 text-slate-200 mx-auto mb-4" />
                 <h3 className="text-xl font-black mb-2" style={{ color: N }}>No registrars found</h3>
                 <p className="text-slate-400 font-medium">Try adjusting your search criteria.</p>
-                <button onClick={() => setSearch("")} className="mt-4 text-sm font-black" style={{ color: G }}>Clear Search</button>
+                <button onClick={() => { setSearch(""); setPage(1); }} className="mt-4 text-sm font-black" style={{ color: G }}>Clear Search</button>
               </div>
             ) : (
               <div className="overflow-hidden bg-white border border-slate-200 rounded-2xl shadow-sm">

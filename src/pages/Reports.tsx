@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { getImageUrl, cn, getLatestGmpValue } from "@/lib/utils";
 import Header from "@/components/Header";
@@ -138,11 +139,10 @@ const Reports = () => {
   const [searchParams] = useSearchParams();
   const sectorFilter = searchParams.get("sector");
 
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 0 });
+  const [pagination, setPagination] = useState({ page: 1, limit: 15 });
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
   const [sectors, setSectors] = useState<any[]>([]);
   const { pathname } = useLocation();
@@ -175,15 +175,32 @@ const Reports = () => {
     fetchSectors();
   }, []);
 
-  useEffect(() => { fetchData(); }, [effectiveSlug, sectorFilter, pagination.page, search, statusFilter]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  useEffect(() => {
+    setPagination(p => ({ ...p, page: 1 }));
+  }, [effectiveSlug, sectorFilter]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      "reports",
+      effectiveSlug,
+      sectorFilter,
+      pagination.page,
+      debouncedSearch,
+      statusFilter
+    ],
+    queryFn: async () => {
       let params: any = {
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
-        search: search,
+        search: debouncedSearch,
         status: statusFilter === "all" ? "" : statusFilter
       };
       if (sectorFilter) {
@@ -199,12 +216,16 @@ const Reports = () => {
       else if (effectiveSlug === "sme-ipo-report") params.category = "sme";
       else if (effectiveSlug === "sme-ipos-by-sector") params.category = "sme";
       else if (effectiveSlug === "mainboard-ipos-by-sector") params.category = "mainline";
-      const res = await ipoListApi.getAll(params);
-      setItems(res.data);
-      setPagination((prev) => ({ ...prev, total: res.pagination.total, totalPages: res.pagination.totalPages }));
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  };
+      return await ipoListApi.getAll(params);
+    },
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+  });
+
+  const items = data?.data || [];
+  const totalPages = data?.pagination?.totalPages || 0;
+  const total = data?.pagination?.total || 0;
 
   const getSubtitle = () => {
     if (sectorFilter) return `Explore the complete list of IPOs in the ${sectorFilter} sector, tracking performance and market capitalisation across the industry.`;
@@ -340,7 +361,7 @@ const Reports = () => {
             <div className="flex flex-col lg:flex-row gap-8">
 
               {/* Left Column - Main Content */}
-              <div className="flex-1 order-2 lg:order-1">
+              <div className="flex-1 min-w-0 order-2 lg:order-1">
                 <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden h-full flex flex-col">
 
                   {/* Summary/Legend Bar */}
@@ -349,7 +370,7 @@ const Reports = () => {
                       <div className="w-8 h-8 rounded-lg bg-[#001529] flex items-center justify-center">
                         <BarChart3 className="h-4 w-4 text-[#f59e08]" />
                       </div>
-                      <span className="text-sm font-black text-[#001529]">{pagination.total} Records Found</span>
+                      <span className="text-sm font-black text-[#001529]">{total} Records Found</span>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
@@ -388,7 +409,7 @@ const Reports = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
-                        {loading ? (
+                        {isLoading ? (
                           <tr>
                             <td colSpan={6} className="py-24 text-center">
                               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#001529] to-[#003380] flex items-center justify-center mx-auto mb-4">
@@ -512,7 +533,7 @@ const Reports = () => {
 
 
                   <div className="bg-[#F8FAFC]/30 p-4 border-slate-100 lg:hidden relative z-10 w-full overflow-hidden">
-                    {loading ? (
+                    {isLoading ? (
                       <div className="py-20 flex flex-col items-center justify-center">
                         <Loader2 className="h-10 w-10 animate-spin text-[#f59e08] mb-4" />
                         <span className="text-slate-500 font-bold uppercase tracking-widest text-xs">Fetching records...</span>
@@ -668,11 +689,11 @@ const Reports = () => {
                   </div>
 
 
-                  {pagination.totalPages > 1 && (() => {
+                  {totalPages > 1 && (() => {
                     const delta = 1;
                     const range: (number | "...")[] = [];
                     const rangeSet = new Set<number>();
-                    const { page, totalPages } = pagination;
+                    const page = pagination.page;
 
                     [1, totalPages, ...Array.from({ length: delta * 2 + 1 }, (_, i) => page - delta + i)]
                       .filter(p => p >= 1 && p <= totalPages)
@@ -728,7 +749,7 @@ const Reports = () => {
               </div>
 
               {/* Right Column - Filters & Stats */}
-              <div className="lg:w-80 shrink-0 space-y-6 order-1 lg:order-2">
+              <div className="lg:w-80 shrink-0 space-y-6 order-1 lg:order-2 lg:sticky lg:top-[120px] lg:self-start lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pb-6 scrollbar-hide">
 
                 {/* Search & Basic Filters */}
                 <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-5">
