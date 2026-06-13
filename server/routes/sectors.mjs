@@ -6,7 +6,8 @@ const router = express.Router();
 // GET all sectors with IPO counts
 router.get("/", async (req, res) => {
   try {
-    const query = `
+    const search = req.query.search ? req.query.search.trim() : "";
+    let query = `
       SELECT 
         s.*,
         COUNT(CASE WHEN LOWER(i.type) = 'mainline' THEN 1 END) as mainline_count,
@@ -15,10 +16,17 @@ router.get("/", async (req, res) => {
       FROM sectors s
       LEFT JOIN sector_by_ipo i ON s.id = i.sector_id
       WHERE s.status = 'Active'
+    `;
+    const params = [];
+    if (search) {
+      query += " AND s.name LIKE ?";
+      params.push(`%${search}%`);
+    }
+    query += `
       GROUP BY s.id
       ORDER BY s.name ASC
     `;
-    const [rows] = await pool.query(query);
+    const [rows] = await pool.query(query, params);
     res.json(rows);
   } catch (error) {
     console.error("Error fetching sectors with counts:", error);
@@ -237,7 +245,12 @@ router.delete("/:id", async (req, res) => {
 // GET all sector-wise IPO records
 router.get("/ipos/list", async (req, res) => {
   try {
-    const query = `
+    const page = req.query.page ? parseInt(req.query.page) : null;
+    const limit = req.query.limit ? parseInt(req.query.limit) : null;
+    const search = req.query.search ? req.query.search.trim() : "";
+
+    let countQuery = "SELECT COUNT(*) as total FROM sector_by_ipo i";
+    let query = `
       SELECT 
         i.*,
         s.name AS sector_name,
@@ -245,10 +258,44 @@ router.get("/ipos/list", async (req, res) => {
       FROM sector_by_ipo i
       LEFT JOIN sectors s ON i.sector_id = s.id
       LEFT JOIN admin_blogs b ON i.admin_blog_id = b.id
-      ORDER BY i.id DESC
     `;
-    const [rows] = await pool.query(query);
-    res.json(rows);
+
+    const whereClause = [];
+    const params = [];
+
+    if (search) {
+      whereClause.push("i.name LIKE ?");
+      params.push(`%${search}%`);
+    }
+
+    if (whereClause.length > 0) {
+      const clause = " WHERE " + whereClause.join(" AND ");
+      countQuery += clause;
+      query += clause;
+    }
+
+    query += " ORDER BY i.id DESC";
+
+    if (page !== null && limit !== null) {
+      const [countResult] = await pool.query(countQuery, params);
+      const total = countResult[0].total;
+
+      const offset = (page - 1) * limit;
+      query += " LIMIT ? OFFSET ?";
+      
+      const [rows] = await pool.query(query, [...params, limit, offset]);
+      
+      res.json({
+        sectorIpos: rows,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      });
+    } else {
+      const [rows] = await pool.query(query, params);
+      res.json(rows);
+    }
   } catch (error) {
     console.error("Error fetching sector-wise IPOs:", error);
     res.status(500).json({ error: "Failed to fetch sector IPOs" });

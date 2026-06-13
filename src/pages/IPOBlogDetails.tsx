@@ -34,9 +34,12 @@ import {
   Linkedin,
   Instagram,
   MessageCircle,
+  Newspaper,
 } from "lucide-react";
 import { format } from "date-fns";
 import { formatIndianNumber, getImageUrl } from "@/lib/utils";
+import { getImgSrc } from "@/utils/image";
+import Ribbon from "@/components/Ribbon";
 
 interface RelatedBlog {
   id: string;
@@ -216,10 +219,12 @@ const SectionHeader = ({
   icon: Icon,
   title,
   accent = "blue",
+  compact = false,
 }: {
   icon: any;
   title: string;
   accent?: string;
+  compact?: boolean;
 }) => {
   const accents: Record<string, string> = {
     blue: "bg-[#1e40af] text-white",
@@ -229,16 +234,16 @@ const SectionHeader = ({
   };
   return (
     <div
-      className={`flex items-center justify-between px-6 py-4 ${accents[accent]} border-b border-white/10 shadow-md relative overflow-hidden`}
+      className={`flex items-center justify-between ${compact ? "px-4 py-2.5" : "px-6 py-4"} ${accents[accent]} border-b border-white/10 shadow-md relative overflow-hidden`}
     >
       <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent pointer-events-none" />
-      <div className="flex items-center gap-3 relative z-10">
-        <Icon className="w-5 h-5 text-white/90" />
-        <h2 className="text-sm md:text-base font-black tracking-wider uppercase font-heading line-clamp-1">
+      <div className="flex items-center gap-2 relative z-10">
+        <Icon className={`${compact ? "w-4 h-4" : "w-5 h-5"} text-white/90`} />
+        <h2 className={`${compact ? "text-xs md:text-sm" : "text-sm md:text-base"} font-black tracking-wider uppercase font-heading line-clamp-1`}>
           {title}
         </h2>
       </div>
-      <div className="hidden sm:flex items-center gap-1.5 relative z-10">
+      <div className="hidden sm:flex items-center gap-1 relative z-10">
         <div className="w-1 h-1 rounded-full bg-white/30" />
         <div className="w-1 h-1 rounded-full bg-white/50" />
         <div className="w-1 h-1 rounded-full bg-white/70" />
@@ -385,6 +390,59 @@ const linkifyMerchantBankers = (html: string, bankers: any[]) => {
   return tempHtml;
 };
 
+const seoInterlink = (html: string) => {
+  if (!html) return html;
+
+  const rules = [
+    {
+      keyword: "check IPO eligibility",
+      url: "/ipo-eligibility-check",
+      limit: 2,
+    },
+    {
+      keyword: "SME IPO consultant",
+      url: "/sme-ipo-consultant",
+      limit: 1,
+    },
+    {
+      keyword: "SME IPO guide",
+      url: "/blogs/sme-ipo-guide-india",
+      limit: 1,
+    },
+    {
+      keyword: "live IPO tracker",
+      url: "/sme-ipos",
+      limit: 1,
+    },
+  ];
+
+  let tempHtml = html;
+
+  rules.forEach(({ keyword, url, limit }) => {
+    const escapedKeyword = keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const patternStr = escapedKeyword.replace(/ /g, "\\s+");
+
+    const regex = new RegExp(
+      `(<a[^>]*>[\\s\\S]*?</a>|<[^>]+>)|(${patternStr})`,
+      "gi"
+    );
+
+    let count = 0;
+    tempHtml = tempHtml.replace(regex, (match, tag, text) => {
+      if (tag) {
+        return match;
+      }
+      if (count < limit) {
+        count++;
+        return `<a href="${url}" class="font-bold hover:underline text-[#1e40af]" style="font-weight: 800; text-decoration: underline; color: #1e40af;">${match}</a>`;
+      }
+      return match;
+    });
+  });
+
+  return tempHtml;
+};
+
 const SmartBlogRenderer = ({
   content,
   bankers,
@@ -406,6 +464,7 @@ const SmartBlogRenderer = ({
 }) => {
   const navigate = useNavigate();
 
+
   const handleContentClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     const anchor = target.closest("a");
@@ -426,7 +485,8 @@ const SmartBlogRenderer = ({
   if (hasHtmlTags(cleanContent)) {
     let processedContent = getCleanBlogContent(cleanContent);
     processedContent = linkifyMerchantBankers(processedContent, bankers || []);
-    
+    processedContent = seoInterlink(processedContent);
+
     // Find Timeline, Board, and GMP insertion indexes
     const timelineHeadingRegex = /<(h[2-4])[^>]*>(?:\s*|<[^>]+>)*[^<]*(?:Date\s*(?:&|&amp;|and)\s*Timeline|Timeline)[^<]*(?:\s*|<[^>]+>)*<\/\1>/i;
     const boardHeadingRegex = /<(h[2-4])[^>]*>(?:\s*|<[^>]+>)*[^<]*Board\s*(?:&|&amp;|and)\s*Key\s*Management[^<]*(?:\s*|<[^>]+>)*<\/\1>/i;
@@ -614,7 +674,7 @@ const SmartBlogRenderer = ({
       (para.length < 80 && para === para.toUpperCase() && para.length > 5) ||
       (para.endsWith(":") && para.length < 80 && !para.includes(".")) ||
       (para.length < 55 && !para.includes(".") && !para.includes(",") && idx > 0);
-    
+
     if (isHeading) {
       if (/Board\s*(?:&|and)\s*Key\s*Management/i.test(para)) {
         boardHeadingIdx = idx;
@@ -720,7 +780,7 @@ const SmartBlogRenderer = ({
           )}
           <span
             dangerouslySetInnerHTML={{
-              __html: linkifyMerchantBankers(isFirst ? para.slice(1) : para, bankers || []),
+              __html: seoInterlink(linkifyMerchantBankers(isFirst ? para.slice(1) : para, bankers || [])),
             }}
           />
         </p>,
@@ -844,6 +904,42 @@ const IPOBlogDetails = () => {
   const [loading, setLoading] = useState(true);
   const [relatedBlogs, setRelatedBlogs] = useState<RelatedBlog[]>([]);
   const [bankers, setBankers] = useState<any[]>([]);
+  const [trendingNews, setTrendingNews] = useState<any[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch("/api/news?limit=9");
+        if (res.ok) {
+          const data = await res.json();
+          const items = data.data || [];
+          const trending = items.filter((item: any) => item.trending_news === 1 || item.trending_news === "1");
+          if (trending.length > 0) {
+            setTrendingNews(trending.slice(0, 4));
+          } else {
+            setTrendingNews(items.slice(0, 4));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch trending news for sidebar:", err);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
+  const [comparisonData, setComparisonData] = useState<{
+    currentIpo: any;
+    similarIpos: any[];
+    similarBlogsData: Record<string, { roe: string; roce: string }>;
+    loading: boolean;
+  }>({
+    currentIpo: null,
+    similarIpos: [],
+    similarBlogsData: {},
+    loading: false,
+  });
 
   useEffect(() => {
     const fetchAllBankers = async () => {
@@ -859,6 +955,94 @@ const IPOBlogDetails = () => {
     };
     fetchAllBankers();
   }, []);
+
+  useEffect(() => {
+    if (!blog?.id) return;
+
+    const fetchComparisonData = async () => {
+      try {
+        setComparisonData(prev => ({ ...prev, loading: true }));
+        // 1. Fetch current IPO matching the blog id
+        const ipoRes = await fetch(`/api/ipo-lists?admin_blog_id=${blog.id}`);
+        if (!ipoRes.ok) {
+          setComparisonData(prev => ({ ...prev, loading: false }));
+          return;
+        }
+        const ipoData = await ipoRes.json();
+        const currentIpo = ipoData.data?.find(
+          (ipo: any) => String(ipo.admin_blog_id) === String(blog.id)
+        );
+
+        if (!currentIpo) {
+          setComparisonData(prev => ({ ...prev, loading: false }));
+          return;
+        }
+
+        // 2. Fetch similar IPOs in the same sector (limit to 10 to ensure we get enough non-upcoming ones)
+        const sectorRes = await fetch(
+          `/api/ipo-lists?sector_id=${currentIpo.sector_id}&upcoming=0&limit=10`
+        );
+        if (!sectorRes.ok) {
+          setComparisonData(prev => ({ ...prev, currentIpo, loading: false }));
+          return;
+        }
+        const sectorData = await sectorRes.json();
+        const rawSimilar = sectorData.data || [];
+
+        // Filter out current IPO, ensure no upcoming IPOs are included, and limit to 3 similar IPOs
+        const similarIpos = rawSimilar
+          .filter(
+            (ipo: any) =>
+              String(ipo.id) !== String(currentIpo.id) &&
+              String(ipo.upcoming) !== "1"
+          )
+          .slice(0, 3);
+
+        // 3. For each similar IPO, fetch its corresponding blog to extract ROE & ROCE
+        const blogsData: Record<string, { roe: string; roce: string }> = {};
+        await Promise.all(
+          similarIpos.map(async (ipo: any) => {
+            if (ipo.blog_slug) {
+              try {
+                const blogRes = await fetch(`/api/admin-blogs/${ipo.blog_slug}`);
+                if (blogRes.ok) {
+                  const bData = await blogRes.json();
+                  const kpis = parseArrayData(bData.key_kpi);
+                  const values = parseArrayData(bData.key_value);
+
+                  const getKpiValue = (kpisList: string[], valuesList: string[], target: string) => {
+                    const idx = kpisList.findIndex(
+                      (k) => k.trim().toUpperCase() === target.toUpperCase()
+                    );
+                    return idx !== -1 ? valuesList[idx] || "—" : "—";
+                  };
+
+                  blogsData[ipo.id] = {
+                    roe: getKpiValue(kpis, values, "ROE"),
+                    roce: getKpiValue(kpis, values, "ROCE"),
+                  };
+                }
+              } catch (e) {
+                console.error("Error fetching similar blog:", e);
+              }
+            }
+          })
+        );
+
+        setComparisonData({
+          currentIpo,
+          similarIpos,
+          similarBlogsData: blogsData,
+          loading: false,
+        });
+      } catch (err) {
+        console.error("Failed to fetch comparison data:", err);
+        setComparisonData(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    fetchComparisonData();
+  }, [blog]);
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -1491,14 +1675,14 @@ const IPOBlogDetails = () => {
 
   const timelineHeadingRegex = /<(h[2-4])[^>]*>(?:\s*|<[^>]+>)*[^<]*(?:Date\s*(?:&|&amp;|and)\s*Timeline|Timeline)[^<]*(?:\s*|<[^>]+>)*<\/\1>/i;
   const timelineHeadingRegexPlain = /(?:Date\s*(?:&|&amp;|and)\s*Timeline|Timeline)/i;
-  
+
   const hasTimelineHeading = blog && blog.content ? (
     timelineHeadingRegex.test(blog.content) || timelineHeadingRegexPlain.test(blog.content)
   ) : false;
 
   const renderTimelineTable = () => (
     blog.category !== "daily_reporter" &&
-    finalTimeline.length > 0 ? (
+      finalTimeline.length > 0 ? (
       <div
         className="bg-white rounded-2xl overflow-hidden shadow-sm mb-6"
         style={{ border: "1px solid #e2e8f0" }}
@@ -1535,7 +1719,7 @@ const IPOBlogDetails = () => {
 
   const headingRegex = /<(h[2-4])[^>]*>(?:\s*|<[^>]+>)*[^<]*Board\s*(?:&|&amp;|and)\s*Key\s*Management[^<]*(?:\s*|<[^>]+>)*<\/\1>/i;
   const headingRegexPlain = /Board\s*(?:&|&amp;|and)\s*Key\s*Management/i;
-  
+
   const hasBoardManagementHeading = blog && blog.content ? (
     headingRegex.test(blog.content) || headingRegexPlain.test(blog.content)
   ) : false;
@@ -1549,7 +1733,7 @@ const IPOBlogDetails = () => {
 
   const renderIpoDetailsTable = () => (
     blog.category !== "daily_reporter" &&
-    finalIpoDetails.length > 0 ? (
+      finalIpoDetails.length > 0 ? (
       <div
         className="bg-white rounded-2xl shadow-sm mb-6 mt-4"
         style={{ border: "1px solid #e2e8f0" }}
@@ -1609,8 +1793,8 @@ const IPOBlogDetails = () => {
 
   const renderFinancialInfoTable = () => (
     blog.category !== "daily_reporter" &&
-    (isValid(blog.finantial_information_assets) ||
-      finEnded.length > 0) ? (
+      (isValid(blog.finantial_information_assets) ||
+        finEnded.length > 0) ? (
       <div
         className="bg-white rounded-2xl overflow-hidden shadow-sm mb-6"
         style={{ border: "1px solid #e2e8f0" }}
@@ -1832,88 +2016,124 @@ const IPOBlogDetails = () => {
 
   const renderGmpTrendTable = () => (
     blog.category !== "daily_reporter" &&
-    gmpHistory.length > 0 ? (
-      <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 mb-6">
-        <div className="p-6 border-b border-slate-100">
-          <h3 className="text-xl font-bold text-slate-800 text-center uppercase tracking-wider">
-            {blog.title.replace(/\s+IPO$/i, "").trim()} GMP TREND
-            (DAILY UPDATES)
-          </h3>
+      gmpHistory.length > 0 ? (
+      <>
+        <div className="flex justify-center mb-4">
+          <a
+            href="/blogs/what-is-ipo-gmp-and-how-to-use-gmp"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors duration-200 group"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-4 h-4 text-blue-500 group-hover:text-blue-700"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            Know More About GMP
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </a>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">
-                  GMP Date
-                </th>
-                <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">
-                  IPO Price
-                </th>
-                <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">
-                  GMP
-                </th>
-                <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Last Updated
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {gmpHistory.map((row, idx) => (
-                <tr
-                  key={idx}
-                  className="transition-colors hover:bg-slate-50/50"
-                  style={{
-                    borderBottom: "1px solid #f1f5f9",
-                    background:
-                      idx % 2 === 0 ? "#fff" : "#fafafa",
-                  }}
-                >
-                  <td className="py-3 px-5 text-slate-700 font-medium border-r border-slate-100">
-                    {row.date || "-"}
-                  </td>
-                  <td className="py-3 px-5 text-slate-700 border-r border-slate-100">
-                    {String(row.price || "").includes("₹")
-                      ? row.price
-                      : `₹${row.price || "0"}`}
-                  </td>
-                  <td className="py-3 px-5 font-bold text-slate-800 border-r border-slate-100">
-                    {String(row.gmp || "").includes("₹")
-                      ? row.gmp
-                      : `₹${row.gmp || "0"}`}
-                  </td>
-                  <td className="py-3 px-5 text-slate-600">
-                    {row.updated ? (
-                      row.updated.includes("|") ? (
-                        <span className="flex items-center gap-2">
-                          <span>
-                            {row.updated.split("|")[0].trim()}
-                          </span>
-                          <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-bold">
-                            {row.updated.split("|")[1].trim()}
-                          </span>
-                        </span>
-                      ) : (
-                        row.updated
-                      )
-                    ) : (
-                      "-"
-                    )}
-                  </td>
+        <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 mb-6">
+          <div className="p-6 border-b border-slate-100">
+            <h3 className="text-xl font-bold text-slate-800 text-center uppercase tracking-wider">
+              {blog.title.replace(/\s+IPO$/i, "").trim()} GMP TREND
+              (DAILY UPDATES)
+            </h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200">
+                  <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">
+                    GMP Date
+                  </th>
+                  <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">
+                    IPO Price
+                  </th>
+                  <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider border-r border-slate-200">
+                    GMP
+                  </th>
+                  <th className="py-3 px-5 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    Last Updated
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {gmpHistory.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    className="transition-colors hover:bg-slate-50/50"
+                    style={{
+                      borderBottom: "1px solid #f1f5f9",
+                      background:
+                        idx % 2 === 0 ? "#fff" : "#fafafa",
+                    }}
+                  >
+                    <td className="py-3 px-5 text-slate-700 font-medium border-r border-slate-100">
+                      {row.date || "-"}
+                    </td>
+                    <td className="py-3 px-5 text-slate-700 border-r border-slate-100">
+                      {String(row.price || "").includes("₹")
+                        ? row.price
+                        : `₹${row.price || "0"}`}
+                    </td>
+                    <td className="py-3 px-5 font-bold text-slate-800 border-r border-slate-100">
+                      {String(row.gmp || "").includes("₹")
+                        ? row.gmp
+                        : `₹${row.gmp || "0"}`}
+                    </td>
+                    <td className="py-3 px-5 text-slate-600">
+                      {row.updated ? (
+                        row.updated.includes("|") ? (
+                          <span className="flex items-center gap-2">
+                            <span>
+                              {row.updated.split("|")[0].trim()}
+                            </span>
+                            <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-400 font-bold">
+                              {row.updated.split("|")[1].trim()}
+                            </span>
+                          </span>
+                        ) : (
+                          row.updated
+                        )
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="p-6 text-[11px] text-red-600 font-medium leading-relaxed bg-white border-t border-slate-100">
+            **The GMP prices displayed here are solely for
+            informational purposes related to the grey market news.
+            India IPO does not engage in or facilitate grey market
+            trading, nor do we endorse it. The premiums shown are
+            unofficial and can fluctuate significantly until the
+            listing date.
+          </div>
         </div>
-        <div className="p-6 text-[11px] text-red-600 font-medium leading-relaxed bg-white border-t border-slate-100">
-          **The GMP prices displayed here are solely for
-          informational purposes related to the grey market news.
-          India IPO does not engage in or facilitate grey market
-          trading, nor do we endorse it. The premiums shown are
-          unofficial and can fluctuate significantly until the
-          listing date.
-        </div>
-      </div>
+      </>
     ) : null
   );
 
@@ -1972,7 +2192,7 @@ const IPOBlogDetails = () => {
 
   const renderValuationTable = () => (
     blog.category !== "daily_reporter" &&
-    (isValidRealData(prePe) || isValidRealData(preEps)) ? (
+      (isValidRealData(prePe) || isValidRealData(preEps)) ? (
       <div
         className="bg-white rounded-2xl overflow-hidden shadow-sm mb-6"
         style={{ border: "1px solid #e2e8f0" }}
@@ -2034,6 +2254,154 @@ const IPOBlogDetails = () => {
     ) : null
   );
 
+  const renderComparisonTable = () => {
+    const { currentIpo, similarIpos, similarBlogsData } = comparisonData;
+    if (!currentIpo || similarIpos.length === 0) return null;
+
+    const getPriceBandStr = (ipo: any) => {
+      const low = parseFloat(ipo.issue_lowest_price);
+      const high = parseFloat(ipo.issue_highest_price);
+      if (low > 0 && high > 0) {
+        return low === high ? `₹${low}` : `₹${low} - ₹${high}`;
+      } else if (high > 0) {
+        return `₹${high}`;
+      } else if (low > 0) {
+        return `₹${low}`;
+      }
+      return "—";
+    };
+
+    const getListingGainPercent = (ipo: any) => {
+      const issuePrice = parseFloat(ipo.issue_highest_price || ipo.issue_lowest_price);
+      if (!issuePrice || issuePrice <= 0) return null;
+
+      const closePrice = parseFloat(ipo.listing_day_close_nse) || parseFloat(ipo.listing_day_close_bse);
+      if (!closePrice || closePrice <= 0) return null;
+
+      return ((closePrice - issuePrice) / issuePrice) * 100;
+    };
+
+    const formatListingGain = (ipo: any) => {
+      const pct = getListingGainPercent(ipo);
+      if (pct === null) return <span className="text-slate-400 font-medium">—</span>;
+      const formatted = `${pct > 0 ? "+" : ""}${pct.toFixed(2)}%`;
+      return (
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${pct >= 0 ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+          {formatted}
+        </span>
+      );
+    };
+
+    const getKpiValue = (kpisList: string[], valuesList: string[], target: string) => {
+      const idx = kpisList.findIndex(
+        (k) => k.trim().toUpperCase() === target.toUpperCase()
+      );
+      return idx !== -1 ? valuesList[idx] || "—" : "—";
+    };
+
+    const currentRoe = getKpiValue(kpiNames, kpiValues, "ROE");
+    const currentRoce = getKpiValue(kpiNames, kpiValues, "ROCE");
+
+    const rows = [
+      {
+        label: "Issue Size",
+        currentVal: currentIpo.issue_size ? `₹${currentIpo.issue_size} Cr` : "—",
+        similarVals: similarIpos.map(ipo => ipo.issue_size ? `₹${ipo.issue_size} Cr` : "—")
+      },
+      {
+        label: "Price Band",
+        currentVal: getPriceBandStr(currentIpo),
+        similarVals: similarIpos.map(ipo => getPriceBandStr(ipo))
+      },
+      {
+        label: "Listing Gain",
+        currentVal: formatListingGain(currentIpo),
+        similarVals: similarIpos.map(ipo => formatListingGain(ipo))
+      },
+      {
+        label: "ROE",
+        currentVal: currentRoe,
+        similarVals: similarIpos.map(ipo => similarBlogsData[ipo.id]?.roe || "—")
+      },
+      {
+        label: "ROCE",
+        currentVal: currentRoce,
+        similarVals: similarIpos.map(ipo => similarBlogsData[ipo.id]?.roce || "—")
+      }
+    ];
+
+    const currentName = currentIpo.issuer_company.replace(/\s+IPO$/i, "").trim();
+
+    return (
+      <div
+        className="bg-white rounded-2xl shadow-sm mb-6 border border-slate-200 overflow-hidden"
+      >
+        <SectionHeader
+          icon={TrendingUp}
+          title="Recently Listed Similar IPOs"
+          accent="blue"
+        />
+        <div className="p-5 md:p-6">
+          <h3 className="text-sm md:text-base font-bold text-slate-800 mb-5 leading-snug">
+            Compare {currentName} vs {similarIpos.map(s => s.issuer_company.replace(/\s+IPO$/i, "").trim()).join(" vs ")}
+          </h3>
+          <div className="overflow-x-auto rounded-xl border border-slate-100">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-50/70 border-b border-slate-200">
+                  <th className="py-3 px-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-1/4 border-r border-slate-100">
+                    Metric / Features
+                  </th>
+                  <th className="py-3 px-4 text-center text-xs font-bold text-[#1e40af] uppercase tracking-wider w-1/4 border-r border-slate-100 bg-blue-50/30">
+                    <Link to={`/ipo-blogs/${blog.new_slug || blog.slug}`} className="hover:underline hover:text-[#1e40af] transition-colors">
+                      {currentName}
+                    </Link>
+                    <span className="block text-[9px] font-normal text-slate-400 mt-0.5">(Current)</span>
+                  </th>
+                  {similarIpos.map((ipo, idx) => (
+                    <th key={idx} className="py-3 px-4 text-center text-xs font-bold text-slate-700 uppercase tracking-wider w-1/4 border-r border-slate-100 last:border-r-0">
+                      {ipo.blog_slug ? (
+                        <Link to={`/ipo-blogs/${ipo.blog_slug}`} className="hover:underline hover:text-[#1e40af] transition-colors">
+                          {ipo.issuer_company.replace(/\s+IPO$/i, "").trim()}
+                        </Link>
+                      ) : (
+                        ipo.issuer_company.replace(/\s+IPO$/i, "").trim()
+                      )}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, idx) => (
+                  <tr
+                    key={idx}
+                    className="hover:bg-slate-50/40 transition-colors"
+                    style={{
+                      borderBottom: idx === rows.length - 1 ? "none" : "1px solid #f1f5f9",
+                      background: idx % 2 === 0 ? "#fff" : "#fafbff"
+                    }}
+                  >
+                    <td className="py-3.5 px-4 font-bold text-slate-500 text-xs border-r border-[#f1f5f9]">
+                      {row.label}
+                    </td>
+                    <td className="py-3.5 px-4 text-center font-black text-[#1e40af] text-xs border-r border-[#f1f5f9] bg-blue-50/10">
+                      {row.currentVal}
+                    </td>
+                    {row.similarVals.map((val, sIdx) => (
+                      <td key={sIdx} className="py-3.5 px-4 text-center font-bold text-slate-700 text-xs border-r border-[#f1f5f9] last:border-r-0">
+                        {val}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[#f0f5ff]">
       <SEOHead
@@ -2090,6 +2458,8 @@ const IPOBlogDetails = () => {
         )}
 
         <div className="relative container mx-auto px-4 py-10 lg:py-14">
+
+
           <nav className="flex items-center gap-1.5 text-xs mb-8 text-blue-200/70">
             <Link to="/" className="hover:text-white transition-colors">
               Home
@@ -2117,46 +2487,54 @@ const IPOBlogDetails = () => {
           </nav>
 
           <div className="flex flex-col lg:flex-row gap-10 items-start">
-            <div className="flex-1">
-              <div className="flex flex-wrap gap-2 mb-5">
-                <span
-                  className={`inline-flex items-center gap-1.5 text-white text-xs font-bold px-3 py-1 rounded-full tracking-wide ${isUpcoming ? "bg-amber-500/90" : "bg-emerald-500/90"}`}
+            <div className="flex-1 ">
+
+
+
+
+
+
+              <div className="flex flex-wrap gap-x-4 gap-y-2 mb-5">
+                <Ribbon
+                  fontSize="13px"
+                  cutout="0.6em"
+                  color={isUpcoming ? "linear-gradient(135deg, #f59e08, #d97706)" : "linear-gradient(135deg, #10b981, #047857)"}
+                  className="inline-flex items-center gap-1.5 text-white font-bold tracking-wide"
                 >
                   {isUpcoming ? "⏳ UPCOMING IPO" : "✅ CURRENT IPO"}
-                </span>
-                <span
-                  className="inline-flex items-center gap-1.5 text-blue-100 text-xs font-bold px-3 py-1 rounded-full"
-                  style={{
-                    background: "rgba(255,255,255,0.12)",
-                    border: "1px solid rgba(255,255,255,0.15)",
-                  }}
+                </Ribbon>
+                <Ribbon
+                  fontSize="13px"
+                  cutout="0.6em"
+                  color="rgba(255,255,255,0.12)"
+                  className="inline-flex items-center gap-1.5 text-blue-100 font-bold border border-white/15"
                 >
-                  <Tag className="w-3 h-3" />
+                  <Tag className="w-3 h-3 text-blue-100" />
                   {(blog.category || "IPO").replace(/_/g, " ").toUpperCase()}
-                </span>
+                </Ribbon>
                 {blog.confidential === "1" && (
-                  <span
-                    className="inline-flex items-center gap-1 text-red-200 text-xs font-bold px-3 py-1 rounded-full"
-                    style={{
-                      background: "rgba(239,68,68,0.2)",
-                      border: "1px solid rgba(239,68,68,0.3)",
-                    }}
+                  <Ribbon
+                    fontSize="13px"
+                    cutout="0.6em"
+                    color="rgba(239,68,68,0.25)"
+                    className="inline-flex items-center gap-1.5 text-red-200 font-bold border border-red-500/30"
                   >
-                    <Shield className="w-3 h-3" /> CONFIDENTIAL
-                  </span>
+                    <Shield className="w-3 h-3 text-red-200" /> CONFIDENTIAL
+                  </Ribbon>
                 )}
                 {isValid(blog.new_highlight_text) && (
-                  <span
-                    className="inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full"
-                    style={{
-                      background: "linear-gradient(135deg, #f59e0b, #d97706)",
-                      color: "white",
-                    }}
+                  <Ribbon
+                    fontSize="13px"
+                    cutout="0.6em"
+                    color="linear-gradient(135deg, #f59e0b, #d97706)"
+                    className="inline-flex items-center gap-1.5 text-white font-bold"
                   >
-                    <Star className="w-3 h-3" /> {blog.new_highlight_text}
-                  </span>
+                    <Star className="w-3 h-3 text-white" /> {blog.new_highlight_text}
+                  </Ribbon>
                 )}
               </div>
+
+
 
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-white leading-tight mb-5 font-heading">
                 {blog.title}
@@ -2333,11 +2711,11 @@ const IPOBlogDetails = () => {
                       <p className="text-xs text-slate-500 font-bold flex items-center gap-1.5 mt-1">
                         <Calendar className="w-3.5 h-3.5 text-blue-400" />{" "}
                         {(() => {
-                           const validCreated = blog.created_at && !isNaN(new Date(blog.created_at).getTime());
-                           const validUpdated = blog.updated_at && !isNaN(new Date(blog.updated_at).getTime());
-                           const displayDate = validCreated ? new Date(blog.created_at) : (validUpdated ? new Date(blog.updated_at) : new Date());
-                           return format(displayDate, "dd MMMM, yyyy");
-                         })()}
+                          const validCreated = blog.created_at && !isNaN(new Date(blog.created_at).getTime());
+                          const validUpdated = blog.updated_at && !isNaN(new Date(blog.updated_at).getTime());
+                          const displayDate = validCreated ? new Date(blog.created_at) : (validUpdated ? new Date(blog.updated_at) : new Date());
+                          return format(displayDate, "dd MMMM, yyyy");
+                        })()}
                       </p>
                     </div>
                   </div>
@@ -2459,6 +2837,8 @@ const IPOBlogDetails = () => {
               !hasBoardManagementHeading &&
               renderValuationTable()}
 
+            {blog.category !== "daily_reporter" && renderComparisonTable()}
+
             {isValid(blog.faqs) &&
               (() => {
                 let faqItems: { question: string; answer: string }[] = [];
@@ -2576,423 +2956,361 @@ const IPOBlogDetails = () => {
 
 
 
-          <div className="lg:col-span-4 relative">
-            <div className="space-y-5 h-full">
-              {blog.category !== "daily_reporter" && strengths.length > 0 && (
-                <div
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm"
-                  style={{ border: "1px solid #e2e8f0" }}
-                >
-                  <SectionHeader
-                    icon={CheckCircle2}
-                    title="Competitive Strengths"
-                    accent="green"
-                  />
-                  <div className="p-4 space-y-3">
-                    {strengths.map((s, idx) => (
-                      <div
-                        key={idx}
-                        className="flex gap-3 items-start p-3.5 rounded-xl transition-all hover:bg-emerald-50/50"
-                        style={{
-                          background: "#f0fdf4",
-                          border: "1px solid #bbf7d0",
-                        }}
-                      >
-                        <div
-                          className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5 shadow-sm"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, #065f46, #047857)",
-                          }}
-                        >
-                          {idx + 1}
-                        </div>
-                        <p className="text-[13px] font-bold text-slate-700 leading-snug">
-                          {" "}
-                          {String(s).replace(/^[•●▪◦]\s*/, "")}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {blog.category !== "daily_reporter" &&
-                (blog.confidential === "1"
-                  ? (() => {
-                    // Parse multi-entry confidential DRHP arrays
-                    const BAD = new Set([
-                      "",
-                      "null",
-                      "undefined",
-                      "[]",
-                      '[""]',
-                      '["null"]',
-                    ]);
-                    const cleanArr = (raw: string): string[] => {
-                      if (!raw || BAD.has(raw.trim().toLowerCase()))
-                        return [];
-                      try {
-                        const parsed = JSON.parse(raw);
-                        if (Array.isArray(parsed))
-                          return parsed
-                            .map((v) => String(v ?? "").trim())
-                            .filter((v) => v && v.toLowerCase() !== "null");
-                      } catch {
-                        /* not JSON */
-                      }
-                      return [raw.trim()].filter(
-                        (v) => v && v.toLowerCase() !== "null",
-                      );
-                    };
-                    const cPdfs = cleanArr(blog.confidential_drhp || "");
-                    const cDescs = cleanArr(
-                      blog.confidential_drhp_description || "",
-                    );
-                    const cDates = cleanArr(
-                      blog.confidential_drhp_date || "",
-                    );
-
-                    let rows: {
-                      pdf: string;
-                      description: string;
-                      date: string;
-                    }[] = [];
-
-                    // Check if cPdfs actually contains the full objects (new unified format)
-                    try {
-                      const raw = blog.confidential_drhp;
-                      if (raw && raw.startsWith("[") && raw.includes("{")) {
-                        const parsed = JSON.parse(raw);
-                        if (
-                          Array.isArray(parsed) &&
-                          parsed.length > 0 &&
-                          typeof parsed[0] === "object"
-                        ) {
-                          rows = parsed.map((r: any) => ({
-                            pdf: r.pdf || r.drhp_file || "",
-                            description:
-                              r.description || r.drhp_description || "",
-                            date: r.date || r.drhp_date || "",
-                          }));
-                        }
-                      }
-                    } catch (e) { }
-
-                    if (rows.length === 0) {
-                      const maxLen = Math.max(
-                        cPdfs.length,
-                        cDescs.length,
-                        cDates.length,
-                      );
-                      // Build rows from parallel arrays (fallback)
-                      rows = Array.from({ length: maxLen }, (_, i) => ({
-                        pdf: cPdfs[i] || "",
-                        description: cDescs[i] || "",
-                        date: cDates[i] || "",
-                      }));
-                    }
-
-                    const filteredRows = rows
-                      .filter((r) => r.pdf || r.description || r.date)
-                      .sort((a, b) => {
-                        if (!a.date && !b.date) return 0;
-                        if (!a.date) return 1;
-                        if (!b.date) return -1;
-                        return (
-                          new Date(b.date).getTime() -
-                          new Date(a.date).getTime()
-                        );
-                      });
-                    if (filteredRows.length === 0) return null;
-                    return (
-                      <div
-                        className="bg-white rounded-2xl overflow-hidden shadow-sm"
-                        style={{ border: "1px solid #e2e8f0" }}
-                      >
-                        <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
-                          <span className="text-sm font-bold text-slate-800">
-                            IPO DRHP Status
-                          </span>
-                          <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-                            CONFIDENTIAL
-                          </span>
-                        </div>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm border-collapse">
-                            <thead>
-                              <tr
-                                style={{
-                                  background: "#f8fafc",
-                                  borderBottom: "2px solid #e2e8f0",
-                                }}
-                              >
-                                <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase w-8">
-                                  Sr.no
-                                </th>
-                                <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase">
-                                  Description
-                                </th>
-                                <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase whitespace-nowrap">
-                                  Date
-                                </th>
-                                <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase">
-                                  File
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {filteredRows.map((row, idx) => {
-                                const rawLink = String(row.pdf || "").trim();
-                                let href = "";
-                                if (rawLink) {
-                                  if (rawLink.startsWith("http"))
-                                    href = rawLink;
-                                  else if (
-                                    rawLink.startsWith("/uploads") ||
-                                    rawLink.startsWith("uploads/")
-                                  )
-                                    href = rawLink.startsWith("/")
-                                      ? rawLink
-                                      : `/${rawLink}`;
-                                  else href = `/uploads/${rawLink}`;
-                                }
-                                const fmtDate = row.date
-                                  ? (() => {
-                                    try {
-                                      return new Date(
-                                        row.date,
-                                      ).toLocaleDateString("en-IN", {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                        year: "numeric",
-                                      });
-                                    } catch {
-                                      return row.date;
-                                    }
-                                  })()
-                                  : "-";
-                                return (
-                                  <tr
-                                    key={idx}
-                                    className="hover:bg-amber-50/30 transition-colors"
-                                    style={{
-                                      borderBottom: "1px solid #f1f5f9",
-                                      background:
-                                        idx % 2 === 0 ? "#fff" : "#fffdf7",
-                                    }}
-                                  >
-                                    <td className="py-2.5 px-3 font-bold text-amber-600 text-xs">
-                                      {idx + 1}
-                                    </td>
-                                    <td className="py-2.5 px-3 text-slate-700 text-xs">
-                                      {row.description || "-"}
-                                    </td>
-                                    <td className="py-2.5 px-3 text-slate-600 text-xs whitespace-nowrap">
-                                      {fmtDate}
-                                    </td>
-                                    <td className="py-2.5 px-3">
-                                      {href ? (
-                                        <a
-                                          href={href}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold text-white transition-all hover:opacity-90"
-                                          style={{
-                                            background:
-                                              "linear-gradient(135deg, #1e40af, #1d4ed8)",
-                                          }}
-                                        >
-                                          View DRHP
-                                        </a>
-                                      ) : (
-                                        <span className="text-slate-400 text-xs">
-                                          -
-                                        </span>
-                                      )}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    );
-                  })()
-                  : (isValid(blog.drhp) || isValid(blog.rhp)) && (
+          <div className="lg:col-span-4 relative space-y-5 flex flex-col">
+            {blog.category !== "daily_reporter" && strengths.length > 0 && (
+              <div
+                className="bg-white rounded-2xl overflow-hidden shadow-sm"
+                style={{ border: "1px solid #e2e8f0" }}
+              >
+                <SectionHeader
+                  icon={CheckCircle2}
+                  title="Competitive Strengths"
+                  accent="green"
+                />
+                <div className="p-4 space-y-3">
+                  {strengths.map((s, idx) => (
                     <div
-                      className="rounded-2xl overflow-hidden shadow-lg"
+                      key={idx}
+                      className="flex gap-3 items-start p-3.5 rounded-xl transition-all hover:bg-emerald-50/50"
                       style={{
-                        background:
-                          "linear-gradient(135deg, #0c1e4a 0%, #1e3a8a 60%, #1e40af 100%)",
-                        border: "1px solid rgba(245,158,11,0.3)",
+                        background: "#f0fdf4",
+                        border: "1px solid #bbf7d0",
                       }}
                     >
                       <div
-                        className="px-5 py-4"
+                        className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black text-white mt-0.5 shadow-sm"
                         style={{
-                          borderBottom: "1px solid rgba(255,255,255,0.1)",
+                          background:
+                            "linear-gradient(135deg, #065f46, #047857)",
                         }}
                       >
-                        <div className="flex items-center gap-2 text-white font-bold text-sm font-heading">
-                          <FileText className="w-4 h-4 text-amber-400" />{" "}
-                          Official Documents
-                        </div>
-                        <p className="text-[10px] text-blue-300/60 mt-0.5">
-                          Download regulatory filings
-                        </p>
+                        {idx + 1}
                       </div>
-                      <div className="p-4 space-y-2.5">
-                        {[
-                          {
-                            label: "Download DRHP",
-                            icon: "📄",
-                            link: blog.drhp,
-                          },
-                          {
-                            label: "Download RHP",
-                            icon: "📋",
-                            link: blog.rhp,
-                          },
-                        ].map((doc, idx) => {
-                          if (!isValid(doc.link)) return null;
-                          const rawLink = String(doc.link || "").trim();
-                          const isExternal = rawLink.startsWith("http");
-                          let href: string;
-                          if (isExternal) {
-                            href = rawLink;
-                          } else if (
-                            rawLink.startsWith("/uploads") ||
-                            rawLink.startsWith("uploads/")
-                          ) {
-                            href = rawLink.startsWith("/")
-                              ? rawLink
-                              : `/${rawLink}`;
-                          } else {
-                            href = `/uploads/${rawLink}`;
-                          }
-                          return (
-                            <a
-                              key={idx}
-                              href={href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-white text-sm font-semibold transition-all group hover:scale-[1.02]"
-                              style={{
-                                background: "rgba(255,255,255,0.1)",
-                                border: "1px solid rgba(255,255,255,0.12)",
-                              }}
-                              onMouseEnter={(e) =>
-                              (e.currentTarget.style.background =
-                                "rgba(245,158,11,0.2)")
-                              }
-                              onMouseLeave={(e) =>
-                              (e.currentTarget.style.background =
-                                "rgba(255,255,255,0.1)")
-                              }
-                            >
-                              <span className="flex items-center gap-2">
-                                <span>{doc.icon}</span>
-                                {doc.label}
-                              </span>
-                              <Download className="w-4 h-4 text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
-                            </a>
-                          );
-                        })}
-                      </div>
+                      <p className="text-[13px] font-bold text-slate-700 leading-snug">
+                        {" "}
+                        {String(s).replace(/^[•●▪◦]\s*/, "")}
+                      </p>
                     </div>
                   ))}
+                </div>
+              </div>
+            )}
 
-              {blog.category !== "daily_reporter" &&
-                finalTimeline.length > 0 &&
-                !hasTimelineHeading && (
+            {blog.category !== "daily_reporter" &&
+              (blog.confidential === "1"
+                ? (() => {
+                  // Parse multi-entry confidential DRHP arrays
+                  const BAD = new Set([
+                    "",
+                    "null",
+                    "undefined",
+                    "[]",
+                    '[""]',
+                    '["null"]',
+                  ]);
+                  const cleanArr = (raw: string): string[] => {
+                    if (!raw || BAD.has(raw.trim().toLowerCase()))
+                      return [];
+                    try {
+                      const parsed = JSON.parse(raw);
+                      if (Array.isArray(parsed))
+                        return parsed
+                          .map((v) => String(v ?? "").trim())
+                          .filter((v) => v && v.toLowerCase() !== "null");
+                    } catch {
+                      /* not JSON */
+                    }
+                    return [raw.trim()].filter(
+                      (v) => v && v.toLowerCase() !== "null",
+                    );
+                  };
+                  const cPdfs = cleanArr(blog.confidential_drhp || "");
+                  const cDescs = cleanArr(
+                    blog.confidential_drhp_description || "",
+                  );
+                  const cDates = cleanArr(
+                    blog.confidential_drhp_date || "",
+                  );
+
+                  let rows: {
+                    pdf: string;
+                    description: string;
+                    date: string;
+                  }[] = [];
+
+                  // Check if cPdfs actually contains the full objects (new unified format)
+                  try {
+                    const raw = blog.confidential_drhp;
+                    if (raw && raw.startsWith("[") && raw.includes("{")) {
+                      const parsed = JSON.parse(raw);
+                      if (
+                        Array.isArray(parsed) &&
+                        parsed.length > 0 &&
+                        typeof parsed[0] === "object"
+                      ) {
+                        rows = parsed.map((r: any) => ({
+                          pdf: r.pdf || r.drhp_file || "",
+                          description:
+                            r.description || r.drhp_description || "",
+                          date: r.date || r.drhp_date || "",
+                        }));
+                      }
+                    }
+                  } catch (e) { }
+
+                  if (rows.length === 0) {
+                    const maxLen = Math.max(
+                      cPdfs.length,
+                      cDescs.length,
+                      cDates.length,
+                    );
+                    // Build rows from parallel arrays (fallback)
+                    rows = Array.from({ length: maxLen }, (_, i) => ({
+                      pdf: cPdfs[i] || "",
+                      description: cDescs[i] || "",
+                      date: cDates[i] || "",
+                    }));
+                  }
+
+                  const filteredRows = rows
+                    .filter((r) => r.pdf || r.description || r.date)
+                    .sort((a, b) => {
+                      if (!a.date && !b.date) return 0;
+                      if (!a.date) return 1;
+                      if (!b.date) return -1;
+                      return (
+                        new Date(b.date).getTime() -
+                        new Date(a.date).getTime()
+                      );
+                    });
+                  if (filteredRows.length === 0) return null;
+                  return (
+                    <div
+                      className="bg-white rounded-2xl overflow-hidden shadow-sm"
+                      style={{ border: "1px solid #e2e8f0" }}
+                    >
+                      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2">
+                        <span className="text-sm font-bold text-slate-800">
+                          IPO DRHP Status
+                        </span>
+                        <span className="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                          CONFIDENTIAL
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm border-collapse">
+                          <thead>
+                            <tr
+                              style={{
+                                background: "#f8fafc",
+                                borderBottom: "2px solid #e2e8f0",
+                              }}
+                            >
+                              <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase w-8">
+                                Sr.no
+                              </th>
+                              <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase">
+                                Description
+                              </th>
+                              <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase whitespace-nowrap">
+                                Date
+                              </th>
+                              <th className="py-2 px-3 text-left text-[11px] font-bold text-slate-500 uppercase">
+                                File
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredRows.map((row, idx) => {
+                              const rawLink = String(row.pdf || "").trim();
+                              let href = "";
+                              if (rawLink) {
+                                if (rawLink.startsWith("http"))
+                                  href = rawLink;
+                                else if (
+                                  rawLink.startsWith("/uploads") ||
+                                  rawLink.startsWith("uploads/")
+                                )
+                                  href = rawLink.startsWith("/")
+                                    ? rawLink
+                                    : `/${rawLink}`;
+                                else href = `/uploads/${rawLink}`;
+                              }
+                              const fmtDate = row.date
+                                ? (() => {
+                                  try {
+                                    return new Date(
+                                      row.date,
+                                    ).toLocaleDateString("en-IN", {
+                                      day: "2-digit",
+                                      month: "2-digit",
+                                      year: "numeric",
+                                    });
+                                  } catch {
+                                    return row.date;
+                                  }
+                                })()
+                                : "-";
+                              return (
+                                <tr
+                                  key={idx}
+                                  className="hover:bg-amber-50/30 transition-colors"
+                                  style={{
+                                    borderBottom: "1px solid #f1f5f9",
+                                    background:
+                                      idx % 2 === 0 ? "#fff" : "#fffdf7",
+                                  }}
+                                >
+                                  <td className="py-2.5 px-3 font-bold text-amber-600 text-xs">
+                                    {idx + 1}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-slate-700 text-xs">
+                                    {row.description || "-"}
+                                  </td>
+                                  <td className="py-2.5 px-3 text-slate-600 text-xs whitespace-nowrap">
+                                    {fmtDate}
+                                  </td>
+                                  <td className="py-2.5 px-3">
+                                    {href ? (
+                                      <a
+                                        href={href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold text-white transition-all hover:opacity-90"
+                                        style={{
+                                          background:
+                                            "linear-gradient(135deg, #1e40af, #1d4ed8)",
+                                        }}
+                                      >
+                                        View DRHP
+                                      </a>
+                                    ) : (
+                                      <span className="text-slate-400 text-xs">
+                                        -
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                })()
+                : (isValid(blog.drhp) || isValid(blog.rhp)) && (
                   <div
-                    className="bg-white rounded-2xl overflow-hidden shadow-sm"
-                    style={{ border: "1px solid #e2e8f0" }}
+                    className="rounded-2xl overflow-hidden shadow-lg"
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #0c1e4a 0%, #1e3a8a 60%, #1e40af 100%)",
+                      border: "1px solid rgba(245,158,11,0.3)",
+                    }}
                   >
-                    <SectionHeader
-                      icon={Calendar}
-                      title={`${displayTitle} IPO Timeline`}
-                      accent="blue"
-                    />
-                    <table className="w-full text-sm">
-                      <tbody>
-                        {finalTimeline.map((item, idx) => (
-                          <tr
+                    <div
+                      className="px-5 py-4"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.1)",
+                      }}
+                    >
+                      <div className="flex items-center gap-2 text-white font-bold text-sm font-heading">
+                        <FileText className="w-4 h-4 text-amber-400" />{" "}
+                        Official Documents
+                      </div>
+                      <p className="text-[10px] text-blue-300/60 mt-0.5">
+                        Download regulatory filings
+                      </p>
+                    </div>
+                    <div className="p-4 space-y-2.5">
+                      {[
+                        {
+                          label: "Download DRHP",
+                          icon: "📄",
+                          link: blog.drhp,
+                        },
+                        {
+                          label: "Download RHP",
+                          icon: "📋",
+                          link: blog.rhp,
+                        },
+                      ].map((doc, idx) => {
+                        if (!isValid(doc.link)) return null;
+                        const rawLink = String(doc.link || "").trim();
+                        const isExternal = rawLink.startsWith("http");
+                        let href: string;
+                        if (isExternal) {
+                          href = rawLink;
+                        } else if (
+                          rawLink.startsWith("/uploads") ||
+                          rawLink.startsWith("uploads/")
+                        ) {
+                          href = rawLink.startsWith("/")
+                            ? rawLink
+                            : `/${rawLink}`;
+                        } else {
+                          href = `/uploads/${rawLink}`;
+                        }
+                        return (
+                          <a
                             key={idx}
-                            className="transition-colors hover:bg-blue-50/30"
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center justify-between w-full px-4 py-3 rounded-xl text-white text-sm font-semibold transition-all group hover:scale-[1.02]"
                             style={{
-                              borderBottom: "1px solid #f1f5f9",
-                              background: idx % 2 === 0 ? "#fff" : "#fafbff",
+                              background: "rgba(255,255,255,0.1)",
+                              border: "1px solid rgba(255,255,255,0.12)",
                             }}
+                            onMouseEnter={(e) =>
+                            (e.currentTarget.style.background =
+                              "rgba(245,158,11,0.2)")
+                            }
+                            onMouseLeave={(e) =>
+                            (e.currentTarget.style.background =
+                              "rgba(255,255,255,0.1)")
+                            }
                           >
-                            <td className="py-2.5 px-5 text-slate-500 font-medium text-xs">
-                              {item.label}
-                            </td>
-                            <td className="py-2.5 px-5 text-right font-bold text-[#1e40af] text-[11px] leading-tight">
-                              {item.value}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            <span className="flex items-center gap-2">
+                              <span>{doc.icon}</span>
+                              {doc.label}
+                            </span>
+                            <Download className="w-4 h-4 text-amber-400 group-hover:-translate-y-0.5 transition-transform" />
+                          </a>
+                        );
+                      })}
+                    </div>
                   </div>
-                )}
+                ))}
 
-              {blog.category !== "daily_reporter" && lots.length > 0 && (
+            {blog.category !== "daily_reporter" &&
+              finalTimeline.length > 0 &&
+              !hasTimelineHeading && (
                 <div
                   className="bg-white rounded-2xl overflow-hidden shadow-sm"
                   style={{ border: "1px solid #e2e8f0" }}
                 >
                   <SectionHeader
-                    icon={TrendingUp}
-                    title="IPO Lot Size"
-                    accent="green"
+                    icon={Calendar}
+                    title={`${displayTitle} IPO Timeline`}
+                    accent="blue"
                   />
                   <table className="w-full text-sm">
-                    <thead>
-                      <tr
-                        style={{
-                          background: "#f0fdf4",
-                          borderBottom: "1px solid #bbf7d0",
-                        }}
-                      >
-                        <th className="text-left py-2.5 px-5 text-xs font-bold text-emerald-700 uppercase">
-                          Investors
-                        </th>
-                        <th className="text-center py-2.5 px-3 text-xs font-bold text-emerald-700 uppercase">
-                          No.of lots
-                        </th>
-                        <th className="text-center py-2.5 px-3 text-xs font-bold text-emerald-700 uppercase">
-                          Shares Offered
-                        </th>
-                        <th className="text-right py-2.5 px-5 text-xs font-bold text-emerald-700 uppercase">
-                          Max Bid Amount
-                        </th>
-                      </tr>
-                    </thead>
                     <tbody>
-                      {lots.map((lot, idx) => (
+                      {finalTimeline.map((item, idx) => (
                         <tr
                           key={idx}
-                          className="hover:bg-emerald-50/30 transition-colors"
+                          className="transition-colors hover:bg-blue-50/30"
                           style={{
                             borderBottom: "1px solid #f1f5f9",
-                            background: idx % 2 === 0 ? "#fff" : "#fafffb",
+                            background: idx % 2 === 0 ? "#fff" : "#fafbff",
                           }}
                         >
-                          <td className="py-3 px-5 font-semibold text-slate-700 text-xs">
-                            {appInfoArray[idx] || "—"}
+                          <td className="py-2.5 px-5 text-slate-500 font-medium text-xs">
+                            {item.label}
                           </td>
-                          <td className="py-3 px-3 text-center font-bold text-emerald-700 text-xs">
-                            {lot}
-                          </td>
-                          <td className="py-3 px-3 text-center text-slate-600 font-semibold text-xs">
-                            {cleanGarbledText(lotShares[idx] || "—")}
-                          </td>
-                          <td className="py-3 px-5 text-right font-black text-slate-900 text-xs">
-                            {cleanGarbledText(lotAmounts[idx] || "—")}
+                          <td className="py-2.5 px-5 text-right font-bold text-[#1e40af] text-[11px] leading-tight">
+                            {item.value}
                           </td>
                         </tr>
                       ))}
@@ -3001,196 +3319,343 @@ const IPOBlogDetails = () => {
                 </div>
               )}
 
-              <div className="lg:sticky lg:top-24 space-y-5 pb-4 z-10">
-                {relatedBlogs.length > 0 && (
+            {blog.category !== "daily_reporter" && lots.length > 0 && (
+              <div
+                className="bg-white rounded-2xl overflow-hidden shadow-sm"
+                style={{ border: "1px solid #e2e8f0" }}
+              >
+                <SectionHeader
+                  icon={TrendingUp}
+                  title="IPO Lot Size"
+                  accent="green"
+                />
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr
+                      style={{
+                        background: "#f0fdf4",
+                        borderBottom: "1px solid #bbf7d0",
+                      }}
+                    >
+                      <th className="text-left py-2.5 px-5 text-xs font-bold text-emerald-700 uppercase">
+                        Investors
+                      </th>
+                      <th className="text-center py-2.5 px-3 text-xs font-bold text-emerald-700 uppercase">
+                        No.of lots
+                      </th>
+                      <th className="text-center py-2.5 px-3 text-xs font-bold text-emerald-700 uppercase">
+                        Shares Offered
+                      </th>
+                      <th className="text-right py-2.5 px-5 text-xs font-bold text-emerald-700 uppercase">
+                        Max Bid Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lots.map((lot, idx) => (
+                      <tr
+                        key={idx}
+                        className="hover:bg-emerald-50/30 transition-colors"
+                        style={{
+                          borderBottom: "1px solid #f1f5f9",
+                          background: idx % 2 === 0 ? "#fff" : "#fafffb",
+                        }}
+                      >
+                        <td className="py-3 px-5 font-semibold text-slate-700 text-xs">
+                          {appInfoArray[idx] || "—"}
+                        </td>
+                        <td className="py-3 px-3 text-center font-bold text-emerald-700 text-xs">
+                          {lot}
+                        </td>
+                        <td className="py-3 px-3 text-center text-slate-600 font-semibold text-xs">
+                          {cleanGarbledText(lotShares[idx] || "—")}
+                        </td>
+                        <td className="py-3 px-5 text-right font-black text-slate-900 text-xs">
+                          {cleanGarbledText(lotAmounts[idx] || "—")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="lg:sticky space-y-3 pb-4 z-10" style={{ top: "min(90px, calc(100vh - 1480px))" }}>
+              {relatedBlogs.length > 0 && (
+                <div
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm"
+                  style={{ border: "1px solid #e2e8f0" }}
+                >
+                  <SectionHeader
+                    icon={Flame}
+                    title={
+                      blog.category === "daily_reporter"
+                        ? "Related Daily Reporter"
+                        : "Related IPO Blogs"
+                    }
+                    accent="blue"
+                  />
+                  <div className="max-h-[180px] overflow-y-auto">
+                    <div
+                      className="divide-y"
+                      style={{ borderColor: "#f1f5f9" }}
+                    >
+                      {relatedBlogs.map((rb, idx) => {
+                        const rbImg = getImageUrl(rb.image);
+                        const isUp = rb.upcoming === "1";
+                        return (
+                          <Link
+                            key={`${rb.id}-${idx}`}
+                            to={
+                              rb.category === "daily_reporter"
+                                ? `/daily-reporter/${rb.slug}`
+                                : `/ipo-blogs/${rb.slug}`
+                            }
+                            className="flex gap-2 p-2 hover:bg-blue-50/40 transition-colors group block shrink-0"
+                          >
+                            <div
+                              className="shrink-0 w-10 h-10 rounded-lg overflow-hidden"
+                              style={{
+                                background: "#eff6ff",
+                                border: "1px solid #bfdbfe",
+                              }}
+                            >
+                              {rbImg ? (
+                                <img
+                                  src={getImageUrl(rb.image)}
+                                  alt={rb.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <BarChart3
+                                    className="w-5 h-5"
+                                    style={{ color: "#1e40af" }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-bold text-slate-800 leading-tight line-clamp-2 group-hover:text-[#1e40af] transition-colors">
+                                {rb.title}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1e40af] shrink-0 self-center transition-colors" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div
+                    className="px-4 py-2"
+                    style={{
+                      background: "#f8fafc",
+                      borderTop: "1px solid #e2e8f0",
+                    }}
+                  >
+                    <Link
+                      to={
+                        blog.category === "daily_reporter"
+                          ? "/daily-ipo-digest"
+                          : "/ipo-blogs"
+                      }
+                      className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-[#1e40af] hover:text-[#1d4ed8] transition-colors"
+                    >
+                      {blog.category === "daily_reporter"
+                        ? "View All Daily Reports"
+                        : "View All IPO Blogs"}{" "}
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {blog.category !== "daily_reporter" &&
+                (isValidRealData(preHolding) ||
+                  isValidRealData(postHolding)) && (
                   <div
                     className="bg-white rounded-2xl overflow-hidden shadow-sm"
                     style={{ border: "1px solid #e2e8f0" }}
                   >
                     <SectionHeader
-                      icon={Flame}
-                      title={
-                        blog.category === "daily_reporter"
-                          ? "Related Daily Reporter"
-                          : "Related IPO Blogs"
-                      }
-                      accent="blue"
+                      icon={Wallet}
+                      title="Promoter Holding"
+                      accent="purple"
                     />
-                    <div className="max-h-[400px] overflow-y-auto">
-                      <div
-                        className="divide-y"
-                        style={{ borderColor: "#f1f5f9" }}
-                      >
-                        {relatedBlogs.map((rb, idx) => {
-                          const rbImg = getImageUrl(rb.image);
-                          const isUp = rb.upcoming === "1";
-                          return (
-                            <Link
-                              key={`${rb.id}-${idx}`}
-                              to={
-                                rb.category === "daily_reporter"
-                                  ? `/daily-reporter/${rb.slug}`
-                                  : `/ipo-blogs/${rb.slug}`
-                              }
-                              className="flex gap-3 p-3.5 hover:bg-blue-50/40 transition-colors group block shrink-0"
-                            >
-                              <div
-                                className="shrink-0 w-14 h-14 rounded-xl overflow-hidden"
-                                style={{
-                                  background: "#eff6ff",
-                                  border: "1px solid #bfdbfe",
-                                }}
-                              >
-                                {rbImg ? (
-                                  <img
-                                    src={getImageUrl(rb.image)}
-                                    alt={rb.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center">
-                                    <BarChart3
-                                      className="w-6 h-6"
-                                      style={{ color: "#1e40af" }}
-                                    />
-                                  </div>
-                                )}
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-slate-800 leading-snug line-clamp-2 group-hover:text-[#1e40af] transition-colors">
-                                  {rb.title}
-                                </p>
-                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                                  {/* {rb.category === "daily_reporter" ? (
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                                      {rb.created_at
-                                        ? new Date(
-                                          rb.created_at,
-                                        ).toLocaleDateString("en-IN", {
-                                          day: "2-digit",
-                                          month: "2-digit",
-                                          year: "numeric",
-                                        })
-                                        : "-"}
-                                    </span>
-                                  ) : (
-                                    <span
-                                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isUp ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700"}`}
-                                    >
-                                      {isUp ? "Upcoming" : "Current"}
-                                    </span>
-                                  )} */}
-                                </div>
-                              </div>
-                              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1e40af] shrink-0 self-center transition-colors" />
-                            </Link>
-                          );
-                        })}
+                    <div className="p-4 space-y-3">
+                      <div>
+                        <div className="flex justify-between text-xs font-bold mb-1">
+                          <span className="text-slate-500">
+                            Pre-Issue Holding
+                          </span>
+                          <span style={{ color: "#4c1d95" }}>
+                            {isValidRealData(preHolding) ? preHolding : "-"}
+                            {isValidRealData(preHolding) &&
+                              !preHolding.includes("%")
+                              ? "%"
+                              : ""}
+                          </span>
+                        </div>
+                        {isValidRealData(preHolding) && (
+                          <div
+                            className="h-2 w-full rounded-full overflow-hidden"
+                            style={{ background: "#f1f5f9" }}
+                          >
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: preHolding.includes("%")
+                                  ? preHolding
+                                  : `${preHolding}%`,
+                                background:
+                                  "linear-gradient(90deg, #4c1d95, #7c3aed)",
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <div
-                      className="px-4 py-3"
-                      style={{
-                        background: "#f8fafc",
-                        borderTop: "1px solid #e2e8f0",
-                      }}
-                    >
-                      <Link
-                        to={
-                          blog.category === "daily_reporter"
-                            ? "/daily-ipo-digest"
-                            : "/ipo-blogs"
-                        }
-                        className="flex items-center justify-center gap-1.5 text-xs font-bold text-[#1e40af] hover:text-[#1d4ed8] transition-colors"
-                      >
-                        {blog.category === "daily_reporter"
-                          ? "View All Daily Reports"
-                          : "View All IPO Blogs"}{" "}
-                        <ChevronRight className="w-3.5 h-3.5" />
-                      </Link>
+                      <div>
+                        <div className="flex justify-between text-xs font-bold mb-1">
+                          <span className="text-slate-500">
+                            Post-Issue Holding
+                          </span>
+                          <span style={{ color: "#065f46" }}>
+                            {isValidRealData(postHolding) ? postHolding : "-"}
+                            {isValidRealData(postHolding) &&
+                              !postHolding.includes("%")
+                              ? "%"
+                              : ""}
+                          </span>
+                        </div>
+                        {isValidRealData(postHolding) && (
+                          <div
+                            className="h-2 w-full rounded-full overflow-hidden"
+                            style={{ background: "#f1f5f9" }}
+                          >
+                            <div
+                              className="h-full rounded-full transition-all duration-500"
+                              style={{
+                                width: postHolding.includes("%")
+                                  ? postHolding
+                                  : `${postHolding}%`,
+                                background:
+                                  "linear-gradient(90deg, #065f46, #059669)",
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {blog.category !== "daily_reporter" &&
-                  (isValidRealData(preHolding) ||
-                    isValidRealData(postHolding)) && (
-                    <div
-                      className="bg-white rounded-2xl overflow-hidden shadow-sm"
-                      style={{ border: "1px solid #e2e8f0" }}
+              <div
+                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200"
+              >
+                <SectionHeader
+                  icon={TrendingUp}
+                  title="Quick IPO Resources"
+                  accent="blue"
+                />
+                <div className="p-3 space-y-2.5">
+                  {[
+                    {
+                      label: "Check IPO Eligibility",
+                      url: "/ipo-eligibility-check",
+                      desc: "Verify if your company is ready for IPO",
+                      bg: "bg-blue-50/50 hover:bg-blue-100/50 border-blue-100 text-blue-700",
+                    },
+                    {
+                      label: "SME IPO Consultant",
+                      url: "/sme-ipo-consultant",
+                      desc: "Get expert advice for SME listing",
+                      bg: "bg-emerald-50/50 hover:bg-emerald-100/50 border-emerald-100 text-emerald-700",
+                    },
+                    {
+                      label: "SME IPO Guide",
+                      url: "/blogs/sme-ipo-guide-india",
+                      desc: "Complete guide on Indian SME IPOs",
+                      bg: "bg-amber-50/50 hover:bg-amber-100/50 border-amber-100 text-amber-700",
+                    },
+                    {
+                      label: "Live IPO Tracker",
+                      url: "/sme-ipos",
+                      desc: "Track active & upcoming SME IPOs",
+                      bg: "bg-purple-50/50 hover:bg-purple-100/50 border-purple-100 text-purple-700",
+                    },
+                  ].map((item, idx) => (
+                    <Link
+                      key={idx}
+                      to={item.url}
+                      className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50/40 hover:border-blue-200 text-slate-800 hover:text-[#1e40af] transition-all hover:scale-[1.01] active:scale-95 group"
                     >
-                      <SectionHeader
-                        icon={Wallet}
-                        title="Promoter Holding"
-                        accent="purple"
-                      />
-                      <div className="p-5 space-y-5">
-                        <div>
-                          <div className="flex justify-between text-xs font-bold mb-2">
-                            <span className="text-slate-500">
-                              Pre-Issue Holding
-                            </span>
-                            <span style={{ color: "#4c1d95" }}>
-                              {isValidRealData(preHolding) ? preHolding : "-"}
-                              {isValidRealData(preHolding) &&
-                                !preHolding.includes("%")
-                                ? "%"
-                                : ""}
-                            </span>
-                          </div>
-                          {isValidRealData(preHolding) && (
-                            <div
-                              className="h-2.5 w-full rounded-full overflow-hidden"
-                              style={{ background: "#f1f5f9" }}
-                            >
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: preHolding.includes("%")
-                                    ? preHolding
-                                    : `${preHolding}%`,
-                                  background:
-                                    "linear-gradient(90deg, #4c1d95, #7c3aed)",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex justify-between text-xs font-bold mb-2">
-                            <span className="text-slate-500">
-                              Post-Issue Holding
-                            </span>
-                            <span style={{ color: "#065f46" }}>
-                              {isValidRealData(postHolding) ? postHolding : "-"}
-                              {isValidRealData(postHolding) &&
-                                !postHolding.includes("%")
-                                ? "%"
-                                : ""}
-                            </span>
-                          </div>
-                          {isValidRealData(postHolding) && (
-                            <div
-                              className="h-2.5 w-full rounded-full overflow-hidden"
-                              style={{ background: "#f1f5f9" }}
-                            >
-                              <div
-                                className="h-full rounded-full transition-all duration-500"
-                                style={{
-                                  width: postHolding.includes("%")
-                                    ? postHolding
-                                    : `${postHolding}%`,
-                                  background:
-                                    "linear-gradient(90deg, #065f46, #059669)",
-                                }}
-                              />
-                            </div>
-                          )}
-                        </div>
+                      <div>
+                        <p className="font-bold text-xs leading-tight">{item.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5 font-medium group-hover:text-blue-500/80 transition-colors">{item.desc}</p>
                       </div>
+                      <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1e40af] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div
+                className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200"
+              >
+                <SectionHeader
+                  icon={Newspaper}
+                  title="Trending News"
+                  accent="blue"
+                />
+                <div className="p-3 space-y-2.5">
+                  {newsLoading ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                     </div>
+                  ) : trendingNews.length > 0 ? (
+                    trendingNews.map((item) => {
+                      const fallbackImage = "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=1000&auto=format&fit=crop";
+                      const imageSrc = getImgSrc(item.image) || fallbackImage;
+                      return (
+                        <Link
+                          key={item.id}
+                          to={`/news/detail/${item.slug || item.id}`}
+                          className="flex gap-3 items-center p-2.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50/40 hover:border-blue-200 text-slate-800 hover:text-[#1e40af] transition-all hover:scale-[1.01] active:scale-95 group block"
+                        >
+                          <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 shadow-sm border border-slate-200 bg-slate-100">
+                            <img
+                              src={imageSrc}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = fallbackImage;
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0 pr-2">
+                            <p className="font-bold text-xs leading-tight line-clamp-2">{item.title}</p>
+                            <span className="text-[9px] font-bold text-slate-400 mt-1 block">
+                              {item.category || "General"}
+                            </span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1e40af] group-hover:translate-x-0.5 transition-all shrink-0 self-center" />
+                        </Link>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-2">No trending news available.</p>
                   )}
+
+                  <div className="pt-2 text-center">
+                    <Link
+                      to="/news"
+                      className="text-[11px] font-bold text-[#1e40af] uppercase tracking-widest hover:text-[#1d4ed8] transition-colors inline-block"
+                    >
+                      View All News
+                    </Link>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

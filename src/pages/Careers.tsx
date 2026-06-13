@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRecaptcha } from "@/hooks/useRecaptcha";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -45,7 +45,23 @@ const Careers = () => {
     resume: "",
     coverletter: "",
   });
+  const [roles, setRoles] = useState<string[]>([]);
   const { getToken } = useRecaptcha();
+
+  useEffect(() => {
+    const fetchActiveRoles = async () => {
+      try {
+        const res = await fetch("/api/career/roles");
+        if (res.ok) {
+          const data = await res.json();
+          setRoles(data.map((r: any) => r.title));
+        }
+      } catch (err) {
+        console.error("Failed to load active roles:", err);
+      }
+    };
+    fetchActiveRoles();
+  }, []);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -104,6 +120,22 @@ const Careers = () => {
 
     if (!/^\d{10}$/.test(formData.phone)) {
       return toast.error("Mobile number must be exactly 10 digits");
+    }
+
+    if (formData.experience) {
+      if (isNaN(Number(formData.experience))) {
+        toast.error("Experience must be a valid number (e.g. 2, 2.5)");
+        return;
+      }
+      const parts = formData.experience.split(".");
+      if (parts[0].length > 2) {
+        toast.error("Experience cannot have more than 2 digits before the decimal point");
+        return;
+      }
+      if (parts.length === 2 && parts[1].length > 2) {
+        toast.error("Experience can only have up to 2 decimal places");
+        return;
+      }
     }
 
     if (!formData.resume) {
@@ -240,16 +272,7 @@ const Careers = () => {
               animate={{ opacity: 1, x: 0 }}
               className="max-w-3xl"
             >
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 text-xs font-black uppercase tracking-widest"
-                style={{
-                  background: "rgba(245,158,8,0.2)",
-                  color: G,
-                  border: "1px solid rgba(245,158,8,0.35)",
-                }}
-              >
-                <Zap className="h-3.5 w-3.5" /> We're Hiring
-              </div>
+
               <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-5 leading-tight">
                 Elevate Your Career with{" "}
                 <span style={{ color: G }}>India IPO</span>
@@ -294,7 +317,7 @@ const Careers = () => {
               {[
                 { icon: Users, value: "50+", label: "Team Members" },
                 { icon: TrendingUp, value: "500+", label: "IPOs Advised" },
-                { icon: Zap, value: "10+", label: "Yrs Experience" },
+                { icon: Zap, value: "8+", label: "Yrs Experience" },
                 { icon: Star, value: "Pan-India", label: "Office Presence" },
               ].map((s, i) => (
                 <div
@@ -525,10 +548,9 @@ const Careers = () => {
                         <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
                           <Briefcase className="h-3 w-3" /> Position Applied For
                         </label>
-                        <input
-                          type="text"
-                          placeholder="e.g. Sales Executive"
-                          className={inputClass}
+                        <select
+                          required
+                          className={`${inputClass} appearance-none cursor-pointer`}
                           value={formData.position_applied}
                           onChange={(e) =>
                             setFormData({
@@ -536,7 +558,24 @@ const Careers = () => {
                               position_applied: e.target.value,
                             })
                           }
-                        />
+                        >
+                          <option value="" disabled>Select Position</option>
+                          {roles.length > 0 ? (
+                            roles.map((role) => (
+                              <option key={role} value={role}>{role}</option>
+                            ))
+                          ) : (
+                            <>
+                              <option value="CEO">CEO</option>
+                              <option value="Business Analyst">Business Analyst</option>
+                              <option value="MERN Stack Developer">MERN Stack Developer</option>
+                              <option value="IPO Advisory Specialist">IPO Advisory Specialist</option>
+                              <option value="Sales Executive">Sales Executive</option>
+                              <option value="HR Manager">HR Manager</option>
+                              <option value="SEO & Content Writer">SEO & Content Writer</option>
+                            </>
+                          )}
+                        </select>
                       </div>
                       <div className="space-y-2">
                         <label className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-400">
@@ -545,15 +584,31 @@ const Careers = () => {
                         </label>
                         <input
                           type="text"
-                          placeholder="e.g. 5+ Years"
+                          placeholder="e.g. 3.5"
                           className={inputClass}
                           value={formData.experience}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              experience: e.target.value,
-                            })
-                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // Allow only numbers and a single optional decimal point
+                            const sanitized = value.replace(/[^0-9.]/g, "");
+                            const parts = sanitized.split(".");
+                            let finalValue = sanitized;
+                            if (parts.length > 2) {
+                              finalValue = `${parts[0]}.${parts.slice(1).join("")}`;
+                            }
+
+                            const finalParts = finalValue.split(".");
+                            // Limit to max 2 digits before decimal point
+                            if (finalParts[0].length > 2) {
+                              finalParts[0] = finalParts[0].slice(0, 2);
+                            }
+                            // Limit to max 2 digits after decimal point
+                            if (finalParts.length === 2 && finalParts[1].length > 2) {
+                              finalParts[1] = finalParts[1].slice(0, 2);
+                            }
+                            finalValue = finalParts.join(".");
+                            setFormData({ ...formData, experience: finalValue });
+                          }}
                         />
                       </div>
                     </div>
@@ -572,11 +627,10 @@ const Careers = () => {
                       />
                       <label
                         htmlFor="resume"
-                        className={`flex flex-col items-center justify-center w-full min-h-[120px] border-2 border-dashed rounded-2xl cursor-pointer transition-all ${
-                          formData.resume
-                            ? "border-green-400/50 bg-green-50/30"
-                            : "border-slate-200 bg-[#F8FAFC] hover:border-[#f59e08]/50 hover:bg-[#f59e08]/03"
-                        }`}
+                        className={`flex flex-col items-center justify-center w-full min-h-[120px] border-2 border-dashed rounded-2xl cursor-pointer transition-all ${formData.resume
+                          ? "border-green-400/50 bg-green-50/30"
+                          : "border-slate-200 bg-[#F8FAFC] hover:border-[#f59e08]/50 hover:bg-[#f59e08]/03"
+                          }`}
                       >
                         {uploading ? (
                           <div className="flex flex-col items-center gap-2">
@@ -677,9 +731,9 @@ const Careers = () => {
                           </>
                         )}
                       </button>
-                      <p className="text-xs text-center text-slate-400 mt-4 font-medium uppercase tracking-widest">
+                      {/* <p className="text-xs text-center text-slate-400 mt-4 font-medium uppercase tracking-widest">
                         By submitting, you agree to our recruitment policy
-                      </p>
+                      </p> */}
                     </div>
                   </form>
                 </motion.div>

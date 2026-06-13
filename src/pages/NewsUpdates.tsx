@@ -6,6 +6,8 @@ import Footer from "@/components/Footer";
 import SEOHead from "@/components/SEOHead";
 import { motion } from "framer-motion";
 import { getImgSrc } from "@/utils/image";
+import Ribbon from "@/components/Ribbon";
+import newsImg2 from "@/assets/newsImg2.webp";
 
 interface SocialVideo {
   id: string | number;
@@ -95,8 +97,7 @@ const NewsUpdates = () => {
         setNewsLoading(true);
         const queryParams = new URLSearchParams({
           page: currentPage.toString(),
-          limit: NEWS_PER_PAGE.toString(),
-          status: 'published'
+          limit: NEWS_PER_PAGE.toString()
         });
 
         if (activeCategory !== "All") {
@@ -202,15 +203,23 @@ const NewsUpdates = () => {
         <section className="bg-[#001529] pt-14 pb-36 relative overflow-hidden">
 
           <div className="absolute inset-0 z-0">
-            <video
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-full object-cover opacity-30"
-              src={getImageUrl(bannerVideo || "/uploads/video/ccvindia1.mp4")}
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-[#001529]/80 via-[#001529]/40 to-[#001529]" />
+            {bannerVideo ? (
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover opacity-30"
+                src={getImageUrl(bannerVideo)}
+              />
+            ) : (
+              <img
+                src={newsImg2}
+                alt="News Banner"
+                className="w-full h-full object-cover opacity-30"
+              />
+            )}
+            <div className="absolute inset-0 " />
           </div>
 
 
@@ -219,7 +228,7 @@ const NewsUpdates = () => {
               style={{ background: "#f59e08", filter: "blur(100px)", transform: "translate(25%,-25%)" }} />
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-[#F8FAFC]" />
+
 
           <div className="container mx-auto px-4 relative z-10">
 
@@ -233,12 +242,7 @@ const NewsUpdates = () => {
 
             <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
 
-              <div className="inline-flex items-center gap-2 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-6">
-                <div className="w-2 h-2 rounded-full bg-[#f59e08] animate-pulse" />
-                <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">
-                  <Bell className="h-3 w-3 inline mr-1" /> Live Market Intelligence
-                </span>
-              </div>
+
 
               <h1 className="text-4xl md:text-6xl font-black text-white mb-5 leading-tight max-w-4xl">
                 IPO News &amp; <span className="text-[#f59e08]">Market Updates</span>
@@ -248,13 +252,17 @@ const NewsUpdates = () => {
               </p>
 
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-x-6 gap-y-4">
                 {heroStats.map((s, i) => (
-                  <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white/80"
-                    style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)" }}>
-                    <span className="text-[#f59e08]">{s.icon}</span>
-                    {s.label}
-                  </div>
+                  <Ribbon
+                    key={i}
+                    fontSize="16px"
+                    cutout="0.8em"
+                    className="flex items-center gap-2 text-white font-bold"
+                  >
+                    <span className="text-white shrink-0">{s.icon}</span>
+                    <span className="pr-1.5">{s.label}</span>
+                  </Ribbon>
                 ))}
               </div>
             </motion.div>
@@ -314,10 +322,7 @@ const NewsUpdates = () => {
                 <div className="flex items-center gap-3 mb-7">
                   <div className="w-1 h-8 rounded-full bg-[#f59e08]" />
                   <h2 className="text-2xl font-black text-[#001529]">Markets &amp; Money Update</h2>
-                  {/* <span className="ml-auto text-xs font-black px-3 py-1 rounded-full"
-                    style={{ background: "rgba(0,21,41,0.08)", color: "#001529" }}>
-                    {totalItems} Articles
-                  </span> */}
+
                 </div>
 
 
@@ -365,12 +370,13 @@ const NewsUpdates = () => {
                               <div>
                                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                                   {item.category && activeCategory === "All" && (
-                                    <span
-                                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
-                                      style={{ background: "rgba(0,21,41,0.08)", color: "#001529" }}
+                                    <Ribbon
+                                      fontSize="10px"
+                                      cutout="0.6em"
+                                      className="inline-flex items-center gap-1 text-white font-black uppercase tracking-widest"
                                     >
-                                      <Tag className="h-2.5 w-2.5" /> {item.category}
-                                    </span>
+                                      <Tag className="h-2.5 w-2.5 text-white" /> {item.category}
+                                    </Ribbon>
                                   )}
                                   <span className="ml-auto flex items-center gap-1 text-[11px] text-slate-400 font-medium">
                                     <Calendar className="h-3 w-3" /> {date}
@@ -615,16 +621,13 @@ const NewsUpdates = () => {
 
 
         <section className="bg-white py-16 border-t border-slate-200">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <div className="inline-flex items-center gap-2 bg-[#f59e08]/12 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-4">
-                <div className="w-2 h-2 rounded-full bg-[#f59e08]" />
-                <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">Our Coverage</span>
-              </div>
+          <div className="container  px-4">
+            <div className=" mb-12">
+
               <h2 className="text-3xl md:text-4xl font-black text-[#001529] mb-4">
                 What We <span className="text-[#f59e08]">Cover</span>
               </h2>
-              <p className="text-slate-500 font-medium max-w-2xl mx-auto">
+              <p className="text-slate-500 font-medium max-w-2xl ">
                 India IPO's news desk monitors and analyses every major development in India's capital markets — so you never miss a beat.
               </p>
             </div>
@@ -672,10 +675,7 @@ const NewsUpdates = () => {
               style={{ background: "#f59e08", filter: "blur(80px)", transform: "translate(20%,-30%)" }} />
           </div>
           <div className="container mx-auto px-4 text-center relative z-10">
-            <div className="inline-flex items-center gap-2 bg-[#f59e08]/15 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-6">
-              <div className="w-2 h-2 rounded-full bg-[#f59e08] animate-pulse" />
-              <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">Never Miss a Beat</span>
-            </div>
+
             <h2 className="text-3xl md:text-5xl font-black text-white mb-5 leading-tight">
               Get Real-Time IPO Alerts &amp;<br />
               <span className="text-[#f59e08]">Market Intelligence</span>

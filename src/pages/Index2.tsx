@@ -1,7 +1,7 @@
 import LazySection from "@/components/LazySection";
 import SEOHead from "@/components/SEOHead";
 import { BASE_URL } from "@/hooks/useCanonicalUrl";
-import SitePopup from "@/components/SitePopup";
+
 import { lazy, Suspense } from "react";
 import Header from "@/components/Header";
 import Footer3 from "@/components/Footer";
@@ -13,13 +13,14 @@ import { ipoListApi } from "@/services/api";
 
 const LiveIPOs = lazy(() => import("@/components/home/LiveIPOs"));
 const GMPSection = lazy(() => import("@/components/home/GMPSection"));
-
+const SitePopup = lazy(() => import("@/components/SitePopup"));
 const IPOTable = lazy(() => import("@/components/home/IPOTable"));
 const BentoGrid = lazy(() => import("@/components/home/BentoGrid"));
 const VideoSection = lazy(() => import("@/components/home/VideoSection"));
 const MarketInsights = lazy(() => import("@/components/home/MarketInsights"));
 const AcademyFAQ = lazy(() => import("@/components/home/AcademyFAQ"));
 const AnnualReport = lazy(() => import("@/components/home/AnnualReport"))
+const LatestNews = lazy(() => import("@/components/home/LatestNews"));
 const Newsletter = lazy(() => import("@/components/home/Newsletter"));
 import { academyItems, faqItems } from "@/data/academyFaqData";
 
@@ -126,6 +127,12 @@ const Index2 = () => {
           </Suspense>
         </LazySection>
 
+        <LazySection>
+          <Suspense fallback={null}>
+            <LatestNews />
+          </Suspense>
+        </LazySection>
+
 
         <LazySection>
           <Suspense fallback={null}>
@@ -137,7 +144,9 @@ const Index2 = () => {
         <Footer3 />
       </main>
 
-      <SitePopup />
+      <Suspense fallback={null}>
+        <SitePopup />
+      </Suspense>
     </div>
   );
 };

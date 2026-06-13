@@ -6,6 +6,7 @@ import { BASE_URL } from "@/hooks/useCanonicalUrl";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import Ribbon from "@/components/Ribbon";
 import {
   Shield, Users, Target, Award, TrendingUp, Building2, CheckCircle2,
   ArrowRight, Star, Globe, BookOpen, Scale, Briefcase, Heart,
@@ -242,9 +243,7 @@ const About = () => {
           <div className="relative container mx-auto px-4 py-20 md:py-28">
             <div className="max-w-3xl">
               <motion.div {...fadeUp}>
-                <span className="inline-block px-4 py-1.5 rounded-full bg-white/10 text-white/80 text-sm font-medium mb-6 backdrop-blur-sm border border-white/20">
-                  Since 2018 • Expert Advisory
-                </span>
+
               </motion.div>
               <motion.h1 {...fadeUp} transition={{ delay: 0.1 }} className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
                 India's Most Trusted
@@ -297,11 +296,17 @@ const About = () => {
                 <p className="text-muted-foreground leading-relaxed mb-6">
                   What sets us apart is our end-to-end approach to the IPO from initial Eligibility assessment to post-listing support. We don't just help companies list; we help them thrive in the public market. Our deep understanding of SEBI regulations, ICDR requirements and market dynamics ensures a smooth and successful IPO journey.
                 </p>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-x-6 gap-y-3">
                   {["Expert Advisory", "140+ IPOs", "Pan India", "End-to-End Advisory"].map((tag) => (
-                    <span key={tag} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                      <CheckCircle2 className="h-3.5 w-3.5" /> {tag}
-                    </span>
+                    <Ribbon
+                      key={tag}
+                      fontSize="15px"
+                      cutout="0.7em"
+                      color="linear-gradient(135deg, #001529 0%, #003d78 60%, #0066cc 100%)"
+                      className="inline-flex items-center gap-1.5 text-white font-bold"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5 text-white" /> {tag}
+                    </Ribbon>
                   ))}
                 </div>
               </motion.div>
@@ -469,7 +474,7 @@ const About = () => {
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <motion.div {...fadeUp}>
-                <span className="text-sm font-semibold text-primary uppercase tracking-wider">What We Offer</span>
+
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mt-2 mb-6">
                   Comprehensive IPO Services
                 </h2>
@@ -576,12 +581,12 @@ const About = () => {
                   <Link to="/ipo-services">View Services</Link>
                 </Button>
               </div>
-              <div className="flex justify-center gap-8 mt-10">
-                <a href="tel:+917428337280" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm">
-                  <Phone className="h-4 w-4" /> +91 74283 37280
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-10">
+                <a href="tel:+917428337280" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm whitespace-nowrap">
+                  <Phone className="h-4 w-4 shrink-0" /> +91 74283 37280
                 </a>
-                <a href="mailto:info@indiaipo.com" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm">
-                  <Mail className="h-4 w-4" /> info@indiaipo.com
+                <a href="mailto:info@indiaipo.com" className="flex items-center gap-2 text-white/70 hover:text-white transition-colors text-sm whitespace-nowrap">
+                  <Mail className="h-4 w-4 shrink-0" /> info@indiaipo.com
                 </a>
               </div>
             </motion.div>

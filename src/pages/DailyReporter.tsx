@@ -170,12 +170,8 @@ const DailyReporter = () => {
             </div>
 
             <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center flex flex-col items-center">
-              <div className="inline-flex items-center gap-2 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-6">
-                <div className="w-2 h-2 rounded-full bg-[#f59e08] animate-pulse" />
-                <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">
-                  <Newspaper className="h-3 w-3 inline mr-1" /> Daily Market Intelligence
-                </span>
-              </div>
+
+
               <h1 className="text-4xl md:text-6xl font-black text-white mb-5 leading-tight max-w-3xl mx-auto">
                 Daily <span className="text-[#f59e08]">Reporter</span>
               </h1>

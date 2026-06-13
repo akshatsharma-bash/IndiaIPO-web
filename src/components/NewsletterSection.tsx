@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import newsletterBg from "@/assets/newsletter-bg.jpg";
 import { useRecaptcha } from "@/hooks/useRecaptcha";
+import { z } from "zod";
+
+const emailSchema = z
+  .string()
+  .trim()
+  .min(1, "Please type email address first")
+  .email("Please enter a valid email address");
 
 const NewsletterSection = () => {
   const [email, setEmail] = useState("");
@@ -13,7 +20,11 @@ const NewsletterSection = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    
+    const result = emailSchema.safeParse(email);
+    if (!result.success) {
+      return toast.error(result.error.errors[0].message);
+    }
 
     try {
       const recaptchaToken = await getToken('newsletter_subscribe');

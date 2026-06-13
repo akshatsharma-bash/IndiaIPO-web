@@ -24,10 +24,26 @@ const isValidUrl = (url) => {
 
 
 // GET all IPOs with search, filter and pagination
+
 router.get("/", async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const admin = req.query.admin || "";
+    let limitInput = parseInt(req.query.limit);
+    if (isNaN(limitInput) || limitInput <= 0) {
+      limitInput = 15;
+    }
+
+    let limit;
+    if (admin === "true") {
+      limit = Math.min(limitInput, 1000);
+    } else {
+      if (limitInput > 20) {
+        limit = 20;
+      } else {
+        limit = limitInput;
+      }
+    }
     const offset = (page - 1) * limit;
     const search = req.query.search || "";
     const category = req.query.category || "";
@@ -35,6 +51,8 @@ router.get("/", async (req, res) => {
     const status = req.query.status || "";
     const sector_name = req.query.sector_name || "";
     const by_sector = req.query.by_sector || "";
+    const sector_id_param = req.query.sector_id || "";
+    const admin_blog_id = req.query.admin_blog_id || "";
 
     if (by_sector === "true") {
       let countQuery = `
@@ -166,15 +184,23 @@ router.get("/", async (req, res) => {
       queryParams.push(category);
     }
 
-    const admin = req.query.admin || "";
-
-    if (admin === "true") {
+    if (admin === "true" || admin_blog_id || sector_id_param) {
       if (upcoming) {
         whereClauses.push("i.upcoming = ?");
         queryParams.push(upcoming);
       }
     } else {
       whereClauses.push("i.upcoming = '0'");
+    }
+
+    if (sector_id_param) {
+      whereClauses.push("(isl.sector_id = ? OR i.sector_id = ?)");
+      queryParams.push(sector_id_param, sector_id_param);
+    }
+
+    if (admin_blog_id) {
+      whereClauses.push("i.admin_blog_id = ?");
+      queryParams.push(admin_blog_id);
     }
 
     if (status) {

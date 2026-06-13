@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import fs from "fs/promises";
 import axios from "axios";
 import FormData from "form-data";
+import { authenticateAdmin } from "../middleware/auth.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -63,6 +64,18 @@ router.post("/", upload.single("file"), async (req, res) => {
 
     // ✅ Folder support
     const folder = req.body.folder || "misc";
+
+    // If not uploading to career, require admin authentication
+    if (folder !== "career") {
+      let isAuthenticated = false;
+      await new Promise((resolve) => {
+        authenticateAdmin(req, res, () => {
+          isAuthenticated = true;
+          resolve();
+        });
+      });
+      if (!isAuthenticated) return;
+    }
 
     // ✅ File extension
     const ext = path.extname(req.file.originalname);

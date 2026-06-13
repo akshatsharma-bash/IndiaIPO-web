@@ -49,7 +49,33 @@ const MarketSnaps = () => {
   const fetchVideos = async (currentPage: number) => {
     try {
       setLoading(true);
-      const token = pageTokens[currentPage] || null;
+
+      let currentTokens = { ...pageTokens };
+
+      // Sequentially fetch page tokens for intermediate pages if they are not already cached
+      for (let p = 1; p < currentPage; p++) {
+        if (currentTokens[p + 1] === undefined) {
+          const token = currentTokens[p] || null;
+          const tokenParam = token ? `&pageToken=${token}` : "";
+          const res = await fetch(
+            `/api/videos/youtube/playlistItems?maxResults=${limit}${tokenParam}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            if (data.nextPageToken) {
+              currentTokens[p + 1] = data.nextPageToken;
+            } else {
+              break;
+            }
+          } else {
+            throw new Error(`Failed to fetch page token for page ${p + 1}`);
+          }
+        }
+      }
+
+      setPageTokens(currentTokens);
+
+      const token = currentTokens[currentPage] || null;
       const tokenParam = token ? `&pageToken=${token}` : "";
 
       const res = await fetch(
@@ -68,14 +94,16 @@ const MarketSnaps = () => {
         }));
         setVideos(mappedVideos);
 
-
         if (data.pageInfo) {
           setTotalPages(Math.ceil(data.pageInfo.totalResults / limit));
         }
 
-
         if (data.nextPageToken) {
-          setPageTokens(prev => ({ ...prev, [currentPage + 1]: data.nextPageToken }));
+          setPageTokens(prev => ({
+            ...prev,
+            ...currentTokens,
+            [currentPage + 1]: data.nextPageToken
+          }));
         }
       }
     } catch (err) {
@@ -150,10 +178,7 @@ const MarketSnaps = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent/20 border border-accent/30 text-accent font-semibold text-sm mb-6 backdrop-blur-md">
-                <PlayCircle className="w-4 h-4 fill-accent text-foreground" />
-                <span>Market Snaps & Media</span>
-              </div>
+
               <h1 className="text-4xl md:text-6xl font-black font-heading tracking-tight mb-6 drop-shadow-sm">
                 Watch Our <br className="md:hidden" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-gold-light">IPO Video Updates</span>
@@ -216,9 +241,17 @@ const MarketSnaps = () => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
                         transition={{ delay: idx * 0.05 }}
-                        className={`group flex flex-col bg-card rounded-2xl border border-border overflow-hidden hover:shadow-2xl hover:border-primary/40 transition-all duration-300 ${viewMode === "list" ? "md:flex-row" : ""}`}
+                        className={`group flex flex-col bg-card rounded-2xl border border-border shadow-md hover:shadow-2xl transition-all duration-500 ${viewMode === "grid"
+                            ? "overflow-visible mt-12 mb-4 hover:-translate-y-1.5 hover:border-primary/30"
+                            : "overflow-hidden hover:border-primary/30 md:flex-row"
+                          }`}
                       >
-                        <div className={`relative overflow-hidden bg-black ${viewMode === "list" ? "md:w-2/5 shrink-0" : "aspect-video"}`}>
+                        <div
+                          className={`relative overflow-hidden bg-black rounded-xl shadow-lg group-hover:shadow-2xl transition-all duration-500 ${viewMode === "grid"
+                              ? "mx-5 -mt-8 mb-4 aspect-video z-10 border border-border/50"
+                              : "md:w-2/5 shrink-0 aspect-video m-4 md:mr-2"
+                            }`}
+                        >
                           {isPlaying && yId ? (
                             <iframe
                               src={`https://www.youtube.com/embed/${yId}?autoplay=1`}
@@ -247,7 +280,7 @@ const MarketSnaps = () => {
                           )}
                         </div>
 
-                        <div className="p-6 flex flex-col justify-center flex-1">
+                        <div className="p-6 pt-2 flex flex-col justify-center flex-1">
                           <div className="flex items-center gap-2 text-xs font-semibold text-primary mb-3 uppercase tracking-wider">
                             <Calendar className="w-3.5 h-3.5" />
                             {new Date(video.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -255,17 +288,18 @@ const MarketSnaps = () => {
                           <h3 className={`font-bold font-heading text-foreground group-hover:text-primary transition-colors line-clamp-2 ${viewMode === "list" ? "text-xl md:text-2xl mb-4" : "text-lg mb-2"}`}>
                             {video.title}
                           </h3>
-                          <div className="mt-auto pt-4 flex items-center justify-between">
+                          <div className="mt-auto pt-4 border-t border-border/50 flex items-center justify-between">
                             {!isPlaying ? (
                               <button
                                 onClick={() => setPlayingVideoId(video.id)}
-                                className="text-sm font-semibold text-accent group-hover:text-gold transition-colors flex items-center focus:outline-none"
+                                className="text-sm font-bold text-accent group-hover:text-gold transition-colors flex items-center focus:outline-none"
                               >
-                                Play Video <span className="ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all">→</span>
+                                Play Video
+                                <PlayCircle className="w-4 h-4 ml-1.5 opacity-80 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all fill-accent/10" />
                               </button>
                             ) : (
-                              <span className="text-sm font-semibold text-primary flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-primary animate-pulse" /> Playing
+                              <span className="text-sm font-bold text-primary flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-primary animate-ping" /> Playing Now
                               </span>
                             )}
                           </div>
@@ -312,8 +346,7 @@ const MarketSnaps = () => {
                           key={p}
                           variant={page === p ? "default" : "ghost"}
                           onClick={() => setPage(p as number)}
-                          disabled={pageTokens[p as number] === undefined && (p as number) !== 1}
-                          className={`min-w-[40px] h-10 rounded-full font-bold ${page === p ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground'} ${(pageTokens[p as number] === undefined && (p as number) !== 1) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                          className={`min-w-[40px] h-10 rounded-full font-bold ${page === p ? 'bg-primary text-primary-foreground shadow-md' : 'text-muted-foreground'}`}
                         >
                           {p}
                         </Button>

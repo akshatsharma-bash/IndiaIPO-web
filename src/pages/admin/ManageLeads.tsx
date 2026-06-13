@@ -152,44 +152,67 @@ const ManageLeads = () => {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {leads.map((lead) => (
-                      <tr key={lead.id} className={`hover:bg-muted/30 transition-colors ${!lead.is_read ? "bg-accent/10" : ""}`}>
+                      <tr
+                        key={lead.id}
+                        className={`hover:bg-muted/30 transition-colors ${!lead.is_read ? "bg-accent/10" : ""
+                          } cursor-pointer`}
+                        onClick={() => handleViewDetails(lead)}
+                      >
                         <td className="py-4 px-4 text-center">
-                          {!lead.is_read && <div className="w-2.5 h-2.5 rounded-full bg-accent mx-auto animate-pulse" title="Unread" />}
+                          {!lead.is_read && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-accent mx-auto animate-pulse" title="Unread" />
+                          )}
                         </td>
+
                         <td className="py-4 px-4">
                           <div className="font-bold text-foreground">{lead.name}</div>
                           <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 max-w-[200px] truncate">
                             {lead.message.length > 40 ? lead.message.substring(0, 40) + "..." : lead.message}
                           </div>
                         </td>
+
                         <td className="py-4 px-4 text-muted-foreground">
                           {lead.Cname || "—"}
                         </td>
+
                         <td className="py-4 px-4">
                           <div className="text-xs font-semibold text-foreground">{lead.email}</div>
                           <div className="text-[10px] text-muted-foreground">{lead.mobile || "—"}</div>
                         </td>
+
                         <td className="py-4 px-4 whitespace-nowrap">
                           <Badge variant="outline" className="font-medium text-[10px]">
-                            {new Date(lead.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                            {new Date(lead.created_at).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
                           </Badge>
                         </td>
+
                         <td className="py-4 px-4 text-right px-6">
                           <div className="flex justify-end gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-accent hover:text-accent hover:bg-accent/10"
-                              onClick={() => handleViewDetails(lead)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDetails(lead);
+                              }}
                               title="View Details"
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
+
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                              onClick={() => deleteLead(lead.id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteLead(lead.id);
+                              }}
                               title="Delete"
                             >
                               <Trash2 className="h-4 w-4" />

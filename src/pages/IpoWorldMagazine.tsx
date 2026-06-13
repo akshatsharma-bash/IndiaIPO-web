@@ -188,10 +188,7 @@ const IpoWorldMagazine = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <Badge variant="outline" className="mb-4 border-white/20 text-white/80 bg-white/5 px-4 py-1">
-                <BookOpen className="h-3.5 w-3.5 mr-2" />
-                {t.heroBadge}
-              </Badge>
+
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 tracking-tight">
                 {language === 'hindi' ? (
                   <>आईपीओ <span className="text-blue-400">वर्ल्ड</span> मैगजीन</>

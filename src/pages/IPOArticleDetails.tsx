@@ -9,7 +9,7 @@ import EditorialTeamInfo from "@/components/EditorialTeamInfo";
 import {
   Loader2, Calendar, TrendingUp, ArrowLeft, ArrowRight,
   Info, BookOpen, ChevronRight, Tag, Share2, Facebook, Linkedin,
-  Clock, User, MessageCircle, Flame, Zap, Check, Home, HelpCircle
+  Clock, User, MessageCircle, Flame, Zap, Check, Home, HelpCircle, Newspaper
 } from "lucide-react";
 import { getImgSrc } from "@/utils/image";
 import { motion } from "framer-motion";
@@ -77,7 +77,7 @@ const getCleanBlogContent = (html: string | null | undefined) => {
 };
 
 const linkifyMerchantBankers = (html: string, bankers: any[]) => {
-  if (!html || !bankers || bankers.length === 0) return html;
+  return html;
 
   // Filter out invalid entries and map each banker to include its core name length for descending sorting
   const sortedBankers = [...bankers]
@@ -135,6 +135,59 @@ const linkifyMerchantBankers = (html: string, bankers: any[]) => {
   return tempHtml;
 };
 
+const seoInterlink = (html: string) => {
+  if (!html) return html;
+
+  const rules = [
+    {
+      keyword: "check IPO eligibility",
+      url: "/ipo-eligibility-check",
+      limit: 2,
+    },
+    {
+      keyword: "SME IPO consultant",
+      url: "/sme-ipo-consultant",
+      limit: 1,
+    },
+    {
+      keyword: "SME IPO guide",
+      url: "/blogs/sme-ipo-guide-india",
+      limit: 1,
+    },
+    {
+      keyword: "live IPO tracker",
+      url: "/sme-ipos",
+      limit: 1,
+    },
+  ];
+
+  let tempHtml = html;
+
+  rules.forEach(({ keyword, url, limit }) => {
+    const escapedKeyword = keyword.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const patternStr = escapedKeyword.replace(/ /g, "\\s+");
+
+    const regex = new RegExp(
+      `(<a[^>]*>[\\s\\S]*?</a>|<[^>]+>)|(${patternStr})`,
+      "gi"
+    );
+
+    let count = 0;
+    tempHtml = tempHtml.replace(regex, (match, tag, text) => {
+      if (tag) {
+        return match;
+      }
+      if (count < limit) {
+        count++;
+        return `<a href="${url}" class="font-bold hover:underline text-[#1e40af]" style="font-weight: 800; text-decoration: underline; color: #1e40af;">${match}</a>`;
+      }
+      return match;
+    });
+  });
+
+  return tempHtml;
+};
+
 const ArticleRenderer = ({ content, bankers }: { content: string; bankers?: any[] }) => {
   const navigate = useNavigate();
 
@@ -157,6 +210,7 @@ const ArticleRenderer = ({ content, bankers }: { content: string; bankers?: any[
   if (hasHtmlTags(cleanContent)) {
     let processedContent = getCleanBlogContent(cleanContent);
     processedContent = linkifyMerchantBankers(processedContent, bankers || []);
+    processedContent = seoInterlink(processedContent);
     return (
       <>
         <style>{`
@@ -225,9 +279,9 @@ const ArticleRenderer = ({ content, bankers }: { content: string; bankers?: any[
   }
 
   return (
-    <div 
+    <div
       className="text-slate-600 whitespace-pre-wrap leading-relaxed text-lg"
-      dangerouslySetInnerHTML={{ __html: linkifyMerchantBankers(cleanContent, bankers || []) }}
+      dangerouslySetInnerHTML={{ __html: seoInterlink(linkifyMerchantBankers(cleanContent, bankers || [])) }}
       onClick={handleContentClick}
     />
   );
@@ -288,6 +342,31 @@ const IPOArticleDetails = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [copied, setCopied] = useState(false);
   const [bankers, setBankers] = useState<any[]>([]);
+  const [trendingNews, setTrendingNews] = useState<any[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const res = await fetch("/api/news?limit=9");
+        if (res.ok) {
+          const data = await res.json();
+          const items = data.data || [];
+          const trending = items.filter((item: any) => item.trending_news === 1 || item.trending_news === "1");
+          if (trending.length > 0) {
+            setTrendingNews(trending.slice(0, 4));
+          } else {
+            setTrendingNews(items.slice(0, 4));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch trending news for sidebar:", err);
+      } finally {
+        setNewsLoading(false);
+      }
+    };
+    fetchNews();
+  }, []);
 
   useEffect(() => {
     const fetchAllBankers = async () => {
@@ -702,6 +781,114 @@ const IPOArticleDetails = () => {
               <div>
                 <p className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Market Bulletins</p>
                 <p className="text-[9px] text-slate-500 font-medium">Get 5-minute IPO summaries every morning.</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative overflow-hidden group/side">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+              <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center justify-between">
+                <span>Quick IPO Resources</span>
+                <TrendingUp className="w-4 h-4 text-blue-600" />
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  {
+                    label: "Check IPO Eligibility",
+                    url: "/ipo-eligibility-check",
+                    desc: "Verify if your company is ready for IPO",
+                    bg: "bg-blue-50/50 hover:bg-blue-100/50 border-blue-100 text-blue-700",
+                  },
+                  {
+                    label: "SME IPO Consultant",
+                    url: "/sme-ipo-consultant",
+                    desc: "Get expert advice for SME listing",
+                    bg: "bg-emerald-50/50 hover:bg-emerald-100/50 border-emerald-100 text-emerald-700",
+                  },
+                  {
+                    label: "SME IPO Guide",
+                    url: "/blogs/sme-ipo-guide-india",
+                    desc: "Complete guide on Indian SME IPOs",
+                    bg: "bg-amber-50/50 hover:bg-amber-100/50 border-amber-100 text-amber-700",
+                  },
+                  {
+                    label: "Live IPO Tracker",
+                    url: "/sme-ipos",
+                    desc: "Track active & upcoming SME IPOs",
+                    bg: "bg-purple-50/50 hover:bg-purple-100/50 border-purple-100 text-purple-700",
+                  },
+                ].map((item, idx) => (
+                  <Link
+                    key={idx}
+                    to={item.url}
+                    className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50/40 hover:border-blue-200 text-slate-800 hover:text-[#1e40af] transition-all hover:scale-[1.01] active:scale-95 group"
+                  >
+                    <div>
+                      <p className="font-black text-xs leading-tight">{item.label}</p>
+                      <p className="text-[10px] text-slate-400 mt-1 font-medium group-hover:text-blue-500/80 transition-colors">{item.desc}</p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1e40af] group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-200 shadow-sm relative overflow-hidden group/side">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+              <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center justify-between">
+                <span>Trending News</span>
+                <Newspaper className="w-4 h-4 text-blue-600" />
+              </p>
+
+              <div className="space-y-4">
+                {newsLoading ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  </div>
+                ) : trendingNews.length > 0 ? (
+                  trendingNews.map((item) => {
+                    const fallbackImage = "https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?q=80&w=1000&auto=format&fit=crop";
+                    const imageSrc = getImgSrc(item.image) || fallbackImage;
+                    return (
+                      <Link
+                        key={item.id}
+                        to={`/news/detail/${item.slug || item.id}`}
+                        className="flex gap-3 items-center p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-blue-50/40 hover:border-blue-200 text-slate-800 hover:text-[#1e40af] transition-all hover:scale-[1.01] active:scale-95 group block"
+                      >
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 shadow-sm border border-slate-200 bg-slate-100">
+                          <img
+                            src={imageSrc}
+                            alt={item.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = fallbackImage;
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="font-black text-xs leading-tight line-clamp-2">{item.title}</p>
+                          <span className="text-[9px] font-bold text-slate-400 mt-1 block">
+                            {item.category || "General"}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#1e40af] group-hover:translate-x-0.5 transition-all shrink-0 self-center" />
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <p className="text-xs text-slate-400 text-center py-2">No trending news available.</p>
+                )}
+
+                <div className="mt-6 pt-4 border-t border-slate-100 text-center">
+                  <Link
+                    to="/news"
+                    className="text-[11px] font-black text-blue-600 uppercase tracking-widest hover:tracking-[0.15em] transition-all inline-block"
+                  >
+                    View All News
+                  </Link>
+                </div>
               </div>
             </div>
 

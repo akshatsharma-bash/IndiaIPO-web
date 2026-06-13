@@ -124,14 +124,14 @@ const Footer = () => {
       <div className="border-t border-background/10 bg-foreground">
         <div className="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex flex-wrap gap-4">
-            <Link to="/disclaimer" className="text-xs text-background/50 hover:text-accent transition-colors">Disclaimer</Link>
+            <Link to="/disclaimer" className="text-xs text-background/80 hover:text-accent transition-colors">Disclaimer</Link>
             <span className="text-background/20">|</span>
-            <Link to="/privacy-policy" className="text-xs text-background/50 hover:text-accent transition-colors">Privacy & Policy</Link>
+            <Link to="/privacy-policy" className="text-xs text-background/80 hover:text-accent transition-colors">Privacy & Policy</Link>
             <span className="text-background/20">|</span>
-            <Link to="/terms-conditions" className="text-xs text-background/50 hover:text-accent transition-colors">Terms & Conditions</Link>
+            <Link to="/terms-conditions" className="text-xs text-background/80 hover:text-accent transition-colors">Terms & Conditions</Link>
           </div>
-          <p className="text-xs text-background/40">
-            Copyright © 2026 All rights reserved by - <span className="text-background/60 font-medium">Bmarkt Tecamat Private Limited</span>
+          <p className="text-sm text-background/80">
+            Copyright © 2026 All rights reserved by - <span className="text-background/90 font-medium">Bmarkt Tecamat Private Limited</span>
           </p>
         </div>
       </div>

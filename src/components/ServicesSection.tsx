@@ -1,6 +1,6 @@
 import { Building2, TrendingUp, BarChart3, Wallet, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+
 import { Button } from "@/components/ui/button";
 import servicesImg from "@/assets/service.webp";
 
@@ -40,34 +40,27 @@ const ServicesSection = () => {
     <section className="py-24 bg-background">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+        <div
+
           className="mb-12 max-w-2xl"
         >
-          <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold text-primary border border-primary mb-6">
-            What We Offer
-          </span>
+
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-foreground mb-4 leading-tight">
             Comprehensive <span className="text-primary">IPO Services</span>
           </h2>
           <p className="text-muted-foreground text-base">
             From planning to listing day, we offer complete IPO advisory services aligned to your business objectives.
           </p>
-        </motion.div>
+        </div>
 
         {/* Grid for Cards and Image */}
         <div className="grid lg:grid-cols-2 gap-16 items-stretch">
           <div className="grid grid-cols-2 gap-3 md:gap-5">
             {serviceCards.map((service, idx) => (
-              <motion.div
+              <div
                 key={service.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                whileHover={{ y: -5, scale: 1.02 }}
+
+
                 className="h-full"
               >
                 <Link
@@ -83,15 +76,12 @@ const ServicesSection = () => {
                     Learn More <ArrowRight className="ml-1 h-4 w-4" />
                   </span>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
+          <div
+
             className="relative hidden lg:flex flex-col h-full"
           >
             <div className="relative rounded-2xl overflow-hidden shadow-2xl h-full flex-grow">
@@ -101,7 +91,11 @@ const ServicesSection = () => {
             <div className="absolute bottom-8 left-8 right-8">
               <h3 className="text-2xl font-bold font-heading text-background mb-3">Ready to Go Public?</h3>
               <p className="text-background/80 text-sm mb-5">Get a free IPO Eligibility assessment from our experts today.</p>
-              <Button className="bg-accent text-accent-foreground hover:bg-accent/90 font-semibold rounded-xl gold-glow" asChild>
+              <Button className="text-white font-semibold rounded-xl shadow-lg hover:opacity-95"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #001529 0%, #003d78 60%, #0066cc 100%)",
+                }} asChild>
                 <Link to="/ipo-eligibility-check">
                   Check Eligibility Free
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -110,7 +104,7 @@ const ServicesSection = () => {
             </div>
 
             <div className="absolute -bottom-4 -right-4 w-24 h-24 border-r-4 border-b-4 border-primary rounded-br-3xl" />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

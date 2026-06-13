@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import AdminLayout from "@/components/AdminLayout";
 import { getImageUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,11 @@ const ManageCareerApplications = () => {
             <h1 className="text-2xl font-bold text-foreground font-heading">Career Applications / Enquiries</h1>
             <p className="text-sm text-muted-foreground">Manage and review candidates who applied for jobs.</p>
           </div>
+          <Button asChild className="bg-primary hover:bg-primary/90">
+            <Link to="/admin/career-roles" className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" /> Manage Roles
+            </Link>
+          </Button>
         </div>
 
         {loading ? (

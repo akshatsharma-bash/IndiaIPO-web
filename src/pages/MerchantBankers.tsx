@@ -1475,16 +1475,7 @@ const MerchantBankersPage = ({ type }: { type: "SME" | "Mainboard" }) => {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-5xl text-left"
             >
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 mb-6 text-sm font-black uppercase tracking-widest"
-                style={{
-                  background: "rgba(245,158,8,0.2)",
-                  color: G,
-                  border: "1px solid rgba(245,158,8,0.35)",
-                }}
-              >
-                <Shield className="h-4 w-4" /> Expert Merchant Bankers
-              </div>
+
               <h1 className="text-3xl md:text-5xl lg:text-7xl font-black text-white mb-5 leading-tight">
                 {isSME ? "SME" : "Mainboard"}{" "}
                 <span style={{ color: G }}>Merchant Bankers</span>

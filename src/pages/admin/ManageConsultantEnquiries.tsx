@@ -170,7 +170,19 @@ const ManageConsultantEnquiries = () => {
             </TableHeader>
             <TableBody>
               {currentEnquiries.map((e) => (
-                <TableRow key={e.id} className={`${!e.is_read ? "bg-primary/5 font-medium" : "text-muted-foreground"}`}>
+                <TableRow
+                  key={e.id}
+                  className={`cursor-pointer hover:bg-muted/30 transition-colors ${!e.is_read ? "bg-primary/5 font-medium" : "text-muted-foreground"
+                    }`}
+                  onClick={(ev) => {
+                    ev.stopPropagation();
+                    setSelectedEnquiry(e);
+
+                    if (!e.is_read) {
+                      markAsRead(e.id);
+                    }
+                  }}
+                >
                   <TableCell>
                     {!e.is_read && <div className="w-2 h-2 rounded-full bg-primary animate-pulse mx-auto" />}
                   </TableCell>
@@ -212,11 +224,14 @@ const ManageConsultantEnquiries = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
-                      <Button
+                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                        onClick={() => setSelectedEnquiry(e)}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setSelectedEnquiry(e);
+                        }}
                         title="View full details"
                       >
                         <Eye className="h-3.5 w-3.5" />
@@ -225,7 +240,10 @@ const ManageConsultantEnquiries = () => {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                        onClick={() => copyToClipboard(e)}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          copyToClipboard(e);
+                        }}
                         title="Copy details"
                       >
                         <Copy className="h-3.5 w-3.5" />
@@ -235,7 +253,10 @@ const ManageConsultantEnquiries = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-primary hover:bg-primary/10"
-                          onClick={() => markAsRead(e.id)}
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            markAsRead(e.id);
+                          }}
                           title="Mark as read"
                         >
                           <CheckCircle className="h-3.5 w-3.5" />
@@ -249,7 +270,10 @@ const ManageConsultantEnquiries = () => {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                        onClick={() => del(e.id)}
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          del(e.id);
+                        }}
                         title="Delete"
                       >
                         <Trash2 className="h-3.5 w-3.5" />

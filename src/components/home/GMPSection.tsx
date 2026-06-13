@@ -140,11 +140,9 @@ const GMPSection: React.FC<GMPSectionProps> = ({ ipos: initialIpos = [], isLoadi
 
                     className="lg:w-1/3"
                 >
-                    <span className="text-[#f99810] font-bold tracking-widest uppercase text-xs mb-2 block">
-                        Market Trends
-                    </span>
+
                     <h2 className="text-4xl font-extrabold tracking-tight mb-6 text-slate-900">
-                        Top <strong style={{ color: "#f99810" }}>GMP</strong> Performers
+                        Top <strong style={{ color: "#2557C5" }}>GMP</strong> Performers
                     </h2>
                     <p className="text-slate-500 mb-8 leading-relaxed">
                         Grey Market Premium (GMP) reflects demand for IPO shares before
@@ -163,60 +161,60 @@ const GMPSection: React.FC<GMPSectionProps> = ({ ipos: initialIpos = [], isLoadi
                 <div className="lg:w-2/3 grid grid-cols-2 md:grid-cols-2 gap-4 md:gap-6 w-full">
                     {isLoading
                         ? Array.from({ length: 4 }).map((_, i) => (
-                              <div
-                                  key={i}
-                                  className="bg-white p-3 md:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm border border-slate-100 gap-3 animate-pulse"
-                              >
-                                  <div className="flex items-center gap-3 md:gap-4 w-full overflow-hidden">
-                                      <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-slate-100 flex-shrink-0" />
-                                      <div className="min-w-0 flex-1 space-y-2">
-                                          <div className="h-4 bg-slate-100 rounded w-3/4" />
-                                          <div className="h-3 bg-slate-100 rounded w-1/2" />
-                                      </div>
-                                  </div>
-                                  <div className="w-full sm:w-auto space-y-1.5 flex flex-col items-start sm:items-end">
-                                      <div className="h-4 bg-slate-100 rounded w-16" />
-                                      <div className="h-3 bg-slate-100 rounded w-12" />
-                                  </div>
-                              </div>
-                          ))
+                            <div
+                                key={i}
+                                className="bg-white p-3 md:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm border border-slate-100 gap-3 animate-pulse"
+                            >
+                                <div className="flex items-center gap-3 md:gap-4 w-full overflow-hidden">
+                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-slate-100 flex-shrink-0" />
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <div className="h-4 bg-slate-100 rounded w-3/4" />
+                                        <div className="h-3 bg-slate-100 rounded w-1/2" />
+                                    </div>
+                                </div>
+                                <div className="w-full sm:w-auto space-y-1.5 flex flex-col items-start sm:items-end">
+                                    <div className="h-4 bg-slate-100 rounded w-16" />
+                                    <div className="h-3 bg-slate-100 rounded w-12" />
+                                </div>
+                            </div>
+                        ))
                         : displayItems.map((item, i) => (
-                              <div
-                                  key={i}
+                            <div
+                                key={i}
 
 
-                                  onClick={() =>
-                                      navigate(item.slug ? `/ipo-blogs/${item.slug}` : "/all-ipos")
-                                  }
-                                  className="bg-white p-3 md:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm border border-slate-100 transition-colors gap-3 cursor-pointer"
-                              >
-                                  <div className="flex items-center gap-3 md:gap-4 w-full overflow-hidden">
-                                      <div
-                                          className={`w-10 h-10 md:w-12 md:h-12 rounded-lg ${item.bg} flex-shrink-0 flex items-center justify-center`}
-                                      >
-                                          {item.icon}
-                                      </div>
+                                onClick={() =>
+                                    navigate(item.slug ? `/ipo-blogs/${item.slug}` : "/all-ipos")
+                                }
+                                className="bg-white p-3 md:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm border border-slate-100 transition-colors gap-3 cursor-pointer"
+                            >
+                                <div className="flex items-center gap-3 md:gap-4 w-full overflow-hidden">
+                                    <div
+                                        className={`w-10 h-10 md:w-12 md:h-12 rounded-lg ${item.bg} flex-shrink-0 flex items-center justify-center`}
+                                    >
+                                        {item.icon}
+                                    </div>
 
-                                      <div className="min-w-0 flex-1">
-                                          <h4 className="font-bold text-slate-900 text-xs md:text-base truncate uppercase">
-                                              {item.name}
-                                          </h4>
-                                          <p className="text-[9px] md:text-[10px] text-slate-500 truncate">
-                                              Date: {item.date}
-                                          </p>
-                                      </div>
-                                  </div>
-                                  <div className="text-left sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-slate-50">
-                                      <p className="text-green-700 font-black text-xs md:text-base flex items-center gap-1 sm:justify-end">
-                                          <TrendingUp className="h-3 md:h-3.5 w-3 md:w-3.5" />
-                                          {item.gmp}
-                                      </p>
-                                      <p className="text-[9px] md:text-[10px] font-medium text-slate-500">
-                                          GMP ({item.pct})
-                                      </p>
-                                  </div>
-                              </div>
-                          ))}
+                                    <div className="min-w-0 flex-1">
+                                        <p className="font-bold text-slate-900 text-xs md:text-base truncate uppercase">
+                                            {item.name}
+                                        </p>
+                                        <p className="text-[9px] md:text-[10px] text-slate-500 truncate">
+                                            Date: {item.date}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="text-left sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-slate-50">
+                                    <p className="text-green-700 font-black text-xs md:text-base flex items-center gap-1 sm:justify-end">
+                                        <TrendingUp className="h-3 md:h-3.5 w-3 md:w-3.5" />
+                                        {item.gmp}
+                                    </p>
+                                    <p className="text-[9px] md:text-[10px] font-medium text-slate-500">
+                                        GMP ({item.pct})
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
                 </div>
             </div>
         </section>

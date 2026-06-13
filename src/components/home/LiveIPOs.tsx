@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { cn, getLatestGmpValue } from "@/lib/utils";
+import Ribbon from "@/components/Ribbon";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -22,9 +23,18 @@ const statusColor: Record<string, string> = {
         "bg-rose-100 text-rose-800 border-rose-300 group-hover:bg-rose-600 group-hover:text-white group-hover:border-rose-600 transition-all duration-300",
     "Listing Today":
         "bg-red-100 text-red-800 border-red-300 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-600 transition-all duration-300",
-    "Date Not Declared":
-        "bg-orange-100 text-orange-800 border-orange-300 group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-600 transition-all duration-300",
 };
+
+const statusRibbonBg: Record<string, string> = {
+    Active: "linear-gradient(135deg, #10b981, #059669)",
+    Upcoming: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+    "Issue Closed (Unlisted)": "linear-gradient(135deg, #f59e0b, #d97706)",
+    Listed: "linear-gradient(135deg, #64748b, #475569)",
+    Inactive: "linear-gradient(135deg, #f43f5e, #be123c)",
+    "Listing Today": "linear-gradient(135deg, #ef4444, #b91c1c)",
+    "Date Not Declared": "linear-gradient(135deg, #f97316, #c2410c)",
+};
+
 
 
 const getCalculatedStatus = (item: any) => {
@@ -187,11 +197,9 @@ const LiveIPOs: React.FC<LiveIPOsProps> = ({ ipos: initialIpos = [], isLoading =
                 className="flex justify-between items-end mb-12"
             >
                 <div>
-                    <span className="text-[#f99810] font-bold tracking-widest uppercase text-xs mb-2 block">
-                        Market Watch
-                    </span>
+
                     <h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
-                        Live <strong style={{ color: "#f99810" }}>IPO</strong> Listings
+                        Live <strong style={{ color: "#2557C5" }}>IPO</strong> Listings
                     </h2>
                     <p className="text-gray-600 pt-4">
                         Track ongoing, upcoming and closed IPOs with key details including
@@ -258,15 +266,14 @@ const LiveIPOs: React.FC<LiveIPOsProps> = ({ ipos: initialIpos = [], isLoading =
                                         <div className="w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center font-bold text-blue-900 text-lg group-hover:bg-blue-900 group-hover:text-white transition-colors duration-200 text-center p-2">
                                             {ipo.companyName.slice(0, 2).toUpperCase()}
                                         </div>
-                                        <span
-                                            className={cn(
-                                                "px-3 py-1 text-[10px] font-black uppercase tracking-tighter rounded-full border transition-all",
-                                                statusColor[ipo.status] ||
-                                                "bg-slate-50 text-slate-500 border-slate-200",
-                                            )}
+                                        <Ribbon
+                                            fontSize="10px"
+                                            cutout="0.5em"
+                                            color={statusRibbonBg[ipo.status] || "linear-gradient(135deg, #64748b, #475569)"}
+                                            className="inline-flex items-center text-white font-black uppercase tracking-tighter"
                                         >
                                             {ipo.status === "Active" ? "Open" : ipo.status}
-                                        </span>
+                                        </Ribbon>
                                     </div>
                                     <h3 className="text-xl font-bold mb-4 group-hover:text-blue-900 transition-colors text-slate-900 line-clamp-1">
                                         {ipo.companyName}

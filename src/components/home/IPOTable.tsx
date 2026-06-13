@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-import { ArrowRight, Activity, Newspaper } from "lucide-react";
+import Ribbon from "../Ribbon";
+import { ArrowRight, Activity, Newspaper, } from "lucide-react";
 import { getImgSrc } from "@/utils/image";
 import { cn, getLatestGmpValue } from "@/lib/utils";
 
@@ -136,10 +136,17 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
                 className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6"
             >
                 <div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full text-blue-700 text-xs font-bold mb-4">
+
+
+                    <Ribbon
+                        fontSize="11px"
+                        cutout="0.5em"
+
+                        className="inline-flex items-center gap-2 text-blue-300 font-bold border border-blue-500/30"
+                    >
                         <Activity className="h-4 w-4" />
                         To Be Listed
-                    </div>
+                    </Ribbon>
                     <h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
                         Open / Upcoming <span className="text-blue-900">IPOs</span>
                     </h2>
@@ -291,8 +298,8 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
                                                     className={cn(
                                                         "text-[14px] font-bold flex items-center justify-center gap-1",
                                                         ipo.gmp && ipo.gmp !== "—"
-                                                            ? "text-green-700"
-                                                            : "text-slate-400",
+                                                            ? "text-green-900"
+                                                            : "text-slate-700",
                                                     )}
                                                 >
                                                     {ipo.latestGmp}
@@ -430,7 +437,7 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
                                     <div className="mx-4 h-px bg-slate-100" />
                                     <div className="grid grid-cols-2 gap-2 p-4">
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
                                                 Date
                                             </span>
                                             <span className="text-[11px] font-semibold text-slate-700">
@@ -438,7 +445,7 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
                                             </span>
                                         </div>
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
                                                 Issue Size
                                             </span>
                                             <span className="text-[11px] font-bold text-blue-700">
@@ -446,7 +453,7 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
                                             </span>
                                         </div>
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
                                                 Price Band
                                             </span>
                                             <span className="text-[11px] font-semibold text-slate-700">
@@ -454,11 +461,11 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
                                             </span>
                                         </div>
                                         <div className="flex flex-col gap-0.5">
-                                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                            <span className="text-[10px] font-bold uppercase tracking-wide text-slate-600">
                                                 GMP
                                             </span>
                                             <span
-                                                className={`text-[11px] font-bold ${ipo.gmp && ipo.gmp !== "—" ? "text-green-600" : "text-slate-400"}`}
+                                                className={`text-[11px] font-bold ${ipo.gmp && ipo.gmp !== "—" ? "text-green-800" : "text-slate-600"}`}
                                             >
                                                 {ipo.latestGmp}
                                             </span>
@@ -483,7 +490,7 @@ const IPOTable: React.FC<IPOTableProps> = ({ ipos: ipoList = [], isLoading: load
 
             <div className="mt-8 bg-red-50 border border-red-100 rounded-xl overflow-hidden shadow-sm py-4">
                 <div className="marquee-wrapper">
-                    <div className="marquee-track text-[12px] font-bold text-red-600 italic">
+                    <div className="marquee-track text-[13px] font-semibold text-red-900 italic">
 
                         <div className="marquee-item">
                             Note: The data provided on Grey Market Premium (GMP) is solely for informational purposes related to the grey market news.

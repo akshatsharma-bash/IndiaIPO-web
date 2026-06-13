@@ -426,6 +426,17 @@ const Header = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const headerRef = useRef<HTMLDivElement>(null);
+  const [loadHeaderData, setLoadHeaderData] = useState(false);
+
+
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      setLoadHeaderData(true);
+    }, 1500);
+
+    return () => window.clearTimeout(t);
+  }, []);
 
   const { data: notificationsData } = useQuery({
     queryKey: ["header-notifications"],
@@ -433,6 +444,7 @@ const Header = () => {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
+    enabled: loadHeaderData,
   });
 
   const notifItems = useMemo(() => {
@@ -477,6 +489,7 @@ const Header = () => {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
+    enabled: loadHeaderData,
   });
 
   const knowledgeItems = useMemo(() => {
@@ -531,6 +544,7 @@ const Header = () => {
     staleTime: 300000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
+    enabled: loadHeaderData,
   });
 
   const { smeBankerItems, mainboardBankerItems } = useMemo(() => {
@@ -1062,7 +1076,11 @@ const Header = () => {
         </div>
 
         <button
-          className="xl:hidden flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:bg-black/5"
+          type="button"
+          aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={mobileOpen}
+          aria-controls="mobile-navigation"
+          className="xl:hidden flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 hover:bg-black/5 focus:outline-none focus:ring-2 focus:ring-[#001529] focus:ring-offset-2"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
           <AnimatePresence mode="wait">
@@ -1074,7 +1092,11 @@ const Header = () => {
                 exit={{ rotate: 90, opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <X className="h-5 w-5" style={{ color: "#001529" }} />
+                <X
+                  className="h-5 w-5"
+                  style={{ color: "#001529" }}
+                  aria-hidden="true"
+                />
               </motion.div>
             ) : (
               <motion.div
@@ -1084,7 +1106,11 @@ const Header = () => {
                 exit={{ rotate: -90, opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <Menu className="h-5 w-5" style={{ color: "#001529" }} />
+                <Menu
+                  className="h-5 w-5"
+                  style={{ color: "#001529" }}
+                  aria-hidden="true"
+                />
               </motion.div>
             )}
           </AnimatePresence>
@@ -1094,6 +1120,7 @@ const Header = () => {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
+            id="mobile-navigation"
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

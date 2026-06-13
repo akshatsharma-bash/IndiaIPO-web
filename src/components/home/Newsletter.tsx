@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import { useRecaptcha } from "@/hooks/useRecaptcha";
 import { toast } from "sonner";
 import { Zap, Mail } from "lucide-react";
+import { z } from "zod";
 
+const emailSchema = z
+    .string()
+    .trim()
+    .min(1, "Please type email address first")
+    .email("Please enter a valid email address");
 
 const Newsletter = () => {
     const [email, setEmail] = useState("");
@@ -10,14 +16,9 @@ const Newsletter = () => {
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!email.trim()) {
-            return toast.error("Please type email address first");
-        }
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-        if (!emailRegex.test(email)) {
-            return toast.error("Please enter a valid email address");
+        const result = emailSchema.safeParse(email);
+        if (!result.success) {
+            return toast.error(result.error.errors[0].message);
         }
 
         try {
@@ -52,10 +53,7 @@ const Newsletter = () => {
                 className="max-w-5xl mx-auto text-center relative z-10"
             >
                 {/* Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-400/20 text-[#f99810] text-xs font-black tracking-[0.2em] uppercase mb-6">
-                    <Zap className="w-3 h-3 fill-blue-300" />
-                    Newsletter Access
-                </div>
+
 
                 {/* Heading */}
                 <h2 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-tight">

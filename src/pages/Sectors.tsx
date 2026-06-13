@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { sectorApi } from "@/services/api";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -16,9 +17,8 @@ interface Sector {
 const N = "#001529", G = "#f59e08", G2 = "#d97706";
 
 const Sectors = () => {
-  const [sectors, setSectors] = useState<Sector[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const navigate = useNavigate();
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
   const { pathname } = useLocation();
@@ -38,19 +38,23 @@ const Sectors = () => {
   }, [pathname]);
 
   useEffect(() => {
-    sectorApi.getAll()
-      .then(data => {
-        const filtered = data.filter((s: any) => s.name && s.name.trim().toLowerCase() !== "all");
-        setSectors(filtered);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { data: sectors = [], isLoading: loading } = useQuery<Sector[]>({
+    queryKey: ["sectors", debouncedSearch],
+    queryFn: () => sectorApi.getAll({ search: debouncedSearch }),
+    select: (data) => data.filter((s: any) => s.name && s.name.trim().toLowerCase() !== "all"),
+    staleTime: 300000,
+    gcTime: 600000,
+    refetchOnWindowFocus: false,
+  });
 
   const filtered = sectors.filter(s => {
-    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase());
-    if (!matchesSearch) return false;
-    if (!search.trim()) {
+    if (!debouncedSearch.trim()) {
       return (Number(s.total_count) || 0) > 0;
     }
     return true;
@@ -105,10 +109,7 @@ const Sectors = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5 text-xs font-black uppercase tracking-widest"
-                  style={{ background: "rgba(245,158,8,0.2)", color: G, border: "1px solid rgba(245,158,8,0.35)" }}>
-                  <BarChart3 className="h-3.5 w-3.5" /> Industry Analysis
-                </div>
+
                 <h1 className="text-3xl md:text-5xl font-black text-white leading-tight">
                   Sector-wise <span style={{ color: G }}>IPO List</span>
                 </h1>

@@ -23,13 +23,26 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion, AnimatePresence, Variants
+
+} from "framer-motion";
 import { useLocation } from "react-router-dom";
 import { getImageUrl } from "@/lib/utils";
 
-const fadeUp = {
+
+const customEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } }
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: customEase,
+    },
+  },
 };
 
 const fadeIn = {
@@ -333,21 +346,7 @@ const Contact = () => {
           <div className="absolute inset-0 z-0 opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
 
           <div className="container mx-auto px-4 text-center relative z-10 py-28">
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-xs font-bold mb-6 tracking-widest uppercase"
-              style={{
-                background: "linear-gradient(135deg, hsl(35 95% 52% / 0.18), hsl(45 93% 60% / 0.1))",
-                color: "hsl(35 95% 68%)",
-                border: "1px solid hsl(35 95% 52% / 0.3)",
-                backdropFilter: "blur(8px)",
-              }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" />
-              We're Here to Help
-            </motion.div>
+
 
             <motion.h1
               initial={{ opacity: 0, y: 24 }}
@@ -391,10 +390,10 @@ const Contact = () => {
           <div className="container mx-auto px-4">
             {/* Section label */}
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeIn} className="text-center mb-10">
-              <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-3"
+              {/* <span className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-3"
                 style={{ background: "hsl(220 72% 45% / 0.08)", color: "hsl(220 72% 45%)", border: "1px solid hsl(220 72% 45% / 0.18)" }}>
                 Our Reach
-              </span>
+              </span> */}
               <h2 className="text-2xl md:text-3xl font-extrabold" style={{ color: "hsl(220 72% 20%)", fontFamily: "Montserrat, sans-serif" }}>
                 Find Us <span style={{ background: "linear-gradient(135deg, hsl(35 95% 52%), hsl(45 93% 60%))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Anywhere</span>
               </h2>
@@ -515,15 +514,7 @@ const Contact = () => {
         <section className="py-20 bg-slate-50">
           <div className="container mx-auto px-4">
             <div className="text-center mb-14">
-              <motion.span
-                initial={{ opacity: 0, y: -10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-4"
-                style={{ background: "hsl(222 47% 11% / 0.08)", color: "hsl(222 47% 11%)", border: "1px solid hsl(222 47% 11% / 0.18)" }}
-              >
-                Connect With Us
-              </motion.span>
+
               <motion.h2
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -745,13 +736,7 @@ const Contact = () => {
 
           <div className="container mx-auto px-4">
             <div className="text-center mb-14">
-              <motion.span
-                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-                className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-4"
-                style={{ background: "hsl(35 95% 52% / 0.15)", color: "hsl(35 95% 68%)", border: "1px solid hsl(35 95% 52% / 0.3)" }}
-              >
-                Our Advantage
-              </motion.span>
+
               <motion.h2
                 initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
                 className="text-3xl md:text-4xl font-extrabold text-white mb-3"
@@ -813,13 +798,7 @@ const Contact = () => {
         <section className="py-20" style={{ background: "linear-gradient(180deg, #eef2ff 0%, #f4f7ff 100%)" }}>
           <div className="container mx-auto px-4 max-w-3xl">
             <div className="text-center mb-12">
-              <motion.span
-                initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-                className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-4"
-                style={{ background: "hsl(220 72% 45% / 0.08)", color: "hsl(220 72% 45%)", border: "1px solid hsl(220 72% 45% / 0.18)" }}
-              >
-                FAQs
-              </motion.span>
+
               <motion.h2
                 initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
                 className="text-3xl md:text-4xl font-extrabold mb-3"
@@ -891,7 +870,7 @@ const Contact = () => {
 
         <section
           className="py-20 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, hsl(220 72% 18%) 0%, hsl(220 72% 30%) 50%, hsl(220 72% 42%) 100%)" }}
+          style={{ background: "linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(222 47% 11%) 45%, hsl(222 47% 15%) 100%)" }}
         >
           {/* Animated gold orb */}
           <motion.div
@@ -908,15 +887,7 @@ const Contact = () => {
           />
 
           <div className="container mx-auto px-4 text-center relative z-10">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="inline-block px-4 py-1.5 rounded-full text-xs font-bold tracking-widest uppercase mb-5"
-              style={{ background: "hsl(35 95% 52% / 0.2)", color: "hsl(35 95% 70%)", border: "1px solid hsl(35 95% 52% / 0.35)" }}
-            >
-              Take The Next Step
-            </motion.div>
+
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}

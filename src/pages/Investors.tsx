@@ -177,10 +177,7 @@ const Investors = () => {
               transition={{ duration: 0.8 }}
               className="max-w-3xl"
             >
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 md:px-3 md:py-1 rounded-full bg-primary/20 border border-primary/30 text-primary-foreground backdrop-blur-sm mb-3 md:mb-6">
-                <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-accent animate-pulse" />
-                <span className="text-xs md:text-sm font-semibold tracking-wide uppercase">Premium Investor Services</span>
-              </div>
+
               <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold font-heading text-white mb-3 md:mb-6 leading-tight drop-shadow-lg">
                 Maximize Your <br className="hidden sm:inline" /><span className="text-accent text-transparent bg-clip-text bg-gradient-to-r from-accent to-gold-light">Investment Potential</span>
               </h1>

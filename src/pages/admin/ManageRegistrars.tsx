@@ -107,7 +107,7 @@ const ManageRegistrars = () => {
 
   const fetchIPOs = async () => {
     try {
-      const res = await fetch("/api/ipo-lists?limit=1000");
+      const res = await fetch("/api/ipo-lists?limit=1000&admin=true");
       if (res.ok) {
         const body = await res.json();
         setAllIpos(body.data || []);

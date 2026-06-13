@@ -53,7 +53,7 @@ const ConsultantPage = () => {
 
         <div className="container mx-auto px-4 relative z-10">
 
-          <div className="flex items-center gap-2 text-white/50 text-sm mb-8 flex-wrap justify-center">
+          <div className="flex items-center gap-2 text-white/50 text-sm mb-8 flex-wrap justify-start">
             <Link to="/" className="hover:text-white flex items-center gap-1 transition-colors">
               <Home className="h-3.5 w-3.5" /> Home
             </Link>
@@ -61,21 +61,18 @@ const ConsultantPage = () => {
             <span className="text-white/90 font-semibold">IPO Consultant</span>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 text-xs font-black uppercase tracking-widest"
-              style={{ background: "rgba(245,158,8,0.2)", color: G, border: "1px solid rgba(245,158,8,0.35)" }}>
-              <Award className="h-3.5 w-3.5" /> Expert IPO Advisory
-            </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-left max-w-4xl">
+
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-5 leading-tight">
               Professional{" "}
               <span style={{ color: G }}>IPO Consultants</span>{" "}
               for Your Growth Journey
             </h1>
-            <p className="text-white/65 text-base md:text-xl mb-10 leading-relaxed max-w-2xl mx-auto font-medium">
+            <p className="text-white/65 text-base md:text-xl mb-10 leading-relaxed max-w-2xl font-medium">
               Partner with India's most trusted IPO specialists. We connect ambitious businesses with the right consultants to ensure a successful public listing.
             </p>
 
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-start gap-3">
               {[
                 { icon: Star, label: "4.9/5 Average Rating", color: G },
                 { icon: CheckCircle2, label: "SEBI Compliant Advisory", color: "#86efac" },
@@ -205,10 +202,7 @@ const ConsultantPage = () => {
       <section className="py-20 bg-white border-t border-slate-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-5 text-xs font-black uppercase tracking-widest"
-              style={{ background: "rgba(245,158,8,0.12)", color: G2, border: "1px solid rgba(245,158,8,0.25)" }}>
-              <Shield className="h-3.5 w-3.5" /> Why Choose IndiaIPO
-            </div>
+
             <h2 className="text-3xl font-black mb-3" style={{ color: N }}>Trusted by <span style={{ color: G }}>Hundreds of Companies</span></h2>
             <p className="text-slate-500 max-w-xl mx-auto font-medium">Our team brings unmatched expertise in capital markets, regulatory compliance, and successful IPO execution.</p>
           </div>

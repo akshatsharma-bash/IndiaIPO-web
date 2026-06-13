@@ -22,7 +22,7 @@ const VideoCard = ({
             <div className="relative rounded-2xl overflow-hidden mb-4 h-52 md:h-60 shadow-xl border border-white/5">
                 {playing ? (
                     <iframe
-                        src={`https://www.youtube.com/embed/${v.youtube_id}?rel=0`}
+                        src={`https://www.youtube.com/embed/${v.youtube_id}?autoplay=1&rel=0`}
                         title={v.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen

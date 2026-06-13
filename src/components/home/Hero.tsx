@@ -7,6 +7,7 @@ import {
     ChevronLeft,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import Ribbon from "@/components/Ribbon";
 
 interface Banner {
     id: string;
@@ -136,6 +137,7 @@ const Hero = () => {
                             src={getImgSrc(banner.image_url) || ""}
                             alt={banner.title || "Banner"}
                             loading="eager"
+                            fetchPriority="high"
                             decoding="async"
                             width="1920"
                             height="720"
@@ -160,10 +162,17 @@ const Hero = () => {
                 <div className="max-w-3xl">
                     <div>
                         {banner.badge_text && (
-                            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30 mb-6">
-                                <ShieldCheck className="h-4 w-4" />
-                                {banner.badge_text}
-                            </span>
+                            <div className="mb-6">
+                                <Ribbon
+                                    fontSize="12px"
+                                    cutout="0.5em"
+                                    color="rgba(59, 130, 246, 0.25)"
+                                    className="inline-flex items-center gap-2 text-blue-300 font-bold border border-blue-500/30"
+                                >
+                                    <ShieldCheck className="h-4 w-4 text-blue-300" />
+                                    {banner.badge_text}
+                                </Ribbon>
+                            </div>
                         )}
 
                         <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight mb-3 md:mb-6">
@@ -199,29 +208,21 @@ const Hero = () => {
             {safeBanners.length > 1 && (
                 <>
                     <div className="absolute bottom-4 md:bottom-10 left-4 md:left-8 z-20 flex gap-2 md:gap-4">
-                        <button
+                        <button type="button" aria-label="Previous banner"
                             onClick={prev}
                             className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors border border-white/10"
                         >
-                            <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
+                            <ChevronLeft aria-hidden="true" className="h-4 w-4 md:h-6 md:w-6" />
                         </button>
-                        <button
+                        <button type="button" aria-label="next banner"
                             onClick={next}
                             className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors border border-white/10"
                         >
-                            <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
+                            <ChevronRight aria-hidden="true" className="h-4 w-4 md:h-6 md:w-6" />
                         </button>
                     </div>
 
-                    <div className="absolute bottom-6 md:bottom-12 right-4 md:right-8 z-20 flex gap-1.5 md:gap-2">
-                        {safeBanners.map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrent(i)}
-                                className={`transition-colors duration-500 rounded-full h-1.5 ${i === current ? "bg-amber-500 w-8" : "bg-white/30 w-4 hover:bg-white/50"}`}
-                            />
-                        ))}
-                    </div>
+
                 </>
             )}
         </section>

@@ -124,10 +124,7 @@ const NotificationView = ({ slugOverride }: { slugOverride?: string }) => {
                   </div>
 
                   <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                     <div className="inline-flex items-center gap-2 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-5">
-                        <Bell className="h-3 w-3 text-[#f59e08]" />
-                        <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">Regulatory Updates</span>
-                     </div>
+
                      <h1 className="text-2xl md:text-4xl font-black text-white leading-tight flex items-start gap-4 max-w-4xl">
                         <div className="w-12 h-12 rounded-xl bg-[#f59e08]/20 flex items-center justify-center shrink-0 mt-1">
                            <FileText className="h-6 w-6 text-[#f59e08]" />

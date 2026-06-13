@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
@@ -21,7 +21,7 @@ const Services = lazy(() => import("./pages/Services"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Blog = lazy(() => import("./pages/Blog"));
-const BlogDetails = lazy(() => import("./pages/BlogDetails"));
+// const BlogDetails = lazy(() => import("./pages/BlogDetails"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -85,6 +85,7 @@ const ManageMerchantBankers = lazy(() => import("./pages/admin/ManageMerchantBan
 const ManageBankerCategories = lazy(() => import("./pages/admin/ManageBankerCategories"));
 const ManageMainboardBankers = lazy(() => import("./pages/admin/ManageMainboardBankers"));
 const ManageCareerApplications = lazy(() => import("./pages/admin/ManageCareerApplications"));
+const ManageCareerRoles = lazy(() => import("./pages/admin/ManageCareerRoles"));
 const NotificationView = lazy(() => import("./pages/NotificationView"));
 const ManageNotifications = lazy(() => import("./pages/admin/ManageNotifications"));
 const ManageVideos = lazy(() => import("./pages/admin/ManageVideos"));
@@ -152,6 +153,16 @@ const PhpRedirect = () => {
   );
 };
 
+const NewsRedirect = () => {
+  const { slug } = useParams();
+  return (
+    <Navigate
+      to={`/news/detail/${slug}`}
+      replace
+    />
+  );
+};
+
 
 
 const AnimatedRoutes = () => {
@@ -174,7 +185,7 @@ const AnimatedRoutes = () => {
           <Route path="/about-us" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/blog" element={<Blog />} />
-          <Route path="/blog/:slug" element={<BlogDetails />} />
+          {/* <Route path="/blog/:slug" element={<BlogDetails />} /> */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -182,7 +193,7 @@ const AnimatedRoutes = () => {
           <Route path="/ipo-eligibility-check" element={<IPOFeasibility />} />
           <Route path="/investors" element={<Investors />} />
           <Route path="/news" element={<NewsUpdates />} />
-          <Route path="/news/:slug" element={<Navigate to="/news" replace />} />
+          <Route path="/news/:slug" element={<NewsRedirect />} />
           <Route path="/ipo-video-updates" element={<MarketSnaps />} />
           <Route path="/our-csr" element={<CSR />} />
           <Route path="/career" element={<Careers />} />
@@ -259,6 +270,7 @@ const AnimatedRoutes = () => {
           <Route path="/admin/merchant-bankers" element={<ManageMerchantBankers />} />
           <Route path="/admin/mainboard-bankers" element={<ManageMainboardBankers />} />
           <Route path="/admin/career-applications" element={<ManageCareerApplications />} />
+          <Route path="/admin/career-roles" element={<ManageCareerRoles />} />
           <Route path="/admin/knowledge" element={<ManageKnowledge />} />
           <Route path="/admin/notifications" element={<ManageNotifications />} />
           <Route path="/admin/videos" element={<ManageVideos />} />

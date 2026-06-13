@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { sectorApi, sectorIpoApi, adminBlogApi } from "@/services/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -31,10 +32,10 @@ import {
 import { toast } from "sonner";
 
 const ManageSectorIPOs = () => {
+  const queryClient = useQueryClient();
   const [sectors, setSectors] = useState<any[]>([]);
-  const [sectorIpos, setSectorIpos] = useState<any[]>([]);
-  const [ipoLoading, setIpoLoading] = useState(true);
   const [ipoSearch, setIpoSearch] = useState("");
+  const [debouncedIpoSearch, setDebouncedIpoSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [blogs, setBlogs] = useState<any[]>([]);
@@ -58,14 +59,6 @@ const ManageSectorIPOs = () => {
       .catch((e) => toast.error("Failed to fetch sectors"));
   };
 
-  const fetchSectorIpos = () => {
-    setIpoLoading(true);
-    sectorIpoApi.getAll()
-      .then(setSectorIpos)
-      .catch((e) => toast.error("Failed to fetch sector-wise IPOs"))
-      .finally(() => setIpoLoading(false));
-  };
-
   const fetchBlogs = () => {
     adminBlogApi.getSummaryList()
       .then((data) => {
@@ -74,9 +67,28 @@ const ManageSectorIPOs = () => {
       .catch((e) => console.error("Failed to fetch blogs", e));
   };
 
+  // Debounce the search input by 450ms
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedIpoSearch(ipoSearch);
+    }, 450);
+    return () => clearTimeout(handler);
+  }, [ipoSearch]);
+
+  // TanStack Query to fetch paginated/filtered sector-wise IPOs
+  const { data: ipoData, isLoading: ipoLoading, isError: ipoError } = useQuery({
+    queryKey: ["adminSectorIpos", currentPage, debouncedIpoSearch],
+    queryFn: () => sectorIpoApi.getAll({
+      page: currentPage,
+      limit: itemsPerPage,
+      search: debouncedIpoSearch
+    }),
+    staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000,    // Cache data in memory for 10 minutes
+  });
+
   useEffect(() => {
     fetchSectors();
-    fetchSectorIpos();
     fetchBlogs();
   }, []);
 
@@ -127,7 +139,7 @@ const ManageSectorIPOs = () => {
         toast.success("Sector IPO created successfully");
       }
       setIsIpoModalOpen(false);
-      fetchSectorIpos();
+      queryClient.invalidateQueries({ queryKey: ["adminSectorIpos"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to save Sector IPO");
     } finally {
@@ -141,7 +153,7 @@ const ManageSectorIPOs = () => {
     try {
       await sectorIpoApi.delete(id);
       toast.success("Sector IPO deleted successfully");
-      fetchSectorIpos();
+      queryClient.invalidateQueries({ queryKey: ["adminSectorIpos"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to delete Sector IPO");
     }
@@ -161,22 +173,16 @@ const ManageSectorIPOs = () => {
         status: newStatus
       });
       toast.success(`Status updated to ${newStatus}`);
-      fetchSectorIpos();
+      queryClient.invalidateQueries({ queryKey: ["adminSectorIpos"] });
     } catch (e: any) {
       toast.error(e.message || "Failed to toggle status");
     }
   };
 
-  const filteredIpos = sectorIpos.filter(ipo => 
-    ipo.name.toLowerCase().includes(ipoSearch.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredIpos.length / itemsPerPage) || 1;
+  const displayedIpos = ipoData?.sectorIpos || [];
+  const totalIpoEntries = ipoData?.total || 0;
+  const totalPages = ipoData?.totalPages || 1;
   const activePage = Math.min(currentPage, totalPages);
-  const displayedIpos = filteredIpos.slice(
-    (activePage - 1) * itemsPerPage,
-    activePage * itemsPerPage
-  );
 
   return (
     <AdminLayout>
@@ -229,7 +235,7 @@ const ManageSectorIPOs = () => {
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary opacity-20" />
                   </TableCell>
                 </TableRow>
-              ) : filteredIpos.length === 0 ? (
+              ) : displayedIpos.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={10} className="h-48 text-center text-muted-foreground">
                     No records found
@@ -322,7 +328,7 @@ const ManageSectorIPOs = () => {
             return (
               <div className="px-4 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between bg-muted/20 gap-4">
                 <p className="text-xs text-muted-foreground font-semibold">
-                  Showing {(activePage - 1) * itemsPerPage + 1} to {Math.min(activePage * itemsPerPage, filteredIpos.length)} of {filteredIpos.length} IPO Entries
+                  Showing {(activePage - 1) * itemsPerPage + 1} to {Math.min(activePage * itemsPerPage, totalIpoEntries)} of {totalIpoEntries} IPO Entries
                 </p>
                 <div className="flex items-center gap-2">
                   <button 

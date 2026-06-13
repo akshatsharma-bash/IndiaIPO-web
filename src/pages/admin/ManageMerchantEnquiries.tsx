@@ -162,20 +162,33 @@ const ManageMerchantEnquiries = () => {
               </TableHeader>
               <TableBody>
                 {currentEnquiries.map((enquiry) => (
-                  <TableRow key={enquiry.id} className={`${!enquiry.is_read ? "bg-accent/5 font-medium" : "text-muted-foreground"}`}>
+                  <TableRow
+                    key={enquiry.id}
+                    className={`cursor-pointer hover:bg-muted/30 transition-colors ${!enquiry.is_read ? "bg-accent/5 font-medium" : "text-muted-foreground"
+                      }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+
+                      setSelectedEnquiry(enquiry);
+
+                      if (!enquiry.is_read) {
+                        toggleRead(enquiry);
+                      }
+                    }}
+                  >
                     <TableCell>
                       {!enquiry.is_read && <div className="w-2 h-2 rounded-full bg-accent animate-pulse mx-auto" />}
                     </TableCell>
                     <TableCell className="text-xs whitespace-nowrap">
-                      {new Date(enquiry.created_at).toLocaleDateString("en-IN", { 
-                        day: "numeric", 
+                      {new Date(enquiry.created_at).toLocaleDateString("en-IN", {
+                        day: "numeric",
                         month: "short",
                         year: "numeric"
                       })}
                       <div className="text-[10px] opacity-60">
-                        {new Date(enquiry.created_at).toLocaleTimeString("en-IN", { 
-                          hour: '2-digit', 
-                          minute: '2-digit' 
+                        {new Date(enquiry.created_at).toLocaleTimeString("en-IN", {
+                          hour: '2-digit',
+                          minute: '2-digit'
                         })}
                       </div>
                     </TableCell>
@@ -215,7 +228,10 @@ const ManageMerchantEnquiries = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          onClick={() => setSelectedEnquiry(enquiry)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedEnquiry(enquiry);
+                          }}
                           title="View full details"
                         >
                           <Eye className="h-3.5 w-3.5" />
@@ -224,7 +240,10 @@ const ManageMerchantEnquiries = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                          onClick={() => copyToClipboard(enquiry)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            copyToClipboard(enquiry);
+                          }}
                           title="Copy details"
                         >
                           <Copy className="h-3.5 w-3.5" />
@@ -234,7 +253,10 @@ const ManageMerchantEnquiries = () => {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-accent hover:bg-accent/10"
-                            onClick={() => toggleRead(enquiry)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRead(enquiry);
+                            }}
                             title="Mark as read"
                           >
                             <Check className="h-3.5 w-3.5" />
@@ -248,7 +270,10 @@ const ManageMerchantEnquiries = () => {
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                          onClick={() => deleteEnquiry(enquiry.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteEnquiry(enquiry.id);
+                          }}
                           title="Delete"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -259,19 +284,19 @@ const ManageMerchantEnquiries = () => {
                 ))}
               </TableBody>
             </Table>
-            
-            
+
+
             {totalPages > 1 && (
               <div className="p-4 border-t bg-muted/20">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious 
+                      <PaginationPrevious
                         onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
                         className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>
-                    
+
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                       <PaginationItem key={page}>
                         <PaginationLink
@@ -285,7 +310,7 @@ const ManageMerchantEnquiries = () => {
                     ))}
 
                     <PaginationItem>
-                      <PaginationNext 
+                      <PaginationNext
                         onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
                         className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
@@ -308,8 +333,8 @@ const ManageMerchantEnquiries = () => {
                   <DialogTitle className="text-xl font-bold text-white">Enquiry Details</DialogTitle>
                   {selectedEnquiry && (
                     <DialogDescription className="text-white/60 font-medium mt-1">
-                      Submitted on {new Date(selectedEnquiry.created_at).toLocaleString("en-IN", { 
-                        day: "numeric", month: "long", year: "numeric", hour: '2-digit', minute: '2-digit' 
+                      Submitted on {new Date(selectedEnquiry.created_at).toLocaleString("en-IN", {
+                        day: "numeric", month: "long", year: "numeric", hour: '2-digit', minute: '2-digit'
                       })}
                     </DialogDescription>
                   )}
@@ -331,20 +356,20 @@ const ManageMerchantEnquiries = () => {
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">Email Address</p>
                     <a href={`mailto:${selectedEnquiry.email}`} className="text-sm font-semibold text-primary hover:underline flex items-center gap-2">
-                       <Mail className="h-3.5 w-3.5" /> {selectedEnquiry.email}
+                      <Mail className="h-3.5 w-3.5" /> {selectedEnquiry.email}
                     </a>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest">Contact Number</p>
                     <a href={`tel:${selectedEnquiry.mobile}`} className="text-sm font-semibold text-primary hover:underline flex items-center gap-2">
-                       <Phone className="h-3.5 w-3.5" /> {selectedEnquiry.mobile || "N/A"}
+                      <Phone className="h-3.5 w-3.5" /> {selectedEnquiry.mobile || "N/A"}
                     </a>
                   </div>
                 </div>
 
                 <div className="space-y-2 pt-4 border-t border-dashed border-border">
                   <p className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-                     Message Content / Requirements
+                    Message Content / Requirements
                   </p>
                   <div className="bg-muted/30 p-5 rounded-xl border border-border/50 text-sm leading-relaxed text-foreground whitespace-pre-wrap shadow-inner break-words max-h-[300px] overflow-y-auto">
                     {selectedEnquiry.message}
@@ -352,12 +377,12 @@ const ManageMerchantEnquiries = () => {
                 </div>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-border">
-                   <Button variant="outline" className="border-border hover:bg-muted font-semibold" onClick={() => copyToClipboard(selectedEnquiry)}>
-                      <Copy className="h-4 w-4 mr-2" /> Copy All Details
-                   </Button>
-                   <Button className="bg-primary text-white hover:bg-primary/90 px-8 font-semibold" onClick={() => setSelectedEnquiry(null)}>
-                      Close
-                   </Button>
+                  <Button variant="outline" className="border-border hover:bg-muted font-semibold" onClick={() => copyToClipboard(selectedEnquiry)}>
+                    <Copy className="h-4 w-4 mr-2" /> Copy All Details
+                  </Button>
+                  <Button className="bg-primary text-white hover:bg-primary/90 px-8 font-semibold" onClick={() => setSelectedEnquiry(null)}>
+                    Close
+                  </Button>
                 </div>
               </div>
             )}

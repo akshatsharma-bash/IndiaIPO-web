@@ -94,7 +94,10 @@ console.log(`📁 Uploads serving from: ${resolvedUploadsPath} (NODE_ENV: ${proc
 
 app.use(
     "/uploads",
-    express.static(resolvedUploadsPath)
+    express.static(resolvedUploadsPath, {
+        maxAge: 31536000000, // 365 days
+        immutable: true,
+    })
 );
 
 
@@ -830,6 +833,35 @@ async function initDB() {
         `);
 
         await conn.execute(`
+            CREATE TABLE IF NOT EXISTS career_roles (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(255) NOT NULL UNIQUE,
+                is_active TINYINT(1) DEFAULT 1,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        `);
+
+        // Seed default roles if empty
+        const [roleRows] = await conn.execute('SELECT COUNT(*) as count FROM career_roles');
+        if (roleRows[0].count === 0) {
+            console.log('🌱 Seeding default career roles...');
+            const defaultRoles = [
+                'CEO',
+                'Business Analyst',
+                'MERN Stack Developer',
+                'IPO Advisory Specialist',
+                'Sales Executive',
+                'HR Manager',
+                'SEO & Content Writer'
+            ];
+            for (const r of defaultRoles) {
+                await conn.execute('INSERT INTO career_roles (title, is_active) VALUES (?, 1)', [r]);
+            }
+            console.log('✅ Seeded 7 default career roles');
+        }
+
+        await conn.execute(`
             CREATE TABLE IF NOT EXISTS magzine (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 title VARCHAR(255) NOT NULL,
@@ -1111,7 +1143,8 @@ app.use('/api', (req, res, next) => {
         /^\/api\/ipo_feasibility\/?$/i,
         /^\/api\/career\/apply\/?$/i,
         /^\/api\/career\/?$/i,
-        /^\/api\/investor\/?$/i
+        /^\/api\/investor\/?$/i,
+        /^\/api\/upload\/?$/i
     ];
 
     const isAdminOnlyGetEndpoint = (path) => {
@@ -1125,14 +1158,13 @@ app.use('/api', (req, res, next) => {
             /^\/api\/annual-report-requests(\/unread|\/|$)/i,
             /^\/api\/ipo_feasibility(\/unread|\/|$)/i,
             /^\/api\/career\/admin/i,
-            /^\/api\/career(\/unread|\/|$)/i,
+            /^\/api\/career(\/unread)?\/?$/i,
             /^\/api\/investor(\/unread|\/|$)/i,
             /^\/api\/subscriptions(\/unread|\/|$)/i,
             /^\/api\/admin-blogs\/id\//i,
             /^\/api\/consultants\/id\//i,
             /^\/api\/sectors\/admin\/?$/i,
             /^\/api\/sectors\/ipos\/list\/?$/i,
-            /^\/api\/magazines/i,
         ];
 
         return adminGetPatterns.some(pattern => pattern.test(path));
@@ -1350,7 +1382,7 @@ app.get('/sitemap.xml', async (req, res) => {
 
         // News articles
         newsArticles.forEach(n => {
-            if (n.slug) addUrl(`${baseUrl}/news/${n.slug}`, fmt(n.updated_at), 'weekly', '0.6');
+            if (n.slug) addUrl(`${baseUrl}/news/detail/${n.slug}`, fmt(n.updated_at), 'weekly', '0.6');
         });
 
         // Consultant pages
@@ -1887,6 +1919,16 @@ app.get('/consultant/:slug', async (req, res, next) => {
         console.error('❌ SSR /consultant/:slug error:', err.message);
         next();
     }
+});
+
+// Redirect old news URL pattern (/news/:slug) to new (/news/detail/:slug) for SEO compatibility
+app.get('/news/:slug', (req, res, next) => {
+    const { slug } = req.params;
+    if (slug === 'detail') {
+        return next();
+    }
+    const siteUrl = process.env.SITE_URL || 'https://www.indiaipo.in';
+    return res.redirect(301, `${siteUrl}/news/detail/${slug}`);
 });
 
 // ============================================================

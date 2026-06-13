@@ -11,6 +11,91 @@ const BASE_URL = process.env.BASE_URL;
 
 
 
+const blockedKeywords = [
+    "united states",
+    "u.s.",
+    "usa",
+    "trump",
+    "horoscope",
+    "astrology",
+    "zodiac",
+    "cricket",
+    "football",
+    "movie",
+    "bollywood",
+    "celebrity",
+    "actor",
+    "actress",
+    "muslims",
+    "pakistani",
+    "school",
+    "education",
+    "ugc",
+    "footwear",
+    "fashion",
+    "weather",
+    "election",
+    "politics",
+    "bike",
+    "car",
+    "fssai",
+    "food",
+
+];
+
+
+const allowedKeywords = [
+    "ipo",
+    "initial public offering",
+    "ipo filing",
+    "ipo market",
+    "listing",
+    "listed",
+    "nse",
+    "bse",
+    "sensex",
+    "nifty",
+    "sebi",
+    "drhp",
+    "rhp",
+    "book built issue",
+    "anchor investor",
+    "share market",
+    "stock market"
+];
+
+
+function isBlockedNews(article) {
+    const text = (
+        (article.title || "") +
+        " " +
+        (article.description || "") +
+        " " +
+        (article.content || "")
+    ).toLowerCase();
+
+    return blockedKeywords.some(keyword =>
+        text.includes(keyword.toLowerCase())
+    );
+}
+
+
+
+function isRelevantNews(article) {
+    const text = (
+        (article.title || "") +
+        " " +
+        (article.description || "") +
+        " " +
+        (article.content || "")
+    ).toLowerCase();
+
+    return allowedKeywords.some(keyword =>
+        text.includes(keyword)
+    );
+}
+
+
 function getCategory(article) {
     const text = (
         (article.title || "") +
@@ -35,7 +120,7 @@ function getCategory(article) {
 
 
 function mapArticle(article) {
-    const slug = article.title
+    const slug = (article.title || "")
         .toLowerCase()
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "");
@@ -101,7 +186,7 @@ async function saveNewsToDB(mappedArticles) {
 async function fetchAndSaveNews() {
     try {
         // category=business add karne se IPO/NSE/BSE news milne ke chances badh jayenge
-        const url = `${BASE_URL}?category=business&lang=en&country=in&max=10&apikey=${API_KEY}`;
+        const url = `${BASE_URL}?category=business&lang=en&country=in&max=20&apikey=${API_KEY}`;
 
         const res = await axios.get(url, {
             timeout: 10000,
@@ -109,7 +194,13 @@ async function fetchAndSaveNews() {
             headers: { 'User-Agent': 'Mozilla/5.0' }
         });
 
-        const mapped = res.data.articles.map(mapArticle);
+        const mapped = res.data.articles
+            .filter(article =>
+                article.title &&
+                isRelevantNews(article) &&
+                !isBlockedNews(article)
+            )
+            .map(mapArticle);
 
         await saveNewsToDB(mapped);
 

@@ -397,9 +397,13 @@ const ConsultantDetail = () => {
                             type="tel"
                             placeholder="Enter 10 digit Number"
                             required
+                            maxLength={10}
                             className="bg-muted/30 border-border/50 rounded-2xl h-14 focus:ring-primary/20 text-base font-medium transition-all hover:bg-muted/50"
                             value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, "");
+                              setFormData({ ...formData, phone: value });
+                            }}
                           />
                         </div>
 

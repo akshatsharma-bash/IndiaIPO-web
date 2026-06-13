@@ -126,7 +126,10 @@ export const statsApi = {
 
 
 export const sectorApi = {
-  getAll: () => fetch(`${API_BASE_URL}/sectors`, { headers: headers() }).then(handleResponse),
+  getAll: (params?: Record<string, string>) => {
+    const query = params ? "?" + new URLSearchParams(params).toString() : "";
+    return fetch(`${API_BASE_URL}/sectors${query}`, { headers: headers() }).then(handleResponse);
+  },
   getAdminAll: (params?: Record<string, string | number>) => {
     const query = params ? "?" + new URLSearchParams(params as Record<string, string>).toString() : "";
     return fetch(`${API_BASE_URL}/sectors/admin${query}`, { headers: headers() }).then(handleResponse);
@@ -137,7 +140,10 @@ export const sectorApi = {
 };
 
 export const sectorIpoApi = {
-  getAll: () => fetch(`${API_BASE_URL}/sectors/ipos/list`, { headers: headers() }).then(handleResponse),
+  getAll: (params?: Record<string, any>) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return fetch(`${API_BASE_URL}/sectors/ipos/list${query}`, { headers: headers() }).then(handleResponse);
+  },
   getById: (id: string) => fetch(`${API_BASE_URL}/sectors/ipos/${id}`, { headers: headers() }).then(handleResponse),
   create: (data: any) => fetch(`${API_BASE_URL}/sectors/ipos/create`, { method: "POST", headers: headers(), body: JSON.stringify(data) }).then(handleResponse),
   update: (id: string, data: any) => fetch(`${API_BASE_URL}/sectors/ipos/${id}`, { method: "PUT", headers: headers(), body: JSON.stringify(data) }).then(handleResponse),
@@ -167,3 +173,13 @@ export const uploadApi = {
     }).then(handleResponse);
   }
 };
+
+export const newsApi = {
+  getAll: (params?: Record<string, string>) => {
+    const query = params ? "?" + new URLSearchParams(params).toString() : "";
+    return fetch(`${API_BASE_URL}/news${query}`, { headers: headers() }).then(handleResponse);
+  },
+  getBySlug: (slug: string) =>
+    fetch(`${API_BASE_URL}/news/${slug}`, { headers: headers() }).then(handleResponse),
+};
+

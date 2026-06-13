@@ -13,6 +13,7 @@ import {
   ChevronDown, ChevronUp, BookOpen,
   Building2, Globe, TrendingUp
 } from "lucide-react";
+import LatestNews from "@/components/home/LatestNews";
 import NotFound from "../NotFound";
 
 const categoryConfig: Record<string, { accent: string; bg: string; gradient: string; badgeBg: string }> = {
@@ -135,7 +136,6 @@ const ServicePageLayout: React.FC<ServicePageLayoutProps> = ({ slug, children })
             </div>
             <div className="flex flex-col md:flex-row items-start md:items-center gap-8 md:gap-12">
               <div className="flex-1">
-                <span className="inline-block px-4 py-1.5 rounded-full text-xs font-black mb-4 tracking-widest uppercase" style={{ background: cfg.badgeBg, color: cfg.accent, border: `1px solid ${cfg.accent}40` }}>{service.category}</span>
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-white mb-5 leading-tight">{service.title}</h1>
                 <p className="text-lg md:text-xl text-white/70 max-w-3xl leading-relaxed mb-8">{service.shortDescription}</p>
                 <div className="flex flex-wrap gap-4">
@@ -235,15 +235,15 @@ const ServicePageLayout: React.FC<ServicePageLayoutProps> = ({ slug, children })
           <section className="py-20 bg-white">
             <div className="container mx-auto px-4">
               <h2 className="text-3xl md:text-4xl font-black text-[#001529] mb-12">Latest IPO <span className="text-[#f59e08]">Insights & Blogs</span></h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {recentBlogs.map((blog, i) => (
-                  <Link key={i} to={`/blogs/${blog.slug}`} className="group bg-[#F8FAFC] border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all flex flex-col h-full">
+                  <Link key={i} to={`/blogs/${blog.slug}`} className="group bg-[#F8FAFC] border border-slate-200 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:border-[#f59e08]/30 transition-all flex flex-col h-full">
                     <div className="aspect-[16/10] overflow-hidden relative">
                       <img src={blog.image?.startsWith('http') ? blog.image : blog.image?.startsWith('uploads') ? `/${blog.image}` : blog.image?.startsWith('/uploads') ? blog.image : blog.image ? `/uploads/${blog.image}` : '/placeholder-ipo.jpg'} alt={blog.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                     </div>
-                    <div className="p-8 flex flex-col flex-1">
-                      <h3 className="text-xl font-black text-[#001529] mb-4 group-hover:text-[#f59e08] transition-colors line-clamp-2 leading-tight">{blog.title}</h3>
-                      <div className="mt-auto pt-6 border-t border-slate-200 flex items-center text-[#f59e08] font-black text-xs uppercase tracking-widest gap-2">Read Full Insight <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" /></div>
+                    <div className="p-6 flex flex-col flex-1">
+                      <h3 className="text-lg font-black text-[#001529] mb-3 group-hover:text-[#f59e08] transition-colors line-clamp-2 leading-tight">{blog.title}</h3>
+                      <div className="mt-auto pt-5 border-t border-slate-200 flex items-center text-[#f59e08] font-black text-xs uppercase tracking-widest gap-2">Read Full Insight <ArrowRight className="h-4 w-4 group-hover:translate-x-2 transition-transform" /></div>
                     </div>
                   </Link>
                 ))}
@@ -251,6 +251,8 @@ const ServicePageLayout: React.FC<ServicePageLayoutProps> = ({ slug, children })
             </div>
           </section>
         )}
+
+        <LatestNews />
 
         <section className="bg-gradient-to-r from-[#001529] via-[#002147] to-[#003380] py-20 text-center relative overflow-hidden">
           <div className="container mx-auto px-4 relative z-10">

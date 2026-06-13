@@ -5,6 +5,15 @@ import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { z } from 'zod';
+
+const emailSchema = z.string({
+    required_error: "Email is required",
+    invalid_type_error: "Email must be a string"
+})
+.trim()
+.min(1, { message: "Email is required" })
+.email({ message: "Please enter a valid email address" });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,17 +39,23 @@ const transporter = nodemailer.createTransport({
 router.post('/', verifyRecaptcha('newsletter_subscribe'), async (req, res) => {
     try {
         const { email } = req.body;
-        if (!email) return res.status(400).json({ error: 'Email is required' });
+        
+        const validation = emailSchema.safeParse(email);
+        if (!validation.success) {
+            return res.status(400).json({ error: validation.error.errors[0].message });
+        }
+        
+        const validatedEmail = validation.data;
 
         // Check for existing subscription first in visitors table
-        const [existing] = await pool.query("SELECT * FROM visitors WHERE email = ? AND form_type = 'subscription'", [email]);
+        const [existing] = await pool.query("SELECT * FROM visitors WHERE email = ? AND form_type = 'subscription'", [validatedEmail]);
         if (existing.length > 0) {
             return res.status(400).json({ error: 'Email is already subscribed' });
         }
 
         const [result] = await pool.query(
             "INSERT INTO visitors (form_type, email, is_subscribed) VALUES ('subscription', ?, 1)",
-            [email]
+            [validatedEmail]
         );
 
         // Send email
@@ -51,7 +66,7 @@ router.post('/', verifyRecaptcha('newsletter_subscribe'), async (req, res) => {
 
         const mailOptions = {
             from: `"India IPO" <${process.env.MAIL_FROM_ADDRESS || process.env.GMAIL}>`,
-            to: email,
+            to: validatedEmail,
             subject: 'Welcome to India IPO Daily Reports!',
             html: `
                 <div style="background-color: #f7fafc; padding: 50px 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
@@ -102,7 +117,7 @@ router.post('/', verifyRecaptcha('newsletter_subscribe'), async (req, res) => {
             // We still want to return 201 as the subscription was successful
         }
 
-        res.status(201).json({ id: result.insertId, email });
+        res.status(201).json({ id: result.insertId, email: validatedEmail });
     } catch (err) {
         console.error('Error inserting subscription:', err);
         res.status(500).json({ error: err.message });

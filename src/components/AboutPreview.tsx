@@ -17,7 +17,7 @@ const AboutPreview = () => {
             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <img src={aboutPreview} alt="IndiaIPO Team discussing IPO strategy" className="w-full h-auto aspect-video sm:aspect-[4/3] lg:aspect-auto lg:h-[480px] object-cover" width="1024"
                 height="768" loading="eager"
-                fetchpriority="high"
+                fetchPriority="high"
                 decoding="async" />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/40 to-transparent" />
             </div>
@@ -33,7 +33,7 @@ const AboutPreview = () => {
                   { value: "98%", label: "Success" },
                 ].map((stat) => (
                   <div key={stat.label} className="text-center p-0">
-                    <div className="text-xs sm:text-lg lg:text-xl font-bold font-heading text-accent leading-none mb-0.5">{stat.value}</div>
+                    <div className="text-xs sm:text-lg lg:text-xl font-bold font-heading text-foreground leading-none mb-0.5">{stat.value}</div>
                     <div className="text-[8px] sm:text-[10px] text-muted-foreground font-medium tracking-wide">{stat.label}</div>
                   </div>
                 ))}
@@ -48,7 +48,7 @@ const AboutPreview = () => {
 
           >
 
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-heading text-foreground mb-6 leading-tight">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-heading text-foreground mb-6 leading-tight">
               Why Companies Choose <span className="text-primary">India IPO</span>
             </h2>
             <p className="text-muted-foreground leading-relaxed mb-4 text-base">

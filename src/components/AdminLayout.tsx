@@ -31,6 +31,7 @@ const sidebarLinks = [
   { label: "Investor Enquiries", href: "/admin/investors", icon: Briefcase },
   { label: "Check IPO Eligibility", href: "/admin/ipo-feasibility", icon: ClipboardCheck },
   { label: "Career Applications", href: "/admin/career-applications", icon: GraduationCap },
+  { label: "Manage Roles", href: "/admin/career-roles", icon: Briefcase },
   { label: "Subscriptions", href: "/admin/subscriptions", icon: Mail },
   { label: "Annual Report Requests", href: "/admin/annual-report-requests", icon: FileText },
   { label: "Manage CSR", href: "/admin/csr", icon: Globe },

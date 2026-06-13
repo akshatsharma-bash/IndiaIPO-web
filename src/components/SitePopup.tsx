@@ -8,6 +8,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { getImageUrl } from "@/lib/utils";
+import Ribbon from "@/components/Ribbon";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -185,9 +186,14 @@ const SitePopup = () => {
                     )}
 
                     <div className="absolute top-4 left-4">
-                      <span className="bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      <Ribbon
+                        fontSize="13px"
+                        cutout="0.5em"
+                        color="linear-gradient(135deg, #f59e0b, #d97706)"
+                        className="inline-flex items-center text-white font-black uppercase tracking-wider shadow-sm"
+                      >
                         New Release
-                      </span>
+                      </Ribbon>
                     </div>
 
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12">
@@ -246,9 +252,14 @@ const SitePopup = () => {
                     )}
 
                     <div className="absolute top-4 left-4">
-                      <span className="bg-blue-600 text-white text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                      <Ribbon
+                        fontSize="13px"
+                        cutout="0.5em"
+                        color="linear-gradient(135deg, #3b82f6, #1d4ed8)"
+                        className="inline-flex items-center text-white font-black uppercase tracking-wider shadow-sm"
+                      >
                         Daily Digest
-                      </span>
+                      </Ribbon>
                     </div>
 
                     <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6 pt-16">

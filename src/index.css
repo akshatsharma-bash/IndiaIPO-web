@@ -84,6 +84,16 @@
     @apply border-border;
   }
 
+  html {
+    overflow-x: visible;
+  }
+
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+    width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
@@ -147,6 +157,29 @@
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  /* Thin scrollbar for sticky sidebars */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #e2e8f0 transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #e2e8f0;
+    border-radius: 99px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: #cbd5e1;
   }
 
   .registrar-description {
@@ -492,4 +525,43 @@
   100% {
     transform: translate3d(-50%, 0, 0);
   }
+}
+
+/* Fix Google AdSense Layout Overflow Issues on Mobile */
+.google-auto-placed,
+ins.adsbygoogle,
+div.google-auto-placed,
+#google_esf,
+iframe[name="google_ads_iframe"] {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.google-auto-placed ins,
+.google-auto-placed iframe,
+ins.adsbygoogle iframe {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+}
+
+
+.ribbon {
+  --r: 0.9em;
+  --ribbon-bg: linear-gradient(135deg, #001529 0%, #003d78 60%, #0066cc 100%);
+
+  font-size: 32px;
+  font-weight: bold;
+  color: #fff;
+  border-block: 0.5em solid #0000;
+  padding-inline: 0.5em calc(var(--r) + 0.25em);
+  line-height: 1.8;
+  clip-path: polygon(100% 0, 0 0, 0 100%, 100% 100%, calc(100% - var(--r)) calc(100% - 0.25em), 100% 50%, calc(100% - var(--r)) 0.25em);
+  background:
+    radial-gradient(0.2em 50% at left, #000a, #0000) border-box,
+    var(--ribbon-bg) padding-box;
+  width: fit-content;
 }

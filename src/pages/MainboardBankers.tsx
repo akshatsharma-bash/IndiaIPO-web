@@ -981,16 +981,7 @@ const MainboardBankersPage = () => {
               animate={{ opacity: 1, y: 0 }}
               className="max-w-5xl mr-auto "
             >
-              <div
-                className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 text-xs font-black uppercase tracking-widest"
-                style={{
-                  background: "rgba(245,158,8,0.2)",
-                  color: G,
-                  border: "1px solid rgba(245,158,8,0.35)",
-                }}
-              >
-                <Shield className="h-3.5 w-3.5" /> Sector Leaders
-              </div>
+
               <h1 className="text-4xl md:text-6xl font-black text-white mb-5 leading-tight">
                 Mainboard <span style={{ color: G }}>Merchant Bankers</span>
               </h1>

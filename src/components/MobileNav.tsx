@@ -15,9 +15,9 @@ const MobileNav = () => {
         const Icon = item.icon;
         const active = location.pathname === item.to || (item.to !== "/" && location.pathname.startsWith(item.to));
         return (
-          <Link key={i} to={item.to} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-2xl mx-1 transition-all active:scale-90 ${active ? "bg-blue-50 text-blue-900" : "text-slate-400"}`}>
+          <Link key={i} to={item.to} className={`flex-1 flex flex-col items-center justify-center p-2 rounded-2xl mx-1 transition-all active:scale-90 ${active ? "bg-blue-50 text-blue-900" : "text-slate-700"}`}>
             <Icon className="h-5 w-5 mb-1" />
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-center whitespace-nowrap">{item.label}</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-center whitespace-nowrap">{item.label}</span>
           </Link>
         );
       })}

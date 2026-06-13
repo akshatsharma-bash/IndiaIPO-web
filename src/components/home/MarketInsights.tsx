@@ -136,9 +136,7 @@ const MarketInsights = () => {
                     className="flex justify-between items-center mb-12"
                 >
                     <div>
-                        <span className="text-blue-700 font-bold tracking-widest uppercase text-xs mb-2 block">
-                            IPO Blogs
-                        </span>
+
                         <h2 className="text-4xl font-extrabold tracking-tight text-slate-900">
                             Market <span className="text-blue-900">Insights</span>
                         </h2>
@@ -243,11 +241,11 @@ const MarketInsights = () => {
                                                 <h3 className="font-bold text-slate-900 text-base leading-snug mb-2 line-clamp-2 group-hover:text-blue-900 transition-colors">
                                                     {item.title}
                                                 </h3>
-                                                <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 mb-4">
+                                                <p className="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-4">
                                                     {item.excerpt || item.description || item.title}
                                                 </p>
-                                                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                                                    <span className="text-[11px] text-slate-400 font-medium">
+                                                <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                                                    <span className="text-[11px] text-slate-600 font-medium">
                                                         {formattedDate}
                                                     </span>
                                                     <span className="inline-flex items-center gap-1 text-xs font-bold text-blue-900 group-hover:gap-2 transition-all">

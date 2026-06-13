@@ -323,12 +323,7 @@ export default function NewsDetails() {
               </button>
 
 
-              {news.category && (
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4"
-                  style={{ background: "rgba(245,158,8,0.2)", color: "#f59e08", border: "1px solid rgba(245,158,8,0.35)" }}>
-                  <Tag className="h-3 w-3" /> {news.category}
-                </div>
-              )}
+
 
 
               <h1 className="text-2xl md:text-4xl lg:text-5xl font-black text-white mb-4 leading-tight max-w-4xl drop-shadow-lg">
@@ -341,10 +336,7 @@ export default function NewsDetails() {
                   <Calendar className="h-4 w-4 text-[#f59e08]" />
                   <span className="font-semibold text-white">{formattedDate}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-[#f59e08]/70" />
-                  <span>~5 min read</span>
-                </div>
+
                 {news.author && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-5 h-5 rounded-full bg-[#f59e08]/30 flex items-center justify-center text-[10px] font-black text-[#f59e08]">

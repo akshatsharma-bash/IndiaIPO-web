@@ -64,10 +64,7 @@ const CSR = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
               >
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f59e08] text-[#001529] font-bold text-xs mb-8 shadow-lg shadow-[#f59e08]/20">
-                  <Sparkles className="w-4 h-4" />
-                  <span>EMPOWERING COMMUNITIES</span>
-                </div>
+
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-black font-heading tracking-tight mb-8">
                   Building a Sustainable <br className="hidden md:block" />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#f59e08] to-[#d97706]">Social Infrastructure</span>

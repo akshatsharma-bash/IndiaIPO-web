@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "@/components/AdminLayout";
 import { sectorApi } from "@/services/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -58,6 +58,7 @@ interface Sector {
 const ManageSectors = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,13 +82,21 @@ const ManageSectors = () => {
   });
   const [submitting, setSubmitting] = useState(false);
 
+  // Debounce the search term to avoid hitting the API on every single keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 450);
+    return () => clearTimeout(handler);
+  }, [search]);
+
   // TanStack Query to fetch paginated/filtered sectors
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["adminSectors", currentPage, search],
+    queryKey: ["adminSectors", currentPage, debouncedSearch],
     queryFn: () => sectorApi.getAdminAll({
       page: currentPage,
       limit: itemsPerPage,
-      search: search
+      search: debouncedSearch
     }),
     staleTime: 5 * 60 * 1000, // Keep data fresh for 5 minutes
     gcTime: 10 * 60 * 1000,    // Cache data in memory for 10 minutes

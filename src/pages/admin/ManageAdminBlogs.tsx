@@ -185,7 +185,7 @@ const formatIPODateRange = (startDate: Date | null, endDate: Date | null): strin
     const endYear = endDate.getFullYear();
     const startMonth = startDate.getMonth();
     const endMonth = endDate.getMonth();
-    
+
     if (startYear === endYear && startMonth === endMonth) {
       return `${format(startDate, "d")} to ${format(endDate, "d MMM, yyyy")}`;
     } else {
@@ -490,7 +490,7 @@ const ManageAdminBlogs = () => {
     const parseHumanDate = (s: string) => {
       if (!s) return null;
       const clean = s.trim().replace(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s*/i, '');
-      
+
       // Match DD-MM-YYYY or DD/MM/YYYY
       const dmyMatch = clean.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
       if (dmyMatch) {
@@ -501,7 +501,7 @@ const ManageAdminBlogs = () => {
           return new Date(year, month - 1, day);
         }
       }
-      
+
       const d = new Date(clean);
       return isNaN(d.getTime()) ? null : d;
     };
@@ -1434,7 +1434,7 @@ const ManageAdminBlogs = () => {
                                                           const n = [...additionalDetailsRows];
                                                           const currentVal = n[idx].value || "";
                                                           const { startDate } = parseIPODateRange(currentVal);
-                                                          
+
                                                           if (startDate && date < startDate) {
                                                             toast.error("Ending date should be greater than starting Date");
                                                             return;
@@ -1874,7 +1874,7 @@ const ManageAdminBlogs = () => {
                             value={form.content || ''}
                             onChange={(val) => setForm({ ...form, content: val })}
                             placeholder="Write your beautiful blog post here..."
-                            className="bg-card shadow-sm"
+
                           />
                         </div>
                       </>

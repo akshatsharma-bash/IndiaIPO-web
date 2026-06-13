@@ -156,7 +156,11 @@ const ManageIPOFeasibility = () => {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {entries.map((entry) => (
-                      <tr key={entry.id} className="hover:bg-muted/30 transition-all group">
+                      <tr
+                        key={entry.id}
+                        className="hover:bg-muted/30 transition-all group cursor-pointer"
+                        onClick={() => { setSelectedEntry(entry); setDetailsOpen(true); }}
+                      >
                         <td className="py-5 px-6 align-top">
                           <div className="font-bold text-foreground mb-1">{entry.name}</div>
                           <div className="flex flex-col gap-1 text-[11px] text-muted-foreground">
@@ -197,7 +201,11 @@ const ManageIPOFeasibility = () => {
                               variant="ghost"
                               size="icon"
                               className="h-9 w-9 text-accent hover:bg-accent/10"
-                              onClick={() => { setSelectedEntry(entry); setDetailsOpen(true); }}
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                setSelectedEntry(entry);
+                                setDetailsOpen(true);
+                              }}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -205,7 +213,10 @@ const ManageIPOFeasibility = () => {
                               variant="ghost"
                               size="icon"
                               className="h-9 w-9 text-destructive hover:bg-destructive/10"
-                              onClick={() => handleDelete(entry.id)}
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                handleDelete(entry.id);
+                              }}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -221,7 +232,11 @@ const ManageIPOFeasibility = () => {
 
             <div className="md:hidden grid grid-cols-1 gap-4">
               {entries.map((entry) => (
-                <div key={entry.id} className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4">
+                <div
+                  key={entry.id}
+                  className="bg-card border border-border rounded-2xl p-5 shadow-sm space-y-4 cursor-pointer hover:bg-muted/10 transition-colors"
+                  onClick={() => { setSelectedEntry(entry); setDetailsOpen(true); }}
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-bold text-lg leading-tight">{entry.name}</h3>
@@ -240,8 +255,29 @@ const ManageIPOFeasibility = () => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between border-t border-border pt-4">
-                    <Button variant="ghost" size="sm" className="text-accent underline font-bold px-0" onClick={() => { setSelectedEntry(entry); setDetailsOpen(true); }}>View Report</Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(entry.id)}><Trash2 className="h-4 w-4" /></Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-accent underline font-bold px-0"
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        setSelectedEntry(entry);
+                        setDetailsOpen(true);
+                      }}
+                    >
+                      View Report
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={(ev) => {
+                        ev.stopPropagation();
+                        handleDelete(entry.id);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))}

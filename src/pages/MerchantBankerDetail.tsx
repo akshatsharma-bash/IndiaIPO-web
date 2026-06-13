@@ -261,17 +261,14 @@ const MerchantBankerDetail = () => {
               </div>
 
               <div className="flex-1">
-                <div className="inline-flex items-center gap-2 rounded-full px-5 py-2 mb-4 text-sm font-black uppercase tracking-widest"
-                  style={{ background: "rgba(245,158,8,0.2)", color: G, border: "1px solid rgba(245,158,8,0.35)" }}>
-                  <Shield className="h-3.5 w-3.5" /> Expert Merchant Banker
-                </div>
+
                 <h1 className="text-3xl md:text-5xl font-black text-white mb-2 leading-tight">{banker.title}</h1>
                 {banker.sub_title && (
                   <p className="text-white/65 text-base font-semibold mb-5">{banker.sub_title}</p>
                 )}
                 <div className="flex gap-3 flex-wrap">
                   <button onClick={() => setConnectBanker(banker)}
-                    className="flex items-center gap-2 px-6 h-11 rounded-xl font-black text-sm transition-all hover:scale-105 shadow-lg"
+                    className="flex items-center gap-2 mt-8 px-6 h-11 rounded-xl font-black text-sm transition-all hover:scale-105 shadow-lg"
                     style={{ background: `linear-gradient(135deg, ${G}, ${G2})`, color: N }}>
                     <Mail className="w-4 h-4" /> Connect Now
                   </button>

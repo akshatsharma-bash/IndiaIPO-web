@@ -225,7 +225,11 @@ const ManageInvestors = () => {
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {enquiries.map((e, idx) => (
-                    <tr key={e.id} className="hover:bg-muted/20 transition-colors group">
+                    <tr
+                      key={e.id}
+                      className="hover:bg-muted/20 transition-colors group cursor-pointer"
+                      onClick={() => setSelectedEnquiry(e)}
+                    >
 
                       
                       <td className="py-3.5 px-4 align-middle">
@@ -303,13 +307,40 @@ const ManageInvestors = () => {
                       
                       <td className="py-3.5 px-4 align-middle">
                         <div className="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg" onClick={() => setSelectedEnquiry(e)} title="View Details">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              setSelectedEnquiry(e);
+                            }}
+                            title="View Details"
+                          >
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg" onClick={() => copyToClipboard(e)} title="Copy">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              copyToClipboard(e);
+                            }}
+                            title="Copy"
+                          >
                             <Copy className="h-3.5 w-3.5" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10 rounded-lg" onClick={() => handleDelete(e.id)} title="Delete">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-destructive hover:bg-destructive/10 rounded-lg"
+                            onClick={(ev) => {
+                              ev.stopPropagation();
+                              handleDelete(e.id);
+                            }}
+                            title="Delete"
+                          >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
@@ -323,7 +354,11 @@ const ManageInvestors = () => {
             
             <div className="grid grid-cols-1 gap-3 lg:hidden">
               {enquiries.map((e) => (
-                <div key={e.id} className="bg-card border border-border rounded-2xl p-4 shadow-sm space-y-3">
+                <div
+                  key={e.id}
+                  className="bg-card border border-border rounded-2xl p-4 shadow-sm space-y-3 cursor-pointer hover:bg-muted/10 transition-colors"
+                  onClick={() => setSelectedEnquiry(e)}
+                >
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${getColor(e.name)} flex items-center justify-center shrink-0`}>
@@ -335,8 +370,28 @@ const ManageInvestors = () => {
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-primary/10 text-primary rounded-lg" onClick={() => setSelectedEnquiry(e)}><Eye className="h-3.5 w-3.5" /></Button>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-destructive/10 text-destructive rounded-lg" onClick={() => handleDelete(e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-primary/10 text-primary rounded-lg"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setSelectedEnquiry(e);
+                        }}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 hover:bg-destructive/10 text-destructive rounded-lg"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          handleDelete(e.id);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-[11px]">

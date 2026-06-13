@@ -340,10 +340,8 @@ const Reports = () => {
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="inline-flex items-center gap-2 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-3 py-1 mb-4">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#f59e08] animate-pulse" />
-                <span className="text-[#f59e08] text-[10px] font-black uppercase tracking-widest">Live Data</span>
-              </div>
+
+
               <h1 className="text-2xl md:text-4xl font-black text-white mb-2 leading-tight">
                 {getTitle().split(" ").map((word, i) => (
                   <span key={i} className={i % 2 === 1 ? "text-[#f59e08]" : ""}>{word} </span>

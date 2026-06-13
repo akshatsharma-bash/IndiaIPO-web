@@ -26,7 +26,7 @@ const N = "#001529", G = "#f59e08", G2 = "#d97706";
 const IPOBlogs = () => {
 
 
-  const [filter, setFilter] = useState<string>("all");
+  const [filter, setFilter] = useState<string>("current");
   const [page, setPage] = useState(1);
 
   const [bannerVideo, setBannerVideo] = useState<string | null>(null);
@@ -163,10 +163,7 @@ const IPOBlogs = () => {
           </div>
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-            <div className="inline-flex items-center gap-2 rounded-full px-4 py-2 mb-6 text-xs font-black uppercase tracking-widest"
-              style={{ background: "rgba(245,158,8,0.2)", color: G, border: "1px solid rgba(245,158,8,0.35)" }}>
-              <Newspaper className="h-3.5 w-3.5" /> Market Insights
-            </div>
+
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-5 leading-tight">
               IPO Blogs & <span style={{ color: G }}>Updates</span>
             </h1>

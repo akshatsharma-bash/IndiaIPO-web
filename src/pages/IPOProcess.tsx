@@ -76,10 +76,7 @@ const IPOProcess = () => {
                   <ChevronRight className="w-4 h-4" />
                   <span className="text-white">IPO Process</span>
                 </div>
-                <div className="inline-flex items-center gap-2 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-[#f59e08]" />
-                  <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">Comprehensive Guide</span>
-                </div>
+
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                   Step-by-Step IPO Process in India
                 </h1>
@@ -97,7 +94,11 @@ const IPOProcess = () => {
 
 
             <div className="prose prose-lg prose-headings:text-foreground prose-p:text-muted-foreground max-w-none">
-              <h2 className="text-3xl font-bold mb-6" style={{ color: 'hsl(220 72% 25%)' }}>What is an Initial Public Offering (IPO)?</h2>
+
+              <h2 className="text-3xl font-bold mb-6 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                What is an Initial Public Offering (IPO)?
+              </h2>
               <p className="leading-relaxed">
                 An Initial Public Offering (IPO) is the process through which a privately held company offers its shares to the public for the first time, becoming a publicly listed entity. Beyond capital raising, an IPO reshapes the company’s ownership structure, governance standards and market visibility.
               </p>
@@ -107,46 +108,63 @@ const IPOProcess = () => {
             </div>
 
 
-            <div className="bg-secondary/20 border border-border rounded-3xl p-8 shadow-2xl">
-              <h2 className="text-2xl font-bold mb-8 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
-                <Target className="w-7 h-7" style={{ color: 'hsl(35 95% 52%)' }} />
+            <div className="py-8">
+              <h2
+                className="text-2xl font-bold mb-10 flex items-center gap-3"
+                style={{ color: "hsl(220 72% 25%)" }}
+              >
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
                 Why Do Companies Go Public?
               </h2>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="flex gap-4">
-                  <CheckCircle className="w-6 h-6 shrink-0 mt-1" style={{ color: 'hsl(35 95% 52%)' }} />
-                  <div>
-                    <h4 className="font-bold text-lg mb-2">Capital Expansion</h4>
-                    <p className="text-muted-foreground text-sm leading-relaxed">Raise large-scale equity capital to fund growth, reduce debt, or support working capital without increasing leverage.</p>
+
+              <div className="flex flex-col gap-6">
+                {[
+                  {
+                    title: "Capital Expansion",
+                    desc: "Raise large-scale equity capital to fund growth, reduce debt, or support working capital without increasing leverage.",
+                  },
+                  {
+                    title: "Exit for Early Investors",
+                    desc: "Provides liquidity for promoters, venture capitalists and private equity investors through structured share sales (OFS).",
+                  },
+                  {
+                    title: "Acquisition Currency",
+                    desc: "Listed shares can be used as a strategic currency for mergers and acquisitions without significant cash outflow.",
+                  },
+                  {
+                    title: "Enhanced Corporate Stature",
+                    desc: "Improves credibility, brand visibility and stakeholder trust through regulatory compliance and public market presence.",
+                  },
+                ].map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-5 py-2 rounded-xl transition-all"
+                  >
+                    {/* Number Circle */}
+                    <div className="w-12 h-12 rounded-full bg-primary text-white flex items-center justify-center font-bold text-lg shrink-0">
+                      {index + 1}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1">
+                      <h4 className="font-bold text-xl mb-2 text-foreground">
+                        {item.title}
+                      </h4>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-4">
-                  <CheckCircle className="w-6 h-6 shrink-0 mt-1" style={{ color: 'hsl(35 95% 52%)' }} />
-                  <div>
-                    <h4 className="font-bold text-lg mb-2">Exit for Early Investors</h4>
-                    <p className="text-muted-foreground text-sm leading-relaxed">Provides liquidity for promoters, venture capitalists and private equity investors through structured share sales (OFS).</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <CheckCircle className="w-6 h-6 shrink-0 mt-1" style={{ color: 'hsl(35 95% 52%)' }} />
-                  <div>
-                    <h4 className="font-bold text-lg mb-2">Acquisition Currency</h4>
-                    <p className="text-muted-foreground text-sm leading-relaxed">Listed shares can be used as a strategic currency for mergers and acquisitions without significant cash outflow.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <CheckCircle className="w-6 h-6 shrink-0 mt-1" style={{ color: 'hsl(35 95% 52%)' }} />
-                  <div>
-                    <h4 className="font-bold text-lg mb-2">Enhanced Corporate Stature</h4>
-                    <p className="text-muted-foreground text-sm leading-relaxed">Improves credibility, brand visibility and stakeholder trust through regulatory compliance and public market presence.</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
 
             <div>
-              <h2 className="text-3xl font-bold mb-10 text-center" style={{ color: 'hsl(220 72% 25%)' }}>Step-by-Step Process to Launch an IPO in India</h2>
+              <h2 className="text-3xl font-bold mb-10 flex items-center  gap-3 " style={{ color: 'hsl(220 72% 25%)' }}>
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                Step-by-Step Process to Launch an IPO in India
+              </h2>
               <p className="text-muted-foreground leading-relaxed mb-10">An Initial Public Offering (IPO) is a significant milestone in a company's growth journey. It allows a privately held company to offer its shares to the general public for the first time, thereby raising capital from a wide base of investors. While the process presents considerable opportunities, it also demands careful planning, strict regulatory compliance and coordination among multiple stakeholders. The following steps outline how the IPO process works in India.</p>
 
               <div className="space-y-12">
@@ -387,7 +405,10 @@ const IPOProcess = () => {
 
             <div className="mt-20 p-12 rounded-[2.5rem] text-center shadow-2xl relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #001529 0%, #002147 55%, #003380 100%)' }}>
               <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5" style={{ background: '#f59e08', filter: 'blur(60px)', transform: 'translate(30%,-30%)' }} />
-              <h2 className="text-3xl md:text-4xl font-black text-white mb-6 relative z-10">Are You Ready for the Next Leap?</h2>
+              <h2 className="text-3xl md:text-4xl font-black text-white mb-6 relative z-10 flex items-center justify-center gap-3">
+                <div className="w-1 h-8 rounded-full bg-[#f59e08]  shrink-0" />
+                Are You Ready for the <strong style={{ color: "#f59e08" }}>Next Leap?</strong>
+              </h2>
               <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto font-medium relative z-10">
                 Let India IPO's expert advisory team guide you through the intricacies of the DRHP, SEBI filings, and merchant banker selection.
               </p>

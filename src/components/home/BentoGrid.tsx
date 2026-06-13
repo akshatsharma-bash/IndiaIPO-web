@@ -1,5 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import Ribbon from "@/components/Ribbon";
+
 
 import gmpAlertsBg from "@/assets/gmp_alerts_bg.png";
 import { ShieldCheck, Zap, Monitor, Shield, Download, Lightbulb } from "lucide-react";
@@ -171,9 +173,14 @@ const BentoGrid = () => {
                     <div className="absolute inset-0 bg-green-800/70 group-hover:bg-green-800/50 transition-colors" />
                     <div className="flex justify-between items-start relative z-10">
                         <Shield className="h-10 w-10 text-green-300" />
-                        <span className="text-[10px] font-black tracking-[0.2em] px-3 py-1 bg-white/20  rounded-full uppercase">
+                        <Ribbon
+                            fontSize="12px"
+                            cutout="0.5em"
+                            color="rgba(255,255,255,0.2)"
+                            className="inline-flex items-center text-white font-black tracking-[0.2em] uppercase"
+                        >
                             Trust Factor
-                        </span>
+                        </Ribbon>
                     </div>
                     <div className="relative z-10">
                         <h3 className="text-2xl font-bold mb-3">Financial Advisory</h3>

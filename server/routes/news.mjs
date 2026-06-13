@@ -7,7 +7,10 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        let limit = parseInt(req.query.limit) || 9;
+        if (limit > 9) {
+            limit = 9;
+        }
         const offset = (page - 1) * limit;
 
         let query = 'SELECT * FROM api_news';

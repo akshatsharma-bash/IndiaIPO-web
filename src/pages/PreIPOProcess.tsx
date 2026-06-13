@@ -76,10 +76,8 @@ const PreIPOProcess = () => {
                   <ChevronRight className="w-4 h-4" />
                   <span className="text-white">Pre-IPO Guidance</span>
                 </div>
-                <div className="inline-flex items-center gap-2 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-4 py-1.5 mb-6">
-                  <div className="w-2 h-2 rounded-full bg-[#f59e08]" />
-                  <span className="text-[#f59e08] text-xs font-black uppercase tracking-widest">Expert Consultancy</span>
-                </div>
+
+
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                   Pre-IPO Guidance for a Successful Public Listing
                 </h1>
@@ -97,7 +95,11 @@ const PreIPOProcess = () => {
 
 
             <div className="prose prose-lg prose-headings:text-foreground prose-p:text-muted-foreground max-w-none">
-              <h2 className="text-3xl font-bold mb-6" style={{ color: 'hsl(220 72% 25%)' }}>Pre IPO Process Guidance - Your Complete Roadmap to a Successful IPO</h2>
+
+              <h2 className="text-3xl font-bold mb-3 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                Pre IPO Process Guidance - Your Complete Roadmap to a Successful IPO
+              </h2>
               <p className="leading-relaxed">
                 Going public is one of the most defining moments in a company's history. It opens the doors to large-scale capital infusion, enhanced market credibility and long-term strategic growth. However, the path to a successful IPO does not begin on the day of filing; it begins well before, with thorough and structured preparation.
               </p>
@@ -108,8 +110,11 @@ const PreIPOProcess = () => {
 
 
             <div className="space-y-12">
-              <div className="bg-secondary/20 border border-border rounded-3xl p-8 shadow-sm">
-                <h2 className="text-3xl font-bold mb-6" style={{ color: 'hsl(220 72% 25%)' }}>Why Pre-IPO Guidance Is Essential</h2>
+              <div className="py-4">
+                <h2 className="text-3xl font-bold mb-3 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                  <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                  Why Pre-IPO Guidance Is Essential
+                </h2>
                 <p className="text-muted-foreground leading-relaxed mb-6">
                   Many companies approach the IPO process without a clear understanding of what SEBI, stock exchanges and investors actually expect. This lack of preparation often leads to avoidable and costly consequences:
                 </p>
@@ -143,14 +148,17 @@ const PreIPOProcess = () => {
                     </div>
                   </li>
                 </ul>
-                <p className="text-muted-foreground leading-relaxed mt-8 font-medium italic">
+                <p className="text-black/90 leading-relaxed mt-8 font-medium italic">
                   With structured pre-IPO guidance, these risks are identified and addressed well in advance, allowing your company to enter the market prepared, credible and strategically positioned.
                 </p>
               </div>
 
               <div>
-                <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: 'hsl(220 72% 25%)' }}>Our Pre-IPO Process Guidance Services</h2>
-                <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
+                <h2 className="text-3xl font-bold mb-3 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                  <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                  Our Pre-IPO Process Guidance Services
+                </h2>
+                <p className=" text-muted-foreground mb-10 ">
                   We provide end-to-end pre-IPO support across all critical dimensions of IPO preparation.
                 </p>
 
@@ -319,14 +327,17 @@ const PreIPOProcess = () => {
             </div>
 
 
-            <div className="py-12">
-              <h2 className="text-3xl font-bold mb-8 text-center" style={{ color: 'hsl(220 72% 25%)' }}>Our Step-by-Step Pre-IPO Roadmap</h2>
-              <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+            <div className="py-6">
+              <h2 className="text-3xl font-bold mb-3 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                Our Step-by-Step Pre-IPO Roadmap
+              </h2>
+              <p className="text-muted-foreground mb-12 ">
                 We follow a structured, phased methodology to ensure complete IPO preparedness:
               </p>
 
               <div className="grid md:grid-cols-2 gap-x-12 gap-y-8 relative">
-                {/* Vertical line for desktop */}
+
                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border hidden md:block" />
 
                 {[
@@ -339,7 +350,7 @@ const PreIPOProcess = () => {
                   { step: 7, title: "Pre-IPO Marketing", desc: "Engaging institutional investors, analysts and retail audiences to build demand" },
                   { step: 8, title: "IPO Launch Support", desc: "Overseeing the subscription period through to successful listing on the stock exchange" }
                 ].map((item, idx) => (
-                  <div key={idx} className={`relative flex items-start gap-6 ${idx % 2 === 0 ? 'md:pr-12' : 'md:pl-12 md:mt-12'}`}>
+                  <div key={idx} className={`relative flex items-start gap-6 ${idx % 2 === 0 ? 'md:pr-12' : 'md:pl-12 '}`}>
                     <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center shrink-0 font-bold text-xl shadow-lg z-10">
                       {item.step}
                     </div>
@@ -353,7 +364,10 @@ const PreIPOProcess = () => {
             </div>
 
             <div>
-              <h2 className="text-3xl font-bold mb-6 text-center" style={{ color: 'hsl(220 72% 25%)' }}>The Phenomenon of "Pre-IPO Funding"</h2>
+              <h2 className="text-3xl font-bold mb-3 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                The Phenomenon of "Pre-IPO Funding"
+              </h2>
               <div className="prose prose-lg prose-p:text-muted-foreground max-w-none">
                 <p className="leading-relaxed">
                   Apart from operational readiness, one of the most critical aspects of the Pre-IPO phase is <strong>Pre-IPO Placement or Funding</strong>. Rather than waiting for the public issue to discover the company's valuation, promoters opt to raise emergency or growth capital 6 to 12 months prior to the IPO from select High Net Worth Individuals (HNIs), Private Equity (PE) funds, or Sovereign wealth funds.
@@ -385,7 +399,10 @@ const PreIPOProcess = () => {
 
 
             <div className="py-12 border-t border-border mt-12">
-              <h2 className="text-3xl font-bold mb-8" style={{ color: 'hsl(220 72% 25%)' }}>Why Choose India IPO for Pre-IPO Guidance?</h2>
+              <h2 className="text-3xl font-bold mb-8 flex items-center gap-3" style={{ color: 'hsl(220 72% 25%)' }}>
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                Why Choose India IPO for Pre-IPO Guidance?
+              </h2>
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   {[
@@ -435,7 +452,10 @@ const PreIPOProcess = () => {
 
             <div className="mt-20 p-12 rounded-[2.5rem] text-center shadow-2xl relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #001529 0%, #002147 55%, #003380 100%)' }}>
               <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-5" style={{ background: '#f59e08', filter: 'blur(60px)', transform: 'translate(30%,-30%)' }} />
-              <h2 className="text-3xl md:text-4xl font-black text-white mb-6 relative z-10">Don't Wait Until the Last Minute</h2>
+              <h2 className="text-3xl md:text-4xl font-black text-white mb-6 relative z-10 flex items-center justify-center gap-3">
+                <div className="w-1 h-8 rounded-full bg-[#f59e08] shrink-0" />
+                Don't Wait Until the <strong style={{ color: "#f59e08" }}>Last Minute</strong>
+              </h2>
               <p className="text-xl text-white/70 mb-10 max-w-2xl mx-auto font-medium relative z-10">
                 A botched DRHP filing due to poor preparation can delay your IPO by years. Engage with our Pre-IPO experts today to architect a foolproof listing strategy.
               </p>

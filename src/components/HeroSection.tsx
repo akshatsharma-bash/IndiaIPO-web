@@ -269,18 +269,7 @@ const HeroSection = () => {
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-            {banners.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${i === current
-                  ? "bg-accent w-8"
-                  : "bg-background/40 hover:bg-background/60"
-                  }`}
-              />
-            ))}
-          </div>
+
         </>
       )}
     </section>

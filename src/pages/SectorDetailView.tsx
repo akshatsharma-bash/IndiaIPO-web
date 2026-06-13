@@ -141,12 +141,10 @@ const SectorDetailView = () => {
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Back to Sectors
           </button>
-          
+
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <div className="inline-flex items-center gap-1.5 bg-[#f59e08]/20 border border-[#f59e08]/30 rounded-full px-3.5 py-1 mb-4 text-[#f59e08] text-[11px] font-black uppercase tracking-widest">
-                <Landmark className="w-3.5 h-3.5" /> Sector Analysis
-              </div>
+
               <h1 className="text-3xl md:text-5xl font-black capitalize tracking-tight">
                 {matchedSector.name.toLowerCase()} <span className="text-[#f59e08]">IPOs</span>
               </h1>
@@ -154,7 +152,7 @@ const SectorDetailView = () => {
                 Comprehensive performance and metrics tracker of public listings in the {matchedSector.name.toLowerCase()} industry.
               </p>
             </div>
-            
+
             <div className="relative w-full md:w-80 shrink-0">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
               <input
@@ -172,7 +170,7 @@ const SectorDetailView = () => {
       <main className="py-10">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            
+
             {/* Stats Summary Sidebar */}
             <div className="space-y-6">
               <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm relative overflow-hidden">
@@ -213,7 +211,7 @@ const SectorDetailView = () => {
                 <div className="px-5 py-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-700">{filteredItems.length} Companies Listed</span>
                 </div>
-                
+
                 {filteredItems.length === 0 ? (
                   <div className="py-20 text-center">
                     <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
@@ -277,7 +275,7 @@ const SectorDetailView = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
