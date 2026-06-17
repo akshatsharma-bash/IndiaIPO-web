@@ -8,7 +8,7 @@ import {
   LogIn, Mail, Lock, Eye, EyeOff, TrendingUp,
   ShieldCheck, BarChart2, Zap, ChevronRight,
 } from "lucide-react";
-import loginPanelImg from "@/assets/login_panel.png";
+import loginPanelImg from "@/assets/login_panel1.webp";
 import logoImg from "@/assets/India IPO Company Logo.jpg";
 
 

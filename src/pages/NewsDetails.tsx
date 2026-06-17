@@ -47,7 +47,9 @@ const ArticleContent = ({ content }: { content: string }) => {
         <style>{`
           .article-prose p { margin-bottom: 1.25rem; color: #475569; line-height: 1.85; font-size: 1rem; font-weight: 500; }
           .article-prose h2 { font-size: 1.5rem; font-weight: 900; color: #001529; margin-top: 2.5rem; margin-bottom: 1.5rem; padding: 0.75rem 1rem; background: #eff6ff; border-left: 5px solid #1a56db; border-radius: 0 0.5rem 0.5rem 0; }
-          .article-prose h3 { font-size: 1.2rem; font-weight: 900; color: #001529; margin-top: 2rem; margin-bottom: 1rem; padding: 0.5rem 1rem; background: #f8fafc; border-left: 4px solid #94a3b8; border-radius: 0 0.4rem 0.4rem 0; }
+          .article-prose h3, .article-prose h5 { font-weight: 900; margin-top: 2rem; margin-bottom: 1rem; padding: 0.5rem 1rem; background: #f8fafc; border-radius: 0 0.4rem 0.4rem 0; }
+          .article-prose h3 { font-size: 1.2rem; color: #001529; border-left: 4px solid #94a3b8; }
+          .article-prose h5 { font-size: 1.05rem; color: #475569; border-left: 4px solid #f59e08; }
           .article-prose h4 { font-size: 1rem; font-weight: 800; color: #001529; margin-top: 1.5rem; margin-bottom: 0.5rem; }
           .article-prose strong, .article-prose b { color: #001529; font-weight: 700; }
           .article-prose a { color: #001529; font-weight: 600; text-decoration: underline; text-decoration-color: #f59e08; }

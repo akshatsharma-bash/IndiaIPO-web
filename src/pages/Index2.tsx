@@ -18,6 +18,7 @@ const IPOTable = lazy(() => import("@/components/home/IPOTable"));
 const BentoGrid = lazy(() => import("@/components/home/BentoGrid"));
 const VideoSection = lazy(() => import("@/components/home/VideoSection"));
 const MarketInsights = lazy(() => import("@/components/home/MarketInsights"));
+const WeeklyReporter = lazy(() => import("@/components/home/WeeklyReporter"));
 const AcademyFAQ = lazy(() => import("@/components/home/AcademyFAQ"));
 const AnnualReport = lazy(() => import("@/components/home/AnnualReport"))
 const LatestNews = lazy(() => import("@/components/home/LatestNews"));
@@ -93,15 +94,27 @@ const Index2 = () => {
         <Hero />
         <AboutPreview />
         <ServicesSection />
-        <Suspense fallback={null}>
-          <LiveIPOs ipos={ipos} isLoading={isLoading} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <GMPSection ipos={ipos} isLoading={isLoading} />
-        </Suspense>
-        <Suspense fallback={null}>
-          <IPOTable ipos={ipos} isLoading={isLoading} />
-        </Suspense>
+
+
+        <LazySection>
+          <Suspense fallback={null}>
+            <LiveIPOs ipos={ipos} isLoading={isLoading} />
+          </Suspense>
+        </LazySection>
+
+        <LazySection>
+          <Suspense fallback={null}>
+            <GMPSection ipos={ipos} isLoading={isLoading} />
+          </Suspense>
+        </LazySection>
+
+        <LazySection>
+          <Suspense fallback={null}>
+            <IPOTable ipos={ipos} isLoading={isLoading} />
+          </Suspense>
+        </LazySection>
+
+
         <Suspense fallback={null}>
           <BentoGrid />
         </Suspense>
@@ -111,6 +124,12 @@ const Index2 = () => {
         <LazySection>
           <Suspense fallback={null}>
             <MarketInsights />
+          </Suspense>
+        </LazySection>
+
+        <LazySection>
+          <Suspense fallback={null}>
+            <WeeklyReporter />
           </Suspense>
         </LazySection>
 

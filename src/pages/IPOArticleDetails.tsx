@@ -240,17 +240,25 @@ const ArticleRenderer = ({ content, bankers }: { content: string; bankers?: any[
             background: linear-gradient(180deg, #f59e08, #d97706);
             border-radius: 2px;
           }
-          .article-prose h3 {
-            font-size: 1.15rem;
+          .article-prose h3,
+          .article-prose h5 {
             font-weight: 800;
-            color: #001529;
             margin-top: 2rem;
             margin-bottom: 0.75rem;
             padding: 0.6rem 1rem;
             background: #f8fafc;
-            border-left: 3px solid #001529;
             border-radius: 0 0.5rem 0.5rem 0;
             line-height: 1.35;
+          }
+          .article-prose h3 {
+            font-size: 1.15rem;
+            color: #001529;
+            border-left: 3px solid #001529;
+          }
+          .article-prose h5 {
+            font-size: 1.025rem;
+            color: #475569;
+            border-left: 3px solid #f59e08;
           }
           .article-prose strong { color: #0f172a; font-weight: 700; }
           .article-prose ul { list-style-type: none !important; padding: 0; margin: 2rem 0; background: #f8fafc; padding: 2rem; border-radius: 1.5rem; border: 1px solid #f1f5f9; }
@@ -270,6 +278,7 @@ const ArticleRenderer = ({ content, bankers }: { content: string; bankers?: any[
           @media (max-width: 768px) {
             .article-prose h2 { font-size: 1.75rem; margin-top: 3rem; }
             .article-prose h3 { font-size: 1.4rem; }
+            .article-prose h5 { font-size: 1.2rem; }
             .article-prose p { font-size: 1rem; }
           }
         `}</style>

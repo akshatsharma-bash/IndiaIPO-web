@@ -8,7 +8,7 @@ import {
   UserPlus, Mail, Lock, Eye, EyeOff, User,
   ShieldCheck, TrendingUp, BarChart2, Zap, ChevronRight, CheckCircle2,
 } from "lucide-react";
-import loginPanelImg from "@/assets/login_panel.png";
+import loginPanelImg from "@/assets/login_panel1.webp";
 import logoImg from "@/assets/logo.png";
 
 const benefits = [
@@ -289,10 +289,10 @@ const Register = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter password"
                     className={`w-full pl-10 pr-12 py-3 rounded-xl bg-slate-800/60 border text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 transition-all ${confirmPassword.length > 0
-                        ? passwordsMatch
-                          ? "border-green-600/60 focus:ring-green-600/40"
-                          : "border-red-600/60 focus:ring-red-600/40"
-                        : "border-slate-700/60 focus:ring-amber-600/50 focus:border-amber-600/60"
+                      ? passwordsMatch
+                        ? "border-green-600/60 focus:ring-green-600/40"
+                        : "border-red-600/60 focus:ring-red-600/40"
+                      : "border-slate-700/60 focus:ring-amber-600/50 focus:border-amber-600/60"
                       }`}
                   />
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">

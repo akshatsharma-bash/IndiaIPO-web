@@ -565,3 +565,9 @@ ins.adsbygoogle iframe {
     var(--ribbon-bg) padding-box;
   width: fit-content;
 }
+
+/* TinyMCE Modal/Dropdown Stacking Context Fix for Radix Dialogs */
+.tox-tinymce-aux {
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}

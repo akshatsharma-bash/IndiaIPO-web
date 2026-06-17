@@ -51,6 +51,9 @@ import uploadMagazineRoutes
     from './routes/uploadMagazine.mjs';
 import uploadDailyReporterRoutes
     from './routes/uploadDailyReporter.mjs';
+import uploadWeeklyReporterRoutes
+    from './routes/uploadWeeklyReporter.mjs';
+import weeklyDigestRoutes from './routes/weekly_digests.mjs';
 
 // Workers
 import { processJobs } from './worker/sendDailyDigestWorker.mjs';
@@ -800,6 +803,17 @@ async function initDB() {
         `);
 
         await conn.execute(`
+            CREATE TABLE IF NOT EXISTS weekly_digests (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                title VARCHAR(255) NOT NULL,
+                image VARCHAR(512),
+                pdf VARCHAR(512),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            )
+        `);
+
+        await conn.execute(`
             CREATE TABLE IF NOT EXISTS api_news (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 title VARCHAR(255) NOT NULL,
@@ -1218,6 +1232,7 @@ app.use('/api/popup', popupRoutes);
 app.use('/api/registrars', registrarRoutes);
 app.use('/api/registrar-faqs', registrarFaqRoutes);
 app.use('/api/daily-digests', dailyDigestRoutes);
+app.use('/api/weekly-digests', weeklyDigestRoutes);
 app.use('/api/ipo-lists', ipoListRoutes);
 app.use('/api/sectors', sectorRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
@@ -1239,6 +1254,11 @@ app.use(
 app.use(
     '/api/upload/daily-reporter',
     uploadDailyReporterRoutes
+);
+
+app.use(
+    '/api/upload/weekly-reporter',
+    uploadWeeklyReporterRoutes
 );
 // --- Sitemap Generation --- (Auto-updates when you add blogs/IPOs from admin)
 app.get('/sitemap.xml', async (req, res) => {
@@ -1526,12 +1546,12 @@ const injectMetaTags = (html, meta) => {
             const mobileImg = getServerImgSrc(firstBanner.mobile_image_url);
             const desktopImg = getServerImgSrc(firstBanner.image_url);
             if (mobileImg && desktopImg) {
-                dynamicTags.push(`<link rel="preload" as="image" href="${mobileImg}" media="(max-width: 768px)" />`);
+                dynamicTags.push(`<link rel="preload" as="image" href="${mobileImg}" media="(max-width: 768px)" fetchpriority="high"  />`);
                 dynamicTags.push(`<link rel="preload" as="image" href="${desktopImg}" media="(min-width: 769px)" fetchpriority="high" />`);
             } else if (desktopImg) {
                 dynamicTags.push(`<link rel="preload" as="image" href="${desktopImg}" fetchpriority="high" />`);
             } else if (mobileImg) {
-                dynamicTags.push(`<link rel="preload" as="image" href="${mobileImg}" />`);
+                dynamicTags.push(`<link rel="preload" as="image" href="${mobileImg}" fetchpriority="high"  />`);
             }
         }
     }
@@ -2384,7 +2404,7 @@ if (fs.existsSync(distDir)) {
             req.path.startsWith('/api/') ||
             req.path.startsWith('/uploads/') ||
             req.path.startsWith('/assets/') ||
-            req.path.match(/\.(js|css|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)
+            req.path.match(/\.(js|mjs|css|json|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)
         ) {
             return next();
         }

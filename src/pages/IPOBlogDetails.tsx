@@ -552,7 +552,10 @@ const SmartBlogRenderer = ({
       <style>{`
         .ipo-blog-prose p { margin-bottom: 1.4rem; color: #475569; line-height: 1.9; font-size: 1rem; font-weight: 500; }
         .ipo-blog-prose h2 { font-size: 1.4rem; font-weight: 900; color: #1e40af; margin-top: 2.8rem; margin-bottom: 1.2rem; padding: 0.85rem 1.25rem; background: #EEF2FF; border-left: 6px solid #1e40af; border-radius: 0 0.75rem 0.75rem 0; display: block; }
-        .ipo-blog-prose h3 { font-size: 1.15rem; font-weight: 800; color: #1e3a8a; margin-top: 2rem; margin-bottom: 1rem; padding: 0.6rem 1rem; background: #f0f7ff; border-left: 4px solid #60a5fa; border-radius: 0 0.5rem 0.5rem 0; display: block; }
+        .ipo-blog-prose h3,
+        .ipo-blog-prose h5 { font-weight: 800; margin-top: 2rem; margin-bottom: 1rem; padding: 0.6rem 1rem; background: #f0f7ff; border-radius: 0 0.5rem 0.5rem 0; display: block; }
+        .ipo-blog-prose h3 { font-size: 1.15rem; color: #1e3a8a; border-left: 4px solid #60a5fa; }
+        .ipo-blog-prose h5 { font-size: 1.025rem; color: #475569; border-left: 4px solid #f59e08; }
         .ipo-blog-prose h4 { font-size: 1rem; font-weight: 800; color: #1e3a8a; margin-top: 1.5rem; margin-bottom: 0.6rem; padding-left: 0.75rem; border-left: 3px solid #93c5fd; }
         .ipo-blog-prose strong, .ipo-blog-prose b { color: #1e3a8a; font-weight: 700; }
         .ipo-blog-prose a { color: #1d4ed8; font-weight: 600; text-decoration: underline; text-decoration-color: #93c5fd; }
@@ -1104,17 +1107,19 @@ const IPOBlogDetails = () => {
 
     const fetchRelated = async () => {
       try {
-        const res = await fetch(
-          `/api/admin-blogs?limit=100&summary=1&all_categories=1`,
-        );
+        const currentCat = (blog.category || "")
+          .toLowerCase()
+          .replace(/\s+/g, "_");
+
+        const url = currentCat === "daily_reporter"
+          ? `/api/admin-blogs?category=daily_reporter&limit=50&summary=1&all_categories=1`
+          : `/api/admin-blogs?limit=100&summary=1&all_categories=1`;
+
+        const res = await fetch(url);
 
         if (res.ok) {
           const data = await res.json();
           const all: RelatedBlog[] = data.data || [];
-
-          const currentCat = (blog.category || "")
-            .toLowerCase()
-            .replace(/\s+/g, "_");
 
           let filtered = all.filter((b) => {
             const bCat = (b.category || "")
@@ -1145,20 +1150,25 @@ const IPOBlogDetails = () => {
                 const sameTitleAndDate =
                   b.title?.trim().toLowerCase() ===
                   item.title?.trim().toLowerCase() &&
-                  String(b.created_at).split("T")[0] ===
-                  String(item.created_at).split("T")[0];
+                  (b.created_at && item.created_at
+                    ? String(b.created_at).split("T")[0] === String(item.created_at).split("T")[0]
+                    : false);
 
                 return sameSlug || sameTitleAndDate;
               })
             );
           });
 
-          // latest first
-          uniqueBlogs.sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime(),
-          );
+          // latest first (fallback to id if created_at is missing/null)
+          uniqueBlogs.sort((a, b) => {
+            const valA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const valB = b.created_at ? new Date(b.created_at).getTime() : 0;
+
+            if (valA && valB && !isNaN(valA) && !isNaN(valB)) {
+              return valB - valA;
+            }
+            return Number(b.id) - Number(a.id);
+          });
 
           setRelatedBlogs(uniqueBlogs.slice(0, 6));
         }

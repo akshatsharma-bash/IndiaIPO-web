@@ -34,7 +34,7 @@ const ManageNews = () => {
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  
+
 
   const [filterCategory, setFilterCategory] = useState("All");
 
@@ -54,7 +54,7 @@ const ManageNews = () => {
         limit: pagination.pageSize.toString(),
         status: 'All'
       });
-      
+
       if (filterCategory !== "All") {
         queryParams.append("category", filterCategory);
       }
@@ -82,8 +82,8 @@ const ManageNews = () => {
   const handleSave = async () => {
     if (!form.title) { toast.error("Title required"); return; }
     if (!form.image) { toast.error("Image is required"); return; }
-    if (form.description.length > 300) {
-      toast.error(`Short description is too long (${form.description.length}/300)`);
+    if (form.description.length > 700) {
+      toast.error(`Short description is too long (${form.description.length}/700)`);
       return;
     }
 
@@ -100,7 +100,7 @@ const ManageNews = () => {
     try {
       const url = editingId ? `/api/news/${editingId}` : "/api/news";
       const method = editingId ? "PUT" : "POST";
-      
+
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
@@ -196,7 +196,7 @@ const ManageNews = () => {
               <DialogTrigger asChild>
                 <Button className="bg-primary text-primary-foreground font-semibold"><Plus className="h-4 w-4 mr-2" /> Add News</Button>
               </DialogTrigger>
-              <DialogContent 
+              <DialogContent
                 className="max-w-3xl max-h-[90vh] overflow-y-auto"
                 onInteractOutside={(e) => {
                   e.preventDefault();
@@ -224,10 +224,10 @@ const ManageNews = () => {
 
                     <div>
                       <label className="text-sm font-medium text-foreground mb-1.5 block">Date</label>
-                      <Input 
-                        type="date" 
-                        value={form.published_at} 
-                        onChange={(e) => setForm({ ...form, published_at: e.target.value })} 
+                      <Input
+                        type="date"
+                        value={form.published_at}
+                        onChange={(e) => setForm({ ...form, published_at: e.target.value })}
                         max={new Date().toISOString().split('T')[0]}
                       />
                     </div>
@@ -246,24 +246,24 @@ const ManageNews = () => {
                   <div>
                     <label className="text-sm font-medium text-foreground mb-1.5 block">Image URL / Upload</label>
                     <div className="flex gap-2">
-                        <Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://..." className="flex-1" />
-                        <div className="relative">
-                            <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Upload Image" />
-                            <Button type="button" variant="outline" className="shrink-0 flex items-center gap-2 pointer-events-none">
-                              <ImageIcon className="w-4 h-4" /> Upload
-                            </Button>
-                        </div>
+                      <Input value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://..." className="flex-1" />
+                      <div className="relative">
+                        <input type="file" accept="image/*" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" title="Upload Image" />
+                        <Button type="button" variant="outline" className="shrink-0 flex items-center gap-2 pointer-events-none">
+                          <ImageIcon className="w-4 h-4" /> Upload
+                        </Button>
+                      </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-1">Direct URL or upload JPG/PNG (Max 2MB)</p>
                   </div>
                   <div>
                     <div className="flex justify-between items-center mb-1.5">
                       <label className="text-sm font-medium text-foreground">Short Description</label>
-                      <span className={`text-[10px] ${form.description.length > 300 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
-                        {form.description.length}/300
+                      <span className={`text-[10px] ${form.description.length > 700 ? "text-destructive font-bold" : "text-muted-foreground"}`}>
+                        {form.description.length}/700
                       </span>
                     </div>
-                    <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder="Brief summary (max 300 characters)" />
+                    <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder="Brief summary (max 700 characters)" />
                   </div>
                   <div>
                     <label className="text-sm font-medium text-foreground mb-1.5 block">Full Content *</label>
@@ -299,9 +299,9 @@ const ManageNews = () => {
                     <tr key={n.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                       <td className="py-2 px-4">
                         {n.image ? (
-                            <img src={getImageUrl(n.image)} alt="" className="w-10 h-10 rounded object-cover" />
+                          <img src={getImageUrl(n.image)} alt="" className="w-10 h-10 rounded object-cover" />
                         ) : (
-                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center"><ImageIcon className="h-4 w-4 text-muted-foreground" /></div>
+                          <div className="w-10 h-10 rounded bg-muted flex items-center justify-center"><ImageIcon className="h-4 w-4 text-muted-foreground" /></div>
                         )}
                       </td>
                       <td className="py-3 px-4 font-medium max-w-[300px]">
@@ -330,29 +330,29 @@ const ManageNews = () => {
             </div>
           </div>
         )}
-        
-        
+
+
         {!loading && (
-            <div className="grid grid-cols-1 gap-4 md:hidden">
-                 {news.length === 0 ? (
-                    <div className="text-center py-12 text-muted-foreground border rounded-xl bg-card">No news found.</div>
-                  ) : news.map(n => (
-                    <div key={n.id} className="bg-card border rounded-xl p-4 flex gap-4">
-                        {n.image && <img src={getImageUrl(n.image)} alt="" className="w-16 h-16 rounded object-cover shrink-0" />}
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{n.category}</Badge>
-                                <span className="text-[10px] text-muted-foreground">{(n.published_at||"").split('T')[0]}</span>
-                            </div>
-                            <h4 className="font-semibold text-sm line-clamp-2 leading-tight mb-2">{n.title}</h4>
-                            <div className="flex gap-2">
-                                <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => handleEdit(n)}>Edit</Button>
-                                <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-destructive" onClick={() => handleDelete(n.id)}>Delete</Button>
-                            </div>
-                        </div>
-                    </div>
-                  ))}
-            </div>
+          <div className="grid grid-cols-1 gap-4 md:hidden">
+            {news.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border rounded-xl bg-card">No news found.</div>
+            ) : news.map(n => (
+              <div key={n.id} className="bg-card border rounded-xl p-4 flex gap-4">
+                {n.image && <img src={getImageUrl(n.image)} alt="" className="w-16 h-16 rounded object-cover shrink-0" />}
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start mb-1">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{n.category}</Badge>
+                    <span className="text-[10px] text-muted-foreground">{(n.published_at || "").split('T')[0]}</span>
+                  </div>
+                  <h4 className="font-semibold text-sm line-clamp-2 leading-tight mb-2">{n.title}</h4>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs flex-1" onClick={() => handleEdit(n)}>Edit</Button>
+                    <Button variant="outline" size="sm" className="h-7 text-xs flex-1 text-destructive" onClick={() => handleDelete(n.id)}>Delete</Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -367,30 +367,30 @@ const ManageNews = () => {
           >
             Previous
           </Button>
-          
+
           <div className="flex items-center gap-1">
-            
+
             {Array.from({ length: Math.min(pagination.totalPages, 7) }, (_, i) => {
-                let pageNum;
-                if (pagination.totalPages <= 7) {
-                    pageNum = i + 1;
-                } else {
-                    if (pagination.currentPage <= 4) pageNum = i + 1;
-                    else if (pagination.currentPage >= pagination.totalPages - 3) pageNum = pagination.totalPages - 6 + i;
-                    else pageNum = pagination.currentPage - 3 + i;
-                }
-                
-                return (
-                    <Button
-                        key={pageNum}
-                        variant={pagination.currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="w-9 h-9 p-0"
-                        onClick={() => fetchNews(pageNum)}
-                    >
-                        {pageNum}
-                    </Button>
-                );
+              let pageNum;
+              if (pagination.totalPages <= 7) {
+                pageNum = i + 1;
+              } else {
+                if (pagination.currentPage <= 4) pageNum = i + 1;
+                else if (pagination.currentPage >= pagination.totalPages - 3) pageNum = pagination.totalPages - 6 + i;
+                else pageNum = pagination.currentPage - 3 + i;
+              }
+
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pagination.currentPage === pageNum ? "default" : "outline"}
+                  size="sm"
+                  className="w-9 h-9 p-0"
+                  onClick={() => fetchNews(pageNum)}
+                >
+                  {pageNum}
+                </Button>
+              );
             })}
           </div>
 

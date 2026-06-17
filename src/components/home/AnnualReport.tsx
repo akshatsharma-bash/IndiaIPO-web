@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { TrendingUp, ShieldCheck, Zap, Download, Activity, BarChart } from "lucide-react";
 import report from "@/assets/coverIm2.jpg";
-import customBg1 from "@/assets/custom-bg-1.png";
+import customBg1 from "@/assets/custom-bg-11.webp";
 import customBg2 from "@/assets/custom-bg-21.webp";
 import ReportModal from "@/components/ReportModal";
 import Ribbon from "@/components/Ribbon";

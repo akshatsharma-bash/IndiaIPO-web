@@ -24,6 +24,7 @@ const sidebarLinks = [
 
   { label: "Market Snaps", href: "/admin/market-snaps", icon: PlayCircle },
   { label: "Daily Reporter", href: "/admin/daily-digests", icon: FileText },
+  { label: "Weekly Reporter", href: "/admin/weekly-digests", icon: FileText },
   { label: "Daily Digest Campaign", href: "/admin/daily-digest-campaign", icon: Megaphone },
   { label: "Leads", href: "/admin/leads", icon: MessageSquare, badgeKey: "leads" },
   { label: "Consultant Enquiries", href: "/admin/consultant-enquiries", icon: MessageSquare, badgeKey: "consultantEnquiries" },

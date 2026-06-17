@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import WhatsAppButton from "./components/WhatsAppButton";
+const JigyasaChatButton = lazy(() => import("./components/JigyasaChatButton"));
 // import ApkDownloadButton from "./components/ApkDownloadButton";
 import MobileNav from "./components/MobileNav";
 import ScrollToTop from "./components/ScrollToTop";
@@ -15,6 +16,8 @@ import GlobalCanonical from "./components/GlobalCanonical";
 
 
 import Index2 from "./pages/Index2";
+import { WeeklyDigest } from "./components/WeeklyDigest";
+
 
 const IPOCalendar = lazy(() => import("./pages/IPOCalendar"));
 const Services = lazy(() => import("./pages/Services"));
@@ -96,7 +99,9 @@ const ManageRegistrars = lazy(() => import("./pages/admin/ManageRegistrars"));
 const ManageRegistrarFaqs = lazy(() => import("./pages/admin/ManageRegistrarFaqs"));
 const DailyReporter = lazy(() => import("./pages/DailyReporter"));
 const DailyReporterViewer = lazy(() => import("./pages/DailyReporterViewer"));
+const WeeklyReporterViewer = lazy(() => import("./pages/WeeklyReporterViewer"));
 const ManageDailyDigests = lazy(() => import("./pages/admin/ManageDailyDigests"));
+const ManageWeeklyDigests = lazy(() => import("./pages/admin/ManageWeeklyDigests"));
 const DailyDigestCampaign = lazy(() => import("./pages/admin/DailyDigestCampaign"));
 
 const RegistrarDetails = lazy(() => import("./pages/RegistrarDetails"));
@@ -189,7 +194,7 @@ const AnimatedRoutes = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/ipo-calculator" element={<IPOCalculator />} />
+          {/* <Route path="/ipo-calculator" element={<IPOCalculator />} /> */}
           <Route path="/ipo-eligibility-check" element={<IPOFeasibility />} />
           <Route path="/investors" element={<Investors />} />
           <Route path="/news" element={<NewsUpdates />} />
@@ -201,6 +206,9 @@ const AnimatedRoutes = () => {
           <Route path="/daily-ipo-digest" element={<DailyReporter />} />
           <Route path="/daily-ipo-digest/view/:id" element={<DailyReporterViewer />} />
           <Route path="/daily-reporter/:slug" element={<IPOBlogDetails />} />
+
+          <Route path="/weekly-ipo-report" element={<WeeklyDigest />} />
+          <Route path="/weekly-ipo-report/view/:id" element={<WeeklyReporterViewer />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/reports/:slug" element={<Reports />} />
           <Route path="/mainline-ipos" element={<Reports />} />
@@ -282,6 +290,7 @@ const AnimatedRoutes = () => {
           <Route path="/admin/sectors" element={<ManageSectors />} />
           <Route path="/admin/sector-ipos" element={<ManageSectorIPOs />} />
           <Route path="/admin/daily-digests" element={<ManageDailyDigests />} />
+          <Route path="/admin/weekly-digests" element={<ManageWeeklyDigests />} />
           <Route path="/admin/daily-digest-campaign" element={<DailyDigestCampaign />} />
 
           <Route path="/admin/consultants" element={<ManageConsultants />} />
@@ -318,7 +327,13 @@ const App = () => (
             <ScrollToTop />
             <AnimatedRoutes />
             <MobileNav />
-            <WhatsAppButton />
+            {/* Floating buttons — stacked together */}
+            <div className="fixed bottom-24 md:bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+              <Suspense fallback={null}>
+                <JigyasaChatButton />
+              </Suspense>
+              <WhatsAppButton />
+            </div>
           </BrowserRouter>
 
         </TooltipProvider>

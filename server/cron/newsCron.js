@@ -36,8 +36,8 @@ const blockedKeywords = [
     "weather",
     "election",
     "politics",
-    "bike",
-    "car",
+
+
     "fssai",
     "food",
 
@@ -61,7 +61,12 @@ const allowedKeywords = [
     "book built issue",
     "anchor investor",
     "share market",
-    "stock market"
+    "stock market",
+    "gmp",
+    "grey market",
+    "ipo alert",
+    "stock"
+
 ];
 
 

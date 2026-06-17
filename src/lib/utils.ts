@@ -39,6 +39,22 @@ export function formatIndianNumber(value: string | number | undefined | null): s
 
   let str = String(value).trim();
 
+  // Handle brackets (common in financial reports for negative numbers)
+  let isBracketed = false;
+  if (str.startsWith('(') && str.endsWith(')')) {
+    isBracketed = true;
+    str = str.slice(1, -1).trim();
+  }
+
+  // Handle signs
+  let sign = '';
+  if (str.startsWith('-')) {
+    sign = '-';
+    str = str.slice(1).trim();
+  } else if (str.startsWith('+')) {
+    sign = '+';
+    str = str.slice(1).trim();
+  }
 
   if (str.toLowerCase().endsWith('rs')) {
     const withoutRs = str.slice(0, -2).trim();
@@ -49,19 +65,18 @@ export function formatIndianNumber(value: string | number | undefined | null): s
     }
   }
 
-
   if (str.toLowerCase().endsWith('cr') && !str.toLowerCase().endsWith(' cr')) {
     str = str.slice(0, -2).trim() + ' Cr';
   }
 
-
-  const cleanStr = str.replace(/[₹$,\s]/g, '');
-
-
-
   if (str.includes(' to ') || str.includes(' - ')) {
     const separator = str.includes(' to ') ? ' to ' : ' - ';
-    return str.split(separator).map(s => formatIndianNumber(s.trim())).join(separator);
+    const formattedRange = str.split(separator).map(s => formatIndianNumber(s.trim())).join(separator);
+    let result = sign + formattedRange;
+    if (isBracketed) {
+      result = `(${result})`;
+    }
+    return result;
   }
 
   const match = str.match(/^([₹$]?)\s*([\d,]+\.?\d*)\s*(.*)/);
@@ -78,11 +93,21 @@ export function formatIndianNumber(value: string | number | undefined | null): s
         minimumFractionDigits: 0
       }).format(num);
 
-      return `${symbol}${symbol ? ' ' : ''}${formattedNum}${suffix ? (suffix.startsWith(' ') ? suffix : ' ' + suffix) : ''}`.trim();
+      let formattedResult = `${symbol}${symbol ? ' ' : ''}${formattedNum}${suffix ? (suffix.startsWith(' ') ? suffix : ' ' + suffix) : ''}`.trim();
+      
+      formattedResult = sign + formattedResult;
+      if (isBracketed) {
+        formattedResult = `(${formattedResult})`;
+      }
+      return formattedResult;
     }
   }
 
-  return str;
+  let fallbackResult = sign + str;
+  if (isBracketed) {
+    fallbackResult = `(${fallbackResult})`;
+  }
+  return fallbackResult;
 }
 
 export function getLatestGmpValue(data: any): string {

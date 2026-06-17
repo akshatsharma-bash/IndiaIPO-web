@@ -11,7 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "server": "nodemon server/index.js",
+    "server": "nodemon server/index.mjs",
     "start:all": "concurrently \"npm run dev\" \"npm run server\""
   },
   "dependencies": {

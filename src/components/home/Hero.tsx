@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Ribbon from "@/components/Ribbon";
+import heroHome from "@/assets/heroImg.webp"
 
 interface Banner {
     id: string;
@@ -29,17 +30,17 @@ interface Banner {
 const fallbackBanners: Banner[] = [
     {
         id: "1",
-        title: "Invest in IPOs Smarter",
+        title: "Go Public, The Right Way",
         subtitle:
-            "Track real-time GMP, analyze deep market insights, and participate in India's growth story with confidence.",
-        image_url: "",
+            "India's IPO Platform for Businesses",
+        image_url: heroHome,
         video_url: "",
         type: "image",
-        cta_text: "Explore IPOs",
-        cta_link: "/all-ipos",
+        cta_text: "Contact Us",
+        cta_link: "/contact",
         badge_text: "Official IPO Consultancy",
-        cta2_text: "View GMP",
-        cta2_link: "/all-ipos",
+        cta2_text: "Check Your IPO Eligibility",
+        cta2_link: "/ipo-eligibility",
         sort_order: 1,
     },
 ];
@@ -150,7 +151,7 @@ const Hero = () => {
                 )}
 
                 <div
-                    className="absolute inset-0"
+                    className="absolute inset-0 bg-black/10"
                     style={{
                         background:
                             "linear-gradient(to right, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.6) 50%, rgba(15,23,42,0.2) 100%)",

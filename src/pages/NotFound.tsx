@@ -2,7 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Home, ArrowLeft, Search, TrendingUp, BarChart2, Activity } from "lucide-react";
-import notFoundImg from "@/assets/404_illustration.png";
+import notFoundImg from "@/assets/404_illustration1.webp";
 import Header from "@/components/Header";
 import Footer3 from "@/components/Footer";
 

@@ -9,7 +9,9 @@ export const getImgSrc = (src: any) => {
   }
 
 
-  if (s.startsWith('/static') || s.startsWith('/src/assets')) {
+  if (s.startsWith('/static') || s.startsWith('/src/assets') || s.startsWith('/assets')) {
+    // /assets/ = Vite production bundled files (e.g. heroImg-xxxxx.webp)
+    // DO NOT prefix these with /uploads/ — return as-is
     return s;
   }
   

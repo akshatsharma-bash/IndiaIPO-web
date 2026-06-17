@@ -237,16 +237,17 @@ const STATIC_NAV_PREFIX: NavItem[] = [
             description: "End-to-end IPO guidance",
           },
           {
-            label: "SME IPO Consultation",
-            href: "/sme-ipo-consultant",
-            icon: <Briefcase className="h-4 w-4" />,
-            description: "Tailored for SMEs",
-          },
-          {
             label: "Mainline IPO Consultation",
             href: "/mainline-ipo-consultant",
             icon: <BarChart2 className="h-4 w-4" />,
             description: "Large-cap market listing",
+          },
+
+          {
+            label: "SME IPO Consultation",
+            href: "/sme-ipo-consultant",
+            icon: <Briefcase className="h-4 w-4" />,
+            description: "Tailored for SMEs",
           },
           {
             label: "Follow-On Public Offer (FPO)",
@@ -363,13 +364,19 @@ const REPORTS_COLUMN: MegaColumn = {
       badge: "Daily Reporter",
       badgeColor: "bg-emerald-500 text-white",
     },
+    {
+      label: "Weekly Reporter",
+      href: "/weekly-ipo-report",
+      badge: "Weekly Reporter",
+      badgeColor: "bg-emerald-500 text-white animate-pulse",
+    },
     { label: "IPO Calendar", href: "/all-ipos" },
     // { label: "Upcoming IPO Calendar", href: "/reports/upcoming-ipo-calendar" },
     { label: "Mainline IPO Updates", href: "/mainline-ipos" },
     { label: "SME IPO Updates", href: "/sme-ipos" },
     { label: "SME IPOs by Sector", href: "/sme-ipo-sector" },
     { label: "Mainboard IPOs by Sector", href: "/mainboard-ipo-sector" },
-    { label: "All Sectors", href: "/all-sectors" },
+
   ],
 };
 
@@ -384,6 +391,7 @@ const FALLBACK_KNOWLEDGE: SubItem[] = [
   { label: "Pre-IPO Process Guidance", href: "/pre-ipo-process-guidance" },
   { label: "IPO Updates", href: "/ipo-blogs" },
   { label: "List of IPO Registrar", href: "/ipo-registrar-list" },
+  { label: "All Sectors", href: "/all-sectors" },
 ];
 
 const FALLBACK_NOTIFICATIONS: SubItem[] = [

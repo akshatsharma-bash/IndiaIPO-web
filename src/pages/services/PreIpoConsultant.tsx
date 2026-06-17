@@ -314,14 +314,14 @@ const PreIpoConsultant = () => {
                 <div className="col-lg-12">
                   <p>
                     Understand how IPOs work through our{" "}
-                    <a href="{{route('front.ipoProcess')}}">IPO Process</a>{" "}
+                    <strong>   <a href="./ipo-process">IPO Process</a></strong>{" "}
                     guide. Stay updated with upcoming listings in the{" "}
-                    <a href="{{route('ipo.report')}}">IPO Calendar</a>
+                    <strong>      <a href="./all-ipos">IPO Calendar</a> </strong>{" "}
                     and read insights on our{" "}
-                    <a href="{{route('ipo-blogs')}}">
+                    <strong>     <a href="./ipo-blogs">
                       IPO Company Reviews — GMP, Subscription Status &
                       Allotment.
-                    </a>
+                    </a> </strong>
                   </p>
                 </div>
               </div>

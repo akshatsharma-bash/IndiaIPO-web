@@ -20,7 +20,7 @@ const WhatsAppButton = () => {
   };
 
   return (
-    <div className="fixed bottom-24 md:bottom-6 right-6 z-50">
+    <div className="relative">
 
       {showTooltip && (
         <div
