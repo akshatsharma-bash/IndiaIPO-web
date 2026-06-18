@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { getImageUrl } from "@/lib/utils";
 import Ribbon from "@/components/Ribbon";
+import simpleChatbotImg from "@/assets/simple_chatbot_image2.jpeg";
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -137,7 +138,7 @@ const SitePopup = () => {
 
   if (!data && !latestDigest) return null;
 
-  const totalSlides = (data ? 1 : 0) + (latestDigest ? 1 : 0);
+  const totalSlides = (data ? 1 : 0) + (latestDigest ? 1 : 0) + 1;
 
   return (
     <div
@@ -300,9 +301,63 @@ const SitePopup = () => {
                 </div>
               </CarouselItem>
             )}
+
+            {/* Slide 3: Jigyasa AI Chatbot */}
+            <CarouselItem className="pl-0">
+              <div className="flex flex-col h-full">
+                <div className="relative w-full aspect-[4/5] flex items-center justify-center overflow-hidden">
+                  <img
+                    src={simpleChatbotImg}
+                    alt="Jigyasa AI Chatbot"
+                    className="w-full h-full object-cover"
+                  />
+
+                  <div className="absolute top-4 left-4">
+                    <Ribbon
+                      fontSize="13px"
+                      cutout="0.5em"
+                      color="linear-gradient(135deg, #0f766e, #059669)"
+                      className="inline-flex items-center text-white font-black uppercase tracking-wider shadow-sm"
+                    >
+                      Jigyasa AI
+                    </Ribbon>
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-6 pt-16">
+                    <p className="text-teal-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">
+                      India's First IPO AI
+                    </p>
+                    <h3 className="text-white text-xl font-black leading-tight line-clamp-2">
+                      Chat with Jigyasa
+                    </h3>
+                  </div>
+                </div>
+
+                <div className="p-6 flex flex-col justify-between flex-1 space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <span className="text-[10px] font-bold uppercase tracking-widest">AI Assistant</span>
+                      <div className="h-[1px] flex-1 bg-white/10" />
+                      <span className="text-xs font-black text-white">Online</span>
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      Get instant AI-powered answers on IPOs, SME & Mainboard Listings, Valuation, Fundraising, Compliance and Market Insights.
+                    </p>
+                  </div>
+
+                  <Button
+                    className="w-full h-12 rounded-xl font-black text-base shadow-lg bg-[#0f766e] hover:bg-[#0d645d] text-white border-none flex items-center justify-center gap-2"
+                    onClick={() => {
+                      setIsOpen(false);
+                      window.open("https://indiaipo.ai/chats", "_blank", "noopener,noreferrer");
+                    }}
+                  >
+                    Start Chat <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CarouselItem>
           </CarouselContent>
-
-
           {totalSlides > 1 && (
             <>
               <button

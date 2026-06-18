@@ -11,7 +11,7 @@ import {
 import { useRecaptcha } from "@/hooks/useRecaptcha";
 import { toast } from "sonner";
 import { z } from "zod";
-import weeklyReporterImg from "@/assets/weekly-reporter.jpg";
+import weeklyReporterImg from "@/assets/weekly-reporter1.jpg";
 import Ribbon from "@/components/Ribbon";
 
 const emailSchema = z

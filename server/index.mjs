@@ -725,6 +725,33 @@ async function initDB() {
             }
         }
 
+        // Migration: Fix created_at and updated_at defaults in admin_blogs
+        try {
+            await conn.execute(`
+                UPDATE admin_blogs 
+                SET created_at = NOW() 
+                WHERE created_at IS NULL 
+                   OR created_at < '1970-01-02 00:00:00'
+            `);
+            await conn.execute(`
+                UPDATE admin_blogs 
+                SET updated_at = NOW() 
+                WHERE updated_at IS NULL 
+                   OR updated_at < '1970-01-02 00:00:00'
+            `);
+            await conn.execute(`
+                ALTER TABLE admin_blogs 
+                MODIFY COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            `);
+            await conn.execute(`
+                ALTER TABLE admin_blogs 
+                MODIFY COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            `);
+            console.log('✅ Fixed timestamp columns and default values in admin_blogs');
+        } catch (e) {
+            console.log('ℹ️ Timestamp column alter skipped or already updated in admin_blogs:', e.message);
+        }
+
         await conn.execute(`
             CREATE TABLE IF NOT EXISTS sectors (
                 id INT AUTO_INCREMENT PRIMARY KEY,

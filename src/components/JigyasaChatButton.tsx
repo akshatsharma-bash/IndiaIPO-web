@@ -46,7 +46,7 @@ const JigyasaChatButton = () => {
                   <p className="jigyasa-modal-title">Jigyasa AI</p>
                   <p className="jigyasa-modal-subtitle">
                     <span className="jigyasa-online-dot" />
-                    Online · India's First IPO AI
+                    Online
                   </p>
                 </div>
               </div>
@@ -69,7 +69,7 @@ const JigyasaChatButton = () => {
                 style={{ color: '#ffffff', borderRadius: '6px' }}
               >
                 <Sparkles size={11} />
-                India's First AI Chatbot for IPOs
+                India's First AI Chatbot for IPO
               </Ribbon>
 
               <h2 className="jigyasa-modal-heading">
@@ -81,10 +81,10 @@ const JigyasaChatButton = () => {
               </p>
 
               <ul className="jigyasa-feature-list">
+                <li><Zap size={13} className="jigyasa-feat-icon" />SME & Mainboard Listings</li>
+                <li><Zap size={13} className="jigyasa-feat-icon" /> IPO Readiness & Eligibility</li>
                 <li><Zap size={13} className="jigyasa-feat-icon" /> IPO GMP & Subscription Status</li>
-                <li><Zap size={13} className="jigyasa-feat-icon" /> Allotment & Listing Dates</li>
-                <li><Zap size={13} className="jigyasa-feat-icon" /> SME &amp; Mainboard IPO Details</li>
-                <li><Zap size={13} className="jigyasa-feat-icon" /> Expert IPO Advisory Guidance</li>
+                <li><Zap size={13} className="jigyasa-feat-icon" /> Valuation & Funding Guidance</li>
               </ul>
 
               <button
@@ -119,21 +119,21 @@ const JigyasaChatButton = () => {
           <div className="jigyasa-fab-inner">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* Brain outline */}
-              <path d="M16 4C13.5 4 11.5 5.5 10.5 7.5C9.2 7.2 7.5 7.8 6.5 9C5.5 10.2 5.3 11.8 5.8 13.2C4.7 14 4 15.2 4 16.5C4 18.2 5 19.7 6.5 20.5C6.3 21.2 6.4 22 6.8 22.7C7.5 24 9 24.7 10.4 24.4C11 25.5 12.2 26.3 13.5 26.5V28H18.5V26.5C19.8 26.3 21 25.5 21.6 24.4C23 24.7 24.5 24 25.2 22.7C25.6 22 25.7 21.2 25.5 20.5C27 19.7 28 18.2 28 16.5C28 15.2 27.3 14 26.2 13.2C26.7 11.8 26.5 10.2 25.5 9C24.5 7.8 22.8 7.2 21.5 7.5C20.5 5.5 18.5 4 16 4Z" fill="white" fillOpacity="0.92"/>
+              <path d="M16 4C13.5 4 11.5 5.5 10.5 7.5C9.2 7.2 7.5 7.8 6.5 9C5.5 10.2 5.3 11.8 5.8 13.2C4.7 14 4 15.2 4 16.5C4 18.2 5 19.7 6.5 20.5C6.3 21.2 6.4 22 6.8 22.7C7.5 24 9 24.7 10.4 24.4C11 25.5 12.2 26.3 13.5 26.5V28H18.5V26.5C19.8 26.3 21 25.5 21.6 24.4C23 24.7 24.5 24 25.2 22.7C25.6 22 25.7 21.2 25.5 20.5C27 19.7 28 18.2 28 16.5C28 15.2 27.3 14 26.2 13.2C26.7 11.8 26.5 10.2 25.5 9C24.5 7.8 22.8 7.2 21.5 7.5C20.5 5.5 18.5 4 16 4Z" fill="white" fillOpacity="0.92" />
               {/* Circuit dots */}
-              <circle cx="12" cy="13" r="1.5" fill="#0f766e"/>
-              <circle cx="16" cy="11" r="1.5" fill="#0f766e"/>
-              <circle cx="20" cy="13" r="1.5" fill="#0f766e"/>
-              <circle cx="12" cy="18" r="1.5" fill="#0f766e"/>
-              <circle cx="20" cy="18" r="1.5" fill="#0f766e"/>
+              <circle cx="12" cy="13" r="1.5" fill="#0f766e" />
+              <circle cx="16" cy="11" r="1.5" fill="#0f766e" />
+              <circle cx="20" cy="13" r="1.5" fill="#0f766e" />
+              <circle cx="12" cy="18" r="1.5" fill="#0f766e" />
+              <circle cx="20" cy="18" r="1.5" fill="#0f766e" />
               {/* Circuit lines */}
-              <line x1="12" y1="13" x2="16" y2="11" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7"/>
-              <line x1="16" y1="11" x2="20" y2="13" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7"/>
-              <line x1="12" y1="13" x2="12" y2="18" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7"/>
-              <line x1="20" y1="13" x2="20" y2="18" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7"/>
-              <line x1="12" y1="18" x2="20" y2="18" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7"/>
+              <line x1="12" y1="13" x2="16" y2="11" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7" />
+              <line x1="16" y1="11" x2="20" y2="13" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7" />
+              <line x1="12" y1="13" x2="12" y2="18" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7" />
+              <line x1="20" y1="13" x2="20" y2="18" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7" />
+              <line x1="12" y1="18" x2="20" y2="18" stroke="#0f766e" strokeWidth="1" strokeOpacity="0.7" />
               {/* Center node */}
-              <circle cx="16" cy="15.5" r="2" fill="#059669"/>
+              <circle cx="16" cy="15.5" r="2" fill="#059669" />
             </svg>
           </div>
 
