@@ -178,7 +178,7 @@ const allowedOrigins = [
     'http://localhost:8080',
     'http://localhost:5173',
     'http://localhost:5000',
-    'https://indiaipo-web.onrender.com/'
+    'https://indiaipo-web.onrender.com'
 ];
 
 app.use(cors({
