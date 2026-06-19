@@ -177,7 +177,8 @@ const allowedOrigins = [
     'https://lightgrey-salmon-166369.hostingersite.com',
     'http://localhost:8080',
     'http://localhost:5173',
-    'http://localhost:5000'
+    'http://localhost:5000',
+    'https://indiaipo-web.onrender.com/'
 ];
 
 app.use(cors({
