@@ -4,7 +4,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 import { visualizer } from "rollup-plugin-visualizer";
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ isSsrBuild, mode }) => {
 
   const isDev = mode === "development";
 
@@ -35,9 +35,12 @@ export default defineConfig(({ mode }) => {
 
 
     build: {
+      outDir: isSsrBuild ? "dist/server" : "dist/client",
       sourcemap: false,
       cssCodeSplit: true,
       chunkSizeWarningLimit: 1000,
+      manifest: true,
+      ssrManifest: true,
     },
 
     plugins: [

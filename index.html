@@ -13,14 +13,21 @@
   <meta property="og:title" content="India IPO — India's Leading IPO Consultancy" />
   <meta property="og:type" content="website" />
   <!-- Google Tag Manager -->
-  <script>(function (w, d, s, l, i) {
-      w[l] = w[l] || []; w[l].push({
-        'gtm.start':
-          new Date().getTime(), event: 'gtm.js'
-      }); var f = d.getElementsByTagName(s)[0],
-        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
-          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
-    })(window, document, 'script', 'dataLayer', 'GTM-WGV66WQ');</script>
+  <script>
+    (function (w, d, s, l, i) {
+      w[l] = w[l] || [];
+      w[l].push({
+        "gtm.start": new Date().getTime(),
+        event: "gtm.js",
+      });
+      var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s),
+        dl = l != "dataLayer" ? "&l=" + l : "";
+      j.async = true;
+      j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+      f.parentNode.insertBefore(j, f);
+    })(window, document, "script", "dataLayer", "GTM-WGV66WQ");
+  </script>
   <!-- End Google Tag Manager -->
   <!-- canonical managed dynamically by react-helmet-async (GlobalCanonical + SEOHead) -->
   <meta name="author" content="India IPO" />
@@ -33,7 +40,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" as="style"
-    onload="this.onload=null;this.rel='stylesheet'" />
+    onload="
+        this.onload = null;
+        this.rel = 'stylesheet';
+      " />
 
   <noscript>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
@@ -50,29 +60,26 @@
   <meta name="twitter:image"
     content="https://api.indiaipoapp.indiaipo.in/uploads/images/1779091526823_11yqc03fyblg.png" />
 
-
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5445033715417509"
     crossorigin="anonymous"></script>
 </head>
 
 <body>
-
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WGV66WQ" height="0" width="0"
-      style="display:none;visibility:hidden"></iframe></noscript>
+      style="display: none; visibility: hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-
+  <script type="module" src="/src/client-entry.tsx"></script>
 
   <script>
     /* if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        setTimeout(() => {
-          navigator.serviceWorker.register("/sw.js");
-        }, 3000);
-      });
-    } */
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        navigator.serviceWorker.register("/sw.js");
+      }, 3000);
+    });
+  } */
   </script>
 </body>
 

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, Navigate, useParams } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
@@ -321,7 +321,7 @@ const App = () => (
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+
             {/* Global fallback canonical – overridden per-page by <SEOHead> */}
             <GlobalCanonical />
             <ScrollToTop />
@@ -334,7 +334,6 @@ const App = () => (
               </Suspense>
               <WhatsAppButton />
             </div>
-          </BrowserRouter>
 
         </TooltipProvider>
       </AuthProvider>

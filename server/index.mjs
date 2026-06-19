@@ -1,3 +1,5 @@
+import { createRequire } from 'module';
+import { render } from "./dist/server/server-entry.js"
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -71,7 +73,16 @@ dotenv.config({ path: path.join(__dirname, envFile) });
 dotenv.config({ path: path.join(__dirname, '.env') });
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
+function renderReactPage(indexPath, url) {
+    const template = fs.readFileSync(indexPath, "utf-8");
 
+    const appHtml = render(url);
+
+    return template.replace(
+        '<div id="root"></div>',
+        `<div id="root">${appHtml}</div>`
+    );
+}
 
 
 const app = express();
@@ -1609,6 +1620,16 @@ const injectMetaTags = (html, meta) => {
     return result;
 };
 
+function renderSSRPage(indexPath, url, meta = {}) {
+    let html = renderReactPage(indexPath, url);
+
+    if (meta) {
+        html = injectMetaTags(html, meta);
+    }
+
+    return html;
+}
+
 // Helper: resolve image URL to absolute
 const resolveImageUrl = (imgPath, siteUrl) => {
     if (!imgPath) return `${siteUrl}/favicon.png`;
@@ -1624,9 +1645,9 @@ const resolveImageUrl = (imgPath, siteUrl) => {
 // Local dev: defaults to ../dist (relative to server folder)
 // ==========================================================
 // const distDir = process.env.DIST_PATH || path.join(__dirname, '..', 'dist');
-const distDir = fs.existsSync(path.resolve(__dirname, '..', 'dist'))
-    ? path.resolve(__dirname, '..', 'dist')
-    : path.resolve(__dirname, 'dist');
+const distDir = fs.existsSync(path.resolve(__dirname, '..', 'dist', 'client'))
+    ? path.resolve(__dirname, '..', 'dist', 'client')
+    : path.resolve(__dirname, 'dist', 'client');
 
 console.log(`🔍 Checking distDir: ${distDir}`);
 if (fs.existsSync(path.join(distDir, 'Annual_Report.pdf'))) {
@@ -1732,12 +1753,11 @@ app.get('/ipo-blogs/:slug', async (req, res, next) => {
             meta.schema = faqSchema ? [articleSchema, faqSchema] : articleSchema;
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
-        const injectedHtml = injectMetaTags(html, meta);
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300'); // 5 min cache
-        res.send(injectedHtml);
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR meta injection error:', err.message);
@@ -1793,10 +1813,10 @@ app.get('/merchant-banker/:slug', async (req, res, next) => {
             };
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        res.send(injectMetaTags(html, meta));
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR merchant-banker error:', err.message);
@@ -1848,10 +1868,10 @@ app.get('/ipo-registrar-list/:slug', async (req, res, next) => {
             };
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        res.send(injectMetaTags(html, meta));
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR /ipo-registrar-list/:slug error:', err.message);
@@ -1957,10 +1977,10 @@ app.get('/consultant/:slug', async (req, res, next) => {
             };
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        res.send(injectMetaTags(html, meta));
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR /consultant/:slug error:', err.message);
@@ -2053,10 +2073,10 @@ app.get('/news/detail/:slug', async (req, res, next) => {
             };
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        res.send(injectMetaTags(html, meta));
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR /news/:slug error:', err.message);
@@ -2137,10 +2157,10 @@ app.get('/blog/:slug', async (req, res, next) => {
             };
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        res.send(injectMetaTags(html, meta));
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR /blog/:slug error:', err.message);
@@ -2236,10 +2256,10 @@ app.get('/blogs/:slug', async (req, res, next) => {
             meta.schema = faqSchema ? [articleSchema, faqSchema] : articleSchema;
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        res.send(injectMetaTags(html, meta));
+        res.send(html);
 
     } catch (err) {
         console.error('❌ SSR /blogs/:slug error:', err.message);
@@ -2411,10 +2431,10 @@ app.get(/.*/, async (req, res, next) => {
             meta.banners = await fetchHomeBanners();
         }
 
-        const html = fs.readFileSync(indexPath, 'utf-8');
+        const html = renderSSRPage(indexPath, req.originalUrl, meta);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
         res.setHeader('Cache-Control', 'public, max-age=300');
-        return res.send(injectMetaTags(html, meta));
+        return res.send(html);
 
     } catch (err) {
         console.error('❌ Universal SSR error:', err.message);
