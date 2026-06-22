@@ -136,7 +136,7 @@ const SmeIpoConsultant = () => {
                       industry and growth prospects to assess IPO readiness and
                       eligibility as per{" "}
                       <b>
-                        <a href="https://www.bsesme.com/static/getlisted/criteriaisting.aspx?expandable=0">
+                        <a className="underline text-blue-500" href="https://www.bsesme.com/static/getlisted/criteriaisting.aspx?expandable=0">
                           SME IPO criteria.
                         </a>
                       </b>{" "}
@@ -537,7 +537,7 @@ const SmeIpoConsultant = () => {
                   <b>SME IPO listing time</b> on the stock exchange. Whether
                   you’re exploring the idea or planning to join the list of the{" "}
                   <b>
-                    <a href="{{url('/sme-ipos')}}">latest SME IPO</a>
+                    <a href="/sme-ipos">latest SME IPO</a>
                   </b>{" "}
                   success stories, we’ll help you navigate every step with
                   confidence and precision.

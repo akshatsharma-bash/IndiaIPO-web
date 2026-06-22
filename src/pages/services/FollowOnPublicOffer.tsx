@@ -277,9 +277,9 @@ const FollowOnPublicOffer = () => {
               <div className="row mt-2">
                 <div className="col-lg-12">
                   <p>
-                    Understand how IPOs work through our <a href="{{route('front.ipoProcess')}}">IPO Process</a> guide.
-                    Stay updated with upcoming listings in the <a href="{{route('ipo.report')}}">IPO Calendar</a>
-                    and read insights on our <a href="{{route('ipo-blogs')}}">IPO Company Reviews — GMP, Subscription Status & Allotment.</a>
+                    Understand how IPOs work through our <a className="underline text-blue-500" href="/ipo-process">IPO Process</a> guide.
+                    Stay updated with upcoming listings in the <a className="underline text-blue-500" href="/all-ipos">IPO Calendar</a>
+                    and read insights on our <a className="underline text-blue-500" href="/ipo-blogs">IPO Company Reviews — GMP, Subscription Status & Allotment.</a>
 
                   </p>
                 </div>
