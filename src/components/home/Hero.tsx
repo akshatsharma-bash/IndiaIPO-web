@@ -152,10 +152,6 @@ const Hero = () => {
 
                 <div
                     className="absolute inset-0 bg-black/10"
-                    style={{
-                        background:
-                            "linear-gradient(to right, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.6) 50%, rgba(15,23,42,0.2) 100%)",
-                    }}
                 />
             </div>
 
@@ -188,7 +184,7 @@ const Hero = () => {
                             {banner.cta_text && (
                                 <Link
                                     to={banner.cta_link || "/all-ipos"}
-                                    className="px-5 py-2.5 md:px-8 md:py-4 bg-amber-700 text-white rounded-lg md:rounded-xl font-bold text-sm md:text-lg shadow-lg hover:bg-amber-600 hover:shadow-amber-900/20 transition-colors flex items-center gap-2 active:scale-95"
+                                    className="px-5 py-2.5 md:px-8 md:py-4 bg-green-700 text-white rounded-lg md:rounded-xl font-bold text-sm md:text-lg shadow-lg hover:bg-green-600 hover:shadow-amber-900/20 transition-colors flex items-center gap-2 active:scale-95"
                                 >
                                     {banner.cta_text} <ArrowRight className="h-4 w-4 md:h-5 md:w-5" />
                                 </Link>
@@ -196,7 +192,7 @@ const Hero = () => {
                             {banner.cta2_text && (
                                 <Link
                                     to={banner.cta2_link || "/all-ipos"}
-                                    className="px-5 py-2.5 md:px-8 md:py-4 bg-blue-800/70 text-blue-100 rounded-lg md:rounded-xl font-bold text-sm md:text-lg shadow-lg hover:bg-blue-700/80 transition-colors active:scale-95"
+                                    className="px-5 py-2.5 md:px-8 md:py-4 bg-[#008cbf] text-blue-100 rounded-lg md:rounded-xl font-bold text-sm md:text-lg shadow-lg hover:bg-[#008cff] transition-colors active:scale-95"
                                 >
                                     {banner.cta2_text}
                                 </Link>

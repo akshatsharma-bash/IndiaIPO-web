@@ -78,6 +78,9 @@ function renderReactPage(indexPath, url) {
 
     const appHtml = render(url);
 
+    console.log(
+        `[SSR] url=${url} htmlLength=${appHtml.length}`
+    );
     return template.replace(
         '<div id="root"></div>',
         `<div id="root">${appHtml}</div>`
@@ -97,6 +100,22 @@ app.use((req, res, next) => {
 
     next();
 });
+
+// global logs middleware
+app.use((req, res, next) => {
+    const start = Date.now();
+
+    console.log(`➡️ ${req.method} ${req.originalUrl}`);
+
+    res.on("finish", () => {
+        console.log(
+            `⬅️ ${req.method} ${req.originalUrl} ${res.statusCode} ${Date.now() - start}ms`
+        );
+    });
+
+    next();
+});
+
 const PORT = process.env.PORT || 5000;
 
 
@@ -862,6 +881,7 @@ async function initDB() {
                 published_at DATE,
                 image VARCHAR(512),
                 category VARCHAR(100),
+                status VARCHAR(50) DEFAULT 'published',
                 latest_news TINYINT(1) DEFAULT 0,
                 trending_news TINYINT(1) DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -1299,14 +1319,106 @@ app.use(
     '/api/upload/weekly-reporter',
     uploadWeeklyReporterRoutes
 );
-// --- Sitemap Generation --- (Auto-updates when you add blogs/IPOs from admin)
-app.get('/sitemap.xml', async (req, res) => {
+
+// ============================================================
+// SITEMAP — Split into Index + Sub-sitemaps
+// Physical files saved to server/public/ for visibility
+// Auto-regenerates when blogs/news are added/updated
+// ============================================================
+
+/**
+ * generateAndSaveSitemaps()
+ * Generates 3 XML sitemap files and writes them to server/public/:
+ *   - sitemap.xml          → Sitemap Index (references sub-sitemaps + static/service/ipo/etc URLs)
+ *   - ipo-blogs-sitemap.xml → All /ipo-blogs/ URLs
+ *   - news-sitemap.xml     → All /news/detail/ URLs
+ */
+export async function generateAndSaveSitemaps() {
     try {
+        const baseUrl = process.env.SITE_URL || 'https://www.indiaipo.in';
+        const today = new Date().toISOString().split('T')[0];
+
+        const fmt = (d) => { if (!d) return today; const dt = new Date(d); return isNaN(dt.getTime()) ? today : dt.toISOString().split('T')[0]; };
+        const toSlug = (name) => String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+        const escXml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const urlEntry = (loc, lastmod, freq, priority) =>
+            `  <url>\n    <loc>${escXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${freq}</changefreq>\n    <priority>${priority}</priority>\n  </url>\n`;
+
         const conn = await pool.getConnection();
 
-        const baseUrl = process.env.SITE_URL || 'https://www.indiaipo.in';
+        // ── Fetch all data ─────────────────────────────────────
+        // Fetch category too so we can assign correct URL prefix
+        const [allAdminBlogs] = await conn.execute('SELECT slug, new_slug, updated_at, category FROM admin_blogs ORDER BY updated_at DESC');
+        const [ipoListsWithBlogs] = await conn.execute(
+            `SELECT il.updated_at, ab.slug, ab.new_slug, ab.category FROM ipo_lists il
+             JOIN admin_blogs ab ON il.admin_blog_id = ab.id
+             WHERE il.admin_blog_id IS NOT NULL ORDER BY il.updated_at DESC`
+        );
+        const [regularBlogs] = await conn.execute('SELECT slug, updated_at FROM blogs ORDER BY updated_at DESC');
+        const [registrars] = await conn.execute('SELECT slug, update_at FROM registrar WHERE status = "Active"');
+        const [newsArticles] = await conn.execute('SELECT slug, updated_at FROM api_news ORDER BY updated_at DESC LIMIT 500');
+        const [consultants] = await conn.execute('SELECT slug, updated_at FROM consultants WHERE is_active = 1');
+        const [ipoDetails] = await conn.execute('SELECT id, updated_at FROM ipo_lists WHERE status != "Inactive" ORDER BY updated_at DESC');
+        const [sectorPages] = await conn.execute('SELECT name, updated_at FROM sectors WHERE status = "Active" ORDER BY name ASC');
+        const [merchantBankers] = await conn.execute('SELECT slug, updated_at FROM marchantbankers WHERE slug IS NOT NULL AND slug != ""');
+        conn.release();
 
-        // 1. Static Pages
+        
+
+        // ── Category → URL mapping ─────────────────────────────────
+        // ipo_updates  → /ipo-blogs/:slug  (IPO company blogs)
+        // ipo_blogs    → /blogs/:slug      (Article/knowledge blogs)
+        // city_blogs   → /consultant/:slug  (already in pages via consultants table)
+        // daily_reporter → /daily-reporter/:slug
+        // news (admin) → excluded (different from api_news table)
+        const ipoBlogsEntries = allAdminBlogs.filter(b => b.category === 'ipo_updates');
+        const articleBlogsEntries = allAdminBlogs.filter(b => b.category === 'ipo_blogs');
+
+        // ── 1. ipo-blogs-sitemap.xml  (IPO company blogs → /ipo-blogs/) ──
+        let ipoBlogXml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        ipoBlogXml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+        const seenIpoSlugs = new Set();
+        ipoBlogsEntries.forEach(blog => {
+            const activeSlug = blog.new_slug || blog.slug;
+            if (activeSlug && !seenIpoSlugs.has(activeSlug)) {
+                seenIpoSlugs.add(activeSlug);
+                ipoBlogXml += urlEntry(`${baseUrl}/ipo-blogs/${activeSlug}`, fmt(blog.updated_at), 'weekly', '0.9');
+            }
+        });
+        ipoListsWithBlogs.forEach(item => {
+            if (item.category === 'ipo_blogs') return; // These go to article-blogs
+            const activeSlug = item.new_slug || item.slug;
+            if (activeSlug && !seenIpoSlugs.has(activeSlug)) {
+                seenIpoSlugs.add(activeSlug);
+                ipoBlogXml += urlEntry(`${baseUrl}/ipo-blogs/${activeSlug}`, fmt(item.updated_at), 'weekly', '0.9');
+            }
+        });
+        ipoBlogXml += `</urlset>`;
+
+        // ── 1b. article-blogs-sitemap.xml  (Article blogs → /blogs/) ──────
+        let articleBlogXml = `<?xml version="1.0" encoding="UTF-8"?>
+`;
+        articleBlogXml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+        const seenArticleSlugs = new Set();
+        articleBlogsEntries.forEach(blog => {
+            const activeSlug = blog.new_slug || blog.slug;
+            if (activeSlug && !seenArticleSlugs.has(activeSlug)) {
+                seenArticleSlugs.add(activeSlug);
+                articleBlogXml += urlEntry(`${baseUrl}/blogs/${activeSlug}`, fmt(blog.updated_at), 'weekly', '0.8');
+            }
+        });
+        articleBlogXml += `</urlset>`;
+
+        // ── 2. news-sitemap.xml ────────────────────────────────
+        let newsXml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        newsXml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+        newsArticles.forEach(n => {
+            if (n.slug) newsXml += urlEntry(`${baseUrl}/news/detail/${n.slug}`, fmt(n.updated_at), 'weekly', '0.6');
+        });
+        newsXml += `</urlset>`;
+
+        // ── 3. pages-sitemap.xml (all static + service + other URLs) ──
         const staticPages = [
             { path: '', freq: 'daily', priority: '1.0' },
             { path: '/services', freq: 'weekly', priority: '0.9' },
@@ -1331,8 +1443,6 @@ app.get('/sitemap.xml', async (req, res) => {
             { path: '/pre-ipo-process-guidance', freq: 'weekly', priority: '0.8' },
             { path: '/sector-wise-ipo-list-in-india', freq: 'weekly', priority: '0.8' },
         ];
-
-        // 2. Service pages (all service slugs)
         const serviceSlugs = [
             'business-valuation-services', 'corporate-finance-services', 'financial-modelling-services', 'project-finance-services',
             'ma-advisory', 'capital-structuring', 'debt-syndication-services', 'equity-fundraising',
@@ -1340,148 +1450,161 @@ app.get('/sitemap.xml', async (req, res) => {
             'ipo-readiness', 'drhp-preparation', 'sebi-compliance'
         ];
 
-        // 3. ALL IPO Blogs from admin panel (no status filter - include everything added)
-        const [ipoBlogs] = await conn.execute(
-            'SELECT slug, new_slug, updated_at FROM admin_blogs ORDER BY updated_at DESC'
-        );
+        let pagesXml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+        pagesXml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+        staticPages.forEach(p => { pagesXml += urlEntry(`${baseUrl}${p.path}`, today, p.freq, p.priority); });
+        serviceSlugs.forEach(slug => { pagesXml += urlEntry(`${baseUrl}/services/${slug}`, today, 'monthly', '0.8'); });
+        regularBlogs.forEach(blog => { if (blog.slug) pagesXml += urlEntry(`${baseUrl}/blog/${blog.slug}`, fmt(blog.updated_at), 'weekly', '0.7'); });
+        registrars.forEach(r => { if (r.slug) pagesXml += urlEntry(`${baseUrl}/ipo-registrar-list/${r.slug}`, fmt(r.update_at), 'monthly', '0.7'); });
+        consultants.forEach(c => { if (c.slug) pagesXml += urlEntry(`${baseUrl}/consultant/${c.slug}`, fmt(c.updated_at), 'monthly', '0.6'); });
+        ipoDetails.forEach(ipo => { pagesXml += urlEntry(`${baseUrl}/ipo/${ipo.id}`, fmt(ipo.updated_at), 'weekly', '0.85'); });
+        sectorPages.forEach(sector => { const s = toSlug(sector.name); if (s) pagesXml += urlEntry(`${baseUrl}/sector/${s}`, fmt(sector.updated_at), 'weekly', '0.75'); });
+        merchantBankers.forEach(mb => { if (mb.slug) pagesXml += urlEntry(`${baseUrl}/merchant-banker/${mb.slug}`, fmt(mb.updated_at), 'monthly', '0.6'); });
+        pagesXml += `</urlset>`;
 
-        // 4. IPO Calendar entries that have an associated blog page
-        const [ipoListsWithBlogs] = await conn.execute(
-            `SELECT il.issuer_company, il.updated_at, ab.slug, ab.new_slug 
-             FROM ipo_lists il 
-             JOIN admin_blogs ab ON il.admin_blog_id = ab.id 
-             WHERE il.admin_blog_id IS NOT NULL
-             ORDER BY il.updated_at DESC`
-        );
+        // ── 4. sitemap.xml — pure Sitemap Index pointing to all sub-sitemaps ──
+        let mainXml = `<?xml version="1.0" encoding="UTF-8"?>
+`;
+        mainXml += `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+        mainXml += `  <sitemap>
+    <loc>${escXml(baseUrl)}/ipo-blogs-sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+`;
+        mainXml += `  <sitemap>
+    <loc>${escXml(baseUrl)}/article-blogs-sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+`;
+        mainXml += `  <sitemap>
+    <loc>${escXml(baseUrl)}/news-sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+`;
+        mainXml += `  <sitemap>
+    <loc>${escXml(baseUrl)}/pages-sitemap.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+`;
+        mainXml += `</sitemapindex>`;
 
-        // 5. Regular Blogs (all published)
-        const [regularBlogs] = await conn.execute(
-            'SELECT slug, updated_at FROM blogs ORDER BY updated_at DESC'
-        );
+        // ── Write all 5 files to server/public/ ────────────────
+        const publicDir = path.join(__dirname, 'public');
+        if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
 
-        // 6. Registrar detail pages
-        const [registrars] = await conn.execute(
-            'SELECT slug, update_at FROM registrar WHERE status = "Active"'
-        );
+        fs.writeFileSync(path.join(publicDir, 'sitemap.xml'), mainXml, 'utf-8');
+        fs.writeFileSync(path.join(publicDir, 'ipo-blogs-sitemap.xml'), ipoBlogXml, 'utf-8');
+        fs.writeFileSync(path.join(publicDir, 'article-blogs-sitemap.xml'), articleBlogXml, 'utf-8');
+        fs.writeFileSync(path.join(publicDir, 'news-sitemap.xml'), newsXml, 'utf-8');
+        fs.writeFileSync(path.join(publicDir, 'pages-sitemap.xml'), pagesXml, 'utf-8');
 
-        // 7. News Articles
-        const [newsArticles] = await conn.execute(
-            'SELECT slug, updated_at FROM api_news ORDER BY updated_at DESC LIMIT 200'
-        );
-
-        // 8. Consultant pages
-        const [consultants] = await conn.execute(
-            'SELECT slug, updated_at FROM consultants WHERE is_active = 1'
-        );
-
-        // 9. IPO Detail pages (/ipo/:id) - all IPO calendar entries
-        const [ipoDetails] = await conn.execute(
-            'SELECT id, issuer_company, updated_at FROM ipo_lists WHERE status != "Inactive" ORDER BY updated_at DESC'
-        );
-
-        // 10. Sector pages (/sector/:slug) - all active sectors
-        const [sectorPages] = await conn.execute(
-            'SELECT id, name, updated_at FROM sectors WHERE status = "Active" ORDER BY name ASC'
-        );
-
-        // 11. Merchant Banker pages
-        const [merchantBankers] = await conn.execute(
-            'SELECT slug, updated_at FROM marchantbankers WHERE slug IS NOT NULL AND slug != ""'
-        );
-
-        conn.release();
-
-        // --- Build XML ---
-        let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-        xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-
-        const today = new Date().toISOString().split('T')[0];
-        const fmt = (d) => { if (!d) return today; const dt = new Date(d); return isNaN(dt.getTime()) ? today : dt.toISOString().split('T')[0]; };
-        // Helper: convert name to URL slug (e.g. "Auto & Parts" -> "auto-parts")
-        const toSlug = (name) => String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-        const escXml = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const addUrl = (loc, lastmod, freq, priority) => {
-            xml += `  <url>\n    <loc>${escXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>${freq}</changefreq>\n    <priority>${priority}</priority>\n  </url>\n`;
-        };
-
-        // Static pages
-        staticPages.forEach(p => addUrl(`${baseUrl}${p.path}`, today, p.freq, p.priority));
-
-        // Service pages
-        serviceSlugs.forEach(slug => addUrl(`${baseUrl}/services/${slug}`, today, 'monthly', '0.8'));
-
-        // IPO Blogs (admin_blogs) - use new_slug if available
-        const seenSlugs = new Set();
-        ipoBlogs.forEach(blog => {
-            const activeSlug = blog.new_slug || blog.slug;
-            if (activeSlug && !seenSlugs.has(activeSlug)) {
-                seenSlugs.add(activeSlug);
-                addUrl(`${baseUrl}/ipo-blogs/${activeSlug}`, fmt(blog.updated_at), 'weekly', '0.9');
-            }
-        });
-
-        // IPO Calendar entries linked to blogs (avoid duplicates)
-        ipoListsWithBlogs.forEach(item => {
-            const activeSlug = item.new_slug || item.slug;
-            if (activeSlug && !seenSlugs.has(activeSlug)) {
-                seenSlugs.add(activeSlug);
-                addUrl(`${baseUrl}/ipo-blogs/${activeSlug}`, fmt(item.updated_at), 'weekly', '0.9');
-            }
-        });
-
-        // Regular Blogs
-        regularBlogs.forEach(blog => {
-            if (blog.slug) addUrl(`${baseUrl}/blog/${blog.slug}`, fmt(blog.updated_at), 'weekly', '0.7');
-        });
-
-        // Registrar pages
-        registrars.forEach(r => {
-            if (r.slug) addUrl(`${baseUrl}/ipo-registrar-list/${r.slug}`, fmt(r.update_at), 'monthly', '0.7');
-        });
-
-        // News articles
-        newsArticles.forEach(n => {
-            if (n.slug) addUrl(`${baseUrl}/news/detail/${n.slug}`, fmt(n.updated_at), 'weekly', '0.6');
-        });
-
-        // Consultant pages
-        consultants.forEach(c => {
-            if (c.slug) addUrl(`${baseUrl}/consultant/${c.slug}`, fmt(c.updated_at), 'monthly', '0.6');
-        });
-
-        // IPO Detail pages (/ipo/:id) - individual IPO calendar entries
-        ipoDetails.forEach(ipo => {
-            addUrl(`${baseUrl}/ipo/${ipo.id}`, fmt(ipo.updated_at), 'weekly', '0.85');
-        });
-
-        // Sector pages (/sector/:slug) - name converted to slug
-        sectorPages.forEach(sector => {
-            const slug = toSlug(sector.name);
-            if (slug) addUrl(`${baseUrl}/sector/${slug}`, fmt(sector.updated_at), 'weekly', '0.75');
-        });
-
-        // Merchant Banker detail pages
-        merchantBankers.forEach(mb => {
-            if (mb.slug) addUrl(`${baseUrl}/merchant-banker/${mb.slug}`, fmt(mb.updated_at), 'monthly', '0.6');
-        });
-
-        xml += `</urlset>`;
-
-        res.header('Content-Type', 'application/xml');
-        res.header('Cache-Control', 'public, max-age=3600'); // Cache 1 hour
-        res.send(xml);
-
-    } catch (error) {
-        console.error('❌ Sitemap error:', error);
-        res.status(500).send('Error generating sitemap');
+        console.log(`✅ Sitemaps generated: sitemap.xml (index), ipo-blogs-sitemap.xml (${seenIpoSlugs.size} URLs), article-blogs-sitemap.xml (${seenArticleSlugs.size} URLs), news-sitemap.xml (${newsArticles.length} URLs), pages-sitemap.xml`);
+    } catch (err) {
+        console.error('❌ generateAndSaveSitemaps error:', err.message);
     }
+}
+
+// ── Sitemap Index route — /sitemap.xml ──────────────────────
+app.get('/sitemap.xml', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'sitemap.xml');
+    if (fs.existsSync(filePath)) {
+        res.header('Content-Type', 'application/xml');
+        res.header('Cache-Control', 'public, max-age=3600');
+        return res.send(fs.readFileSync(filePath, 'utf-8'));
+    }
+    // File not yet generated — regen on the fly
+    generateAndSaveSitemaps().then(() => {
+        if (fs.existsSync(filePath)) {
+            res.header('Content-Type', 'application/xml');
+            res.send(fs.readFileSync(filePath, 'utf-8'));
+        } else {
+            res.status(500).send('Sitemap generation failed');
+        }
+    }).catch(() => res.status(500).send('Error generating sitemap'));
 });
 
-app.get('/robots.txt', (req, res) => {
-    const siteUrl = process.env.SITE_URL || 'https://www.indiaipo.in';
-    res.type('text/plain');
-    res.send(`User-agent: *\nAllow: /\nDisallow: /uploads/drhp/\nDisallow: /ipo-blogs/hero-fincorp-limited-ipo\n\nSitemap: ${siteUrl}/sitemap.xml`);
+// ── IPO Blogs sub-sitemap route — /ipo-blogs-sitemap.xml ────
+app.get('/ipo-blogs-sitemap.xml', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'ipo-blogs-sitemap.xml');
+    if (fs.existsSync(filePath)) {
+        res.header('Content-Type', 'application/xml');
+        res.header('Cache-Control', 'public, max-age=3600');
+        return res.send(fs.readFileSync(filePath, 'utf-8'));
+    }
+    generateAndSaveSitemaps().then(() => {
+        if (fs.existsSync(filePath)) {
+            res.header('Content-Type', 'application/xml');
+            res.send(fs.readFileSync(filePath, 'utf-8'));
+        } else {
+            res.status(500).send('IPO blogs sitemap generation failed');
+        }
+    }).catch(() => res.status(500).send('Error generating IPO blogs sitemap'));
 });
+
+// ── Article Blogs sub-sitemap route — /article-blogs-sitemap.xml ──
+app.get('/article-blogs-sitemap.xml', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'article-blogs-sitemap.xml');
+    if (fs.existsSync(filePath)) {
+        res.header('Content-Type', 'application/xml');
+        res.header('Cache-Control', 'public, max-age=3600');
+        return res.send(fs.readFileSync(filePath, 'utf-8'));
+    }
+    generateAndSaveSitemaps().then(() => {
+        if (fs.existsSync(filePath)) {
+            res.header('Content-Type', 'application/xml');
+            res.send(fs.readFileSync(filePath, 'utf-8'));
+        } else {
+            res.status(500).send('Article blogs sitemap generation failed');
+        }
+    }).catch(() => res.status(500).send('Error generating article blogs sitemap'));
+});
+
+// ── News sub-sitemap route — /news-sitemap.xml ──────────────
+app.get('/news-sitemap.xml', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'news-sitemap.xml');
+    if (fs.existsSync(filePath)) {
+        res.header('Content-Type', 'application/xml');
+        res.header('Cache-Control', 'public, max-age=3600');
+        return res.send(fs.readFileSync(filePath, 'utf-8'));
+    }
+    generateAndSaveSitemaps().then(() => {
+        if (fs.existsSync(filePath)) {
+            res.header('Content-Type', 'application/xml');
+            res.send(fs.readFileSync(filePath, 'utf-8'));
+        } else {
+            res.status(500).send('News sitemap generation failed');
+        }
+    }).catch(() => res.status(500).send('Error generating news sitemap'));
+});
+
+// ── Pages sub-sitemap route — /pages-sitemap.xml ──────────
+app.get('/pages-sitemap.xml', (req, res) => {
+    const filePath = path.join(__dirname, 'public', 'pages-sitemap.xml');
+    if (fs.existsSync(filePath)) {
+        res.header('Content-Type', 'application/xml');
+        res.header('Cache-Control', 'public, max-age=3600');
+        return res.send(fs.readFileSync(filePath, 'utf-8'));
+    }
+    generateAndSaveSitemaps().then(() => {
+        if (fs.existsSync(filePath)) {
+            res.header('Content-Type', 'application/xml');
+            res.send(fs.readFileSync(filePath, 'utf-8'));
+        } else {
+            res.status(500).send('Pages sitemap generation failed');
+        }
+    }).catch(() => res.status(500).send('Error generating pages sitemap'));
+});
+
+// ── Manual sitemap regeneration API (admin use) ────────
+app.get('/api/regen-sitemaps', async (req, res) => {
+    if (req.query.key !== 'Indiaipo@123' && req.query.key !== 'indiaipo@123') {
+        return res.status(403).send('Unauthorized');
+    }
+    await generateAndSaveSitemaps();
+    res.json({ success: true, message: 'Sitemaps regenerated successfully' });
+});
+
 
 // ============================================================
 // SSR META TAG INJECTION — Dynamic meta for crawlers/view-source
@@ -2271,6 +2394,7 @@ app.get('/blogs/:slug', async (req, res, next) => {
 
 app.get(/.*/, async (req, res, next) => {
     const indexPath = path.join(distDir, 'index.html');
+    console.log(`[SSR] ${req.method} ${req.originalUrl}`);
     if (!fs.existsSync(indexPath)) return next();
     if (
         req.path.startsWith('/api/') ||
@@ -2457,6 +2581,7 @@ if (fs.existsSync(distDir)) {
             return next();
         }
         const indexPath = path.join(distDir, 'index.html');
+        console.log(`[SPA] ${req.method} ${req.originalUrl}`);
         if (fs.existsSync(indexPath)) {
             const siteUrl = process.env.SITE_URL || 'https://www.indiaipo.in';
             const normalizedPath = req.path.length > 1 && req.path.endsWith('/') ? req.path.slice(0, -1) : req.path;
@@ -2586,6 +2711,19 @@ if (fs.existsSync(distDir)) {
     });
     console.log(`✅ Serving React app from: ${distDir}`);
 }
+// global error middleware
+app.use((err, req, res, next) => {
+    console.error("❌ Unhandled error");
+    console.error("URL:", req.originalUrl);
+    console.error("Method:", req.method);
+    console.error(err.stack || err);
+
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    res.status(500).send("Internal Server Error");
+});
 
 // Start server after DB init
 initDB().then(() => {

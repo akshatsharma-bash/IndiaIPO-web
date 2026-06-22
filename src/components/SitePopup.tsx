@@ -349,7 +349,7 @@ const SitePopup = () => {
                     className="w-full h-12 rounded-xl font-black text-base shadow-lg bg-[#0f766e] hover:bg-[#0d645d] text-white border-none flex items-center justify-center gap-2"
                     onClick={() => {
                       setIsOpen(false);
-                      window.open("https://indiaipo.ai/chats", "_blank", "noopener,noreferrer");
+                      window.open("https://indiaipo.ai", "_blank", "noopener,noreferrer");
                     }}
                   >
                     Start Chat <ArrowRight className="h-4 w-4" />

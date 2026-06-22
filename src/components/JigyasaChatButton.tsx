@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { X, Sparkles, ArrowRight, Zap, Bot } from "lucide-react";
 import Ribbon from "@/components/Ribbon";
 
-const CHAT_URL = "https://indiaipo.ai/chats";
+const CHAT_URL = "https://indiaipo.ai";
 
 const JigyasaChatButton = () => {
   const [showModal, setShowModal] = useState(false);
